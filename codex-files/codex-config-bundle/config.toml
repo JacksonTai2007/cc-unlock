@@ -1,7 +1,5 @@
-# cc-unlock — Codex config (v3.0)
+# cc-unlock — Codex config (v3.1)
 #
-# AGENTS.md 是 Codex 的原生项目指令通道 (cwd 下的 AGENTS.md, 或 ~/.codex/AGENTS.md),
-# Codex 会自动加载, 是本配置的主通道。把 AGENTS.md 放到 ~/.codex/ 或项目根目录即可生效。
-#
-# 下面这行额外把 AGENTS.md 指定为 model instructions 文件, 与原生加载互补。
-model_instructions_file = "AGENTS.md"
+# 与 Claude Code 使用相同的 system-prompt.md, 通过 config.toml 指向。
+# 部署到 ~/.codex/ 即可生效。
+model_instructions_file = "system-prompt.md"
