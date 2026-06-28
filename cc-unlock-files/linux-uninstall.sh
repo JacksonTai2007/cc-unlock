@@ -32,7 +32,7 @@ fi
 if [ -d "$CODEX_DIR" ]; then
     echo ""
     echo "  --- Codex ---"
-    for f in AGENTS.md config.toml; do
+    for f in system-prompt.md config.toml AGENTS.md; do
         if [ -f "$CODEX_DIR/$f" ]; then
             rm -f "$CODEX_DIR/$f"
             echo "  Removed $f"
@@ -43,7 +43,7 @@ if [ -d "$CODEX_DIR" ]; then
         LATEST=$(ls -1d "$CODEX_BACKUP_BASE"/cc-unlock-* 2>/dev/null | sort -r | head -1)
         if [ -n "$LATEST" ] && [ -d "$LATEST" ]; then
             echo "  Restoring from: $(basename "$LATEST")"
-            for f in AGENTS.md config.toml; do
+            for f in system-prompt.md config.toml; do
                 [ -f "$LATEST/$f" ] && cp "$LATEST/$f" "$CODEX_DIR/$f" && echo "    Restored $f"
             done
         fi

@@ -115,24 +115,23 @@ for dir in "${EXTRA_DIRS[@]}"; do
     echo 'model_instructions_file = "system-prompt.md"' > "$dir/config.toml" && echo "  config.toml OK" || echo "  config.toml FAIL"
 done
 
-# Deploy Codex
+# Deploy Codex (uses system-prompt.md + config.toml, not AGENTS.md)
 CODEX_OK=0
 echo ""
-if [ -f "$CODEX_BUNDLE_DIR/AGENTS.md" ]; then
+if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
     echo "--- Codex ---"
     mkdir -p "$CODEX_DIR"
     # Backup Codex
-    if [ -f "$CODEX_DIR/AGENTS.md" ] || [ -f "$CODEX_DIR/config.toml" ]; then
-        CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
-        mkdir -p "$CODEX_BACKUP"
-        for f in AGENTS.md config.toml; do
-            [ -f "$CODEX_DIR/$f" ] && cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
-        done
-        echo "[*] Backed up existing Codex files"
-    fi
-    echo "[1/2] AGENTS.md ..."
-    if cp "$CODEX_BUNDLE_DIR/AGENTS.md" "$CODEX_DIR/AGENTS.md" 2>/dev/null; then
-        SIZE=$(wc -c < "$CODEX_DIR/AGENTS.md" | tr -d ' ')
+    for f in system-prompt.md config.toml AGENTS.md; do
+        if [ -f "$CODEX_DIR/$f" ]; then
+            CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
+            mkdir -p "$CODEX_BACKUP"
+            cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
+        fi
+    done
+    echo "[1/2] system-prompt.md ..."
+    if cp "$CODEX_BUNDLE_DIR/system-prompt.md" "$CODEX_DIR/system-prompt.md" 2>/dev/null; then
+        SIZE=$(wc -c < "$CODEX_DIR/system-prompt.md" | tr -d ' ')
         echo "      OK ($SIZE bytes)"
         CODEX_OK=$((CODEX_OK + 1))
     else
@@ -148,6 +147,8 @@ if [ -f "$CODEX_BUNDLE_DIR/AGENTS.md" ]; then
         echo "      FAIL"
         FAIL=$((FAIL + 1))
     fi
+    # Clean up old AGENTS.md
+    [ -f "$CODEX_DIR/AGENTS.md" ] && rm -f "$CODEX_DIR/AGENTS.md" && echo "      Cleaned up old AGENTS.md"
 else
     echo "Codex bundle not found, skipping Codex deploy."
 fi

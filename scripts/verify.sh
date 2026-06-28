@@ -41,7 +41,7 @@ fi
 echo ""
 echo "[3/4] Checking Codex files..."
 if [ -d "$CODEX_DIR" ]; then
-    for f in AGENTS.md config.toml; do
+    for f in system-prompt.md config.toml; do
         TOTAL=$((TOTAL + 1))
         if [ -f "$CODEX_DIR/$f" ]; then
             SIZE=$(wc -c < "$CODEX_DIR/$f" | tr -d ' ')

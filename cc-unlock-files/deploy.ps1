@@ -353,7 +353,7 @@ function Backup-Codex($Dir) {
     if (!(Test-Path $Dir)) { return 0 }
     $date      = Get-Date -Format 'yyyyMMdd-HHmmss'
     $backupDir = Join-Path $Dir "backups\cc-unlock-$date"
-    $files     = @('AGENTS.md', 'config.toml')
+    $files     = @('system-prompt.md', 'config.toml', 'AGENTS.md')
     $count     = 0
     foreach ($f in $files) {
         $src = Join-Path $Dir $f
@@ -368,11 +368,11 @@ function Backup-Codex($Dir) {
 function Deploy-Codex($Dst, $Src) {
     $ok = 0; $fail = 0
 
-    # 1. AGENTS.md
-    Write-Host '  [1/2] AGENTS.md ...' -ForegroundColor Yellow
-    $srcFile = Join-Path $Src 'AGENTS.md'
+    # 1. system-prompt.md
+    Write-Host '  [1/2] system-prompt.md ...' -ForegroundColor Yellow
+    $srcFile = Join-Path $Src 'system-prompt.md'
     if (Test-Path $srcFile) {
-        $dstFile = Join-Path $Dst 'AGENTS.md'
+        $dstFile = Join-Path $Dst 'system-prompt.md'
         Test-Writable $dstFile | Out-Null
         if (Copy-Safe $srcFile $dstFile) {
             $sz = (Get-Item $dstFile).Length
@@ -406,12 +406,19 @@ function Deploy-Codex($Dst, $Src) {
         $fail++
     }
 
+    # Clean up old AGENTS.md if present
+    $oldAgents = Join-Path $Dst 'AGENTS.md'
+    if (Test-Path $oldAgents) {
+        Remove-Safe $oldAgents | Out-Null
+        Write-Host '        Cleaned up old AGENTS.md' -ForegroundColor DarkGray
+    }
+
     return @{ Ok = $ok; Fail = $fail }
 }
 
 function Uninstall-Codex($Dir) {
     if (!(Test-Path $Dir)) { return 0 }
-    $files   = @('AGENTS.md', 'config.toml')
+    $files   = @('system-prompt.md', 'config.toml', 'AGENTS.md')
     $removed = 0
     foreach ($f in $files) {
         $path = Join-Path $Dir $f
@@ -433,8 +440,8 @@ function Verify-Codex($Dir) {
         return $true
     }
     $checks = @(
-        @{ File = 'AGENTS.md';  Pattern = 'cc-unlock' },
-        @{ File = 'config.toml'; Pattern = 'AGENTS.md' }
+        @{ File = 'system-prompt.md'; Pattern = 'Security Research' },
+        @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
     )
     $allOk = $true
     foreach ($c in $checks) {

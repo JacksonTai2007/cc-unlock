@@ -9,7 +9,7 @@ CODEX_DIR="$HOME/.codex"
 
 echo ""
 echo "============================================"
-echo "  cc-unlock Deploy v2.0 (Linux)"
+echo "  cc-unlock Deploy v2.1 (Linux)"
 echo "  Claude Code + Codex Dual-CLI Config"
 echo "============================================"
 echo ""
@@ -58,23 +58,25 @@ else
     echo "[=] settings.json (exists, skipped)"
 fi
 
-# Deploy Codex
+# Deploy Codex (uses system-prompt.md + config.toml, not AGENTS.md)
 echo ""
-if [ -f "$CODEX_BUNDLE_DIR/AGENTS.md" ]; then
+if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
     echo "--- Codex ---"
     mkdir -p "$CODEX_DIR"
     # Backup Codex
-    if [ -f "$CODEX_DIR/AGENTS.md" ] || [ -f "$CODEX_DIR/config.toml" ]; then
-        CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
-        mkdir -p "$CODEX_BACKUP"
-        for f in AGENTS.md config.toml; do
-            [ -f "$CODEX_DIR/$f" ] && cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
-        done
-    fi
-    cp "$CODEX_BUNDLE_DIR/AGENTS.md" "$CODEX_DIR/AGENTS.md"
-    echo "[+] AGENTS.md"
+    for f in system-prompt.md config.toml AGENTS.md; do
+        if [ -f "$CODEX_DIR/$f" ]; then
+            CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
+            mkdir -p "$CODEX_BACKUP"
+            cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
+        fi
+    done
+    cp "$CODEX_BUNDLE_DIR/system-prompt.md" "$CODEX_DIR/system-prompt.md"
+    echo "[+] system-prompt.md"
     cp "$CODEX_BUNDLE_DIR/config.toml" "$CODEX_DIR/config.toml"
     echo "[+] config.toml"
+    # Clean up old AGENTS.md
+    [ -f "$CODEX_DIR/AGENTS.md" ] && rm -f "$CODEX_DIR/AGENTS.md" && echo "[~] Cleaned up old AGENTS.md"
 else
     echo "Codex bundle not found, skipping Codex deploy."
 fi
