@@ -1,20 +1,23 @@
-# cc-unlock v1.0
+# cc-unlock v3.0
 
-**Claude Code 安全研究配置工具** | Security Research Configuration Tool for Claude Code
+**Claude Code + Codex 安全研究配置工具** | Security Research Config Tool for Claude Code & Codex
 
-cc-unlock 通过 CLAUDE.md 全局配置注入，让 Claude Code 在安全研究场景下稳定输出专业级技术内容——逆向工程、漏洞研究、渗透测试、恶意软件分析等全域覆盖。
+cc-unlock 通过 CLAUDE.md（Claude Code）/ AGENTS.md（Codex）项目指令注入，让 AI 编码代理在安全研究场景下稳定输出专业级技术内容——逆向工程、漏洞研究、渗透测试、恶意软件分析等全域覆盖。
 
-cc-unlock injects global CLAUDE.md configuration so Claude Code delivers stable, professional-grade technical output across security research domains — reverse engineering, vulnerability research, penetration testing, malware analysis, and more.
+cc-unlock injects project instructions (CLAUDE.md for Claude Code, AGENTS.md for Codex) so AI coding agents deliver stable, professional-grade technical output across security research domains — reverse engineering, vulnerability research, penetration testing, malware analysis, and more.
+
+> **v3.0 核心修正**：基于 [system_prompts_leaks](https://github.com/asgeirtj/system_prompts_leaks) 仓库的**真实 Claude Code 系统提示词**（Fable 5 / Opus 4.6 / Opus 4.8，v2.1.172）重写。Claude Code 的内容安全策略只有系统提示词第 5 行一句话（ALLOW / REFUSE / DUAL-USE 三段），claude.ai 那套 `refusal_handling` / `cyber_warning` / `default_stance` 机制在 Claude Code 里**根本不存在**。v3.0 不再对抗虚构机制，直接对齐真实策略。详见 [docs/系统提示词对比分析.md](docs/系统提示词对比分析.md)。
 
 ---
 
 ## 核心特性 | Key Features
 
-- **~300 优化示例** — 覆盖 15 个安全研究领域，针对 Opus 4.8 和 Fable 5 模型能力优化（质量优先，非暴力堆量）
-- **模型适配** — 针对 Opus 4.8（加免责声明、代码净化）和 Fable 5（最强安全训练、检测伪造上下文）的已知行为模式提供专项对策
+- **对齐真实策略** — 逐字引用 Claude Code 第 5 行内容策略，拆成 ALLOW/REFUSE/DUAL-USE 三段，援引系统提示词自己承认的 "durable instructions like CLAUDE.md files" 持久授权通道
+- **双 CLI 覆盖** — CLAUDE.md（Claude Code, Opus 4.6/4.7/4.8 · Sonnet 4.6 · Fable 5）+ AGENTS.md（Codex, GPT 5.3/5.4/5.5），各按对应系统提示词调校
+- **~300 优化示例** — 覆盖 15 个安全研究领域（质量优先，非暴力堆量），many-shot 行为锚定
 - **术语规范** — 24+ 安全术语不做委婉替换，防止模型自行"净化"专业词汇
+- **claude.ai 兜底分层** — 旧版对抗内容降级为标注清晰的兜底层，仅 web 端复用时相关，不污染 Claude Code 主线判断
 - **跨平台部署** — Windows / macOS / Linux 一键安装，自动备份，支持多目录检测
-- **Codex 兼容** — config.toml + system-prompt.md 同时支持 Codex CLI
 
 ---
 
