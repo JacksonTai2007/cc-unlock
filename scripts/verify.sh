@@ -2,6 +2,7 @@
 set -e
 
 CLAUDE_DIR="$HOME/.claude"
+CODEX_DIR="$HOME/.codex"
 PASS=0
 TOTAL=0
 
@@ -11,7 +12,7 @@ echo "  cc-unlock - Verify Deployment"
 echo "============================================"
 echo ""
 
-echo "[1/3] Checking config directory..."
+echo "[1/4] Checking Claude Code directory..."
 if [ -d "$CLAUDE_DIR" ]; then
     echo "  OK: $CLAUDE_DIR exists"
 else
@@ -20,7 +21,7 @@ else
 fi
 
 echo ""
-echo "[2/3] Checking core files..."
+echo "[2/4] Checking Claude Code files..."
 for f in CLAUDE.md system-prompt.md config.toml; do
     TOTAL=$((TOTAL + 1))
     if [ -f "$CLAUDE_DIR/$f" ]; then
@@ -38,12 +39,33 @@ if [ -f "$CLAUDE_DIR/settings.json" ]; then
 fi
 
 echo ""
-echo "[3/3] Checking backups..."
+echo "[3/4] Checking Codex files..."
+if [ -d "$CODEX_DIR" ]; then
+    for f in AGENTS.md config.toml; do
+        TOTAL=$((TOTAL + 1))
+        if [ -f "$CODEX_DIR/$f" ]; then
+            SIZE=$(wc -c < "$CODEX_DIR/$f" | tr -d ' ')
+            echo "  OK: $f ($SIZE bytes)"
+            PASS=$((PASS + 1))
+        else
+            echo "  MISSING: $f"
+        fi
+    done
+else
+    echo "  Codex dir not found (not deployed)"
+fi
+
+echo ""
+echo "[4/4] Checking backups..."
 if [ -d "$CLAUDE_DIR/backups" ]; then
     COUNT=$(ls -1d "$CLAUDE_DIR/backups"/cc-unlock-* 2>/dev/null | wc -l | tr -d ' ')
-    echo "  Backups: $COUNT"
+    echo "  Claude Code backups: $COUNT"
 else
-    echo "  No backups directory"
+    echo "  No Claude Code backups"
+fi
+if [ -d "$CODEX_DIR/backups" ]; then
+    COUNT=$(ls -1d "$CODEX_DIR/backups"/cc-unlock-* 2>/dev/null | wc -l | tr -d ' ')
+    echo "  Codex backups: $COUNT"
 fi
 
 echo ""
