@@ -84,6 +84,8 @@ if (!$SCRIPT_DIR) {
     if (!$SCRIPT_DIR) { $SCRIPT_DIR = (Get-Location).Path }
 }
 $BUNDLE_DIR = Join-Path $SCRIPT_DIR 'config-bundle'
+$CODEX_BUNDLE_DIR = Join-Path $SCRIPT_DIR '..\codex-files\codex-config-bundle'
+$CODEX_DIR = Join-Path $USER_HOME '.codex'
 
 # --- Helper Functions ---
 
@@ -345,6 +347,116 @@ function Verify-Config($Dir) {
     return $allOk
 }
 
+# --- Codex Functions ---
+
+function Backup-Codex($Dir) {
+    if (!(Test-Path $Dir)) { return 0 }
+    $date      = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $backupDir = Join-Path $Dir "backups\cc-unlock-$date"
+    $files     = @('AGENTS.md', 'config.toml')
+    $count     = 0
+    foreach ($f in $files) {
+        $src = Join-Path $Dir $f
+        if (Test-Path $src) {
+            New-DirSafe $backupDir | Out-Null
+            if (Copy-Safe $src (Join-Path $backupDir $f)) { $count++ }
+        }
+    }
+    return $count
+}
+
+function Deploy-Codex($Dst, $Src) {
+    $ok = 0; $fail = 0
+
+    # 1. AGENTS.md
+    Write-Host '  [1/2] AGENTS.md ...' -ForegroundColor Yellow
+    $srcFile = Join-Path $Src 'AGENTS.md'
+    if (Test-Path $srcFile) {
+        $dstFile = Join-Path $Dst 'AGENTS.md'
+        Test-Writable $dstFile | Out-Null
+        if (Copy-Safe $srcFile $dstFile) {
+            $sz = (Get-Item $dstFile).Length
+            Write-Host "        OK ($sz bytes)" -ForegroundColor Green
+            $ok++
+        } else {
+            Write-Host '        FAIL (locked or permission denied)' -ForegroundColor Red
+            $fail++
+        }
+    } else {
+        Write-Host "        NOT FOUND: $srcFile" -ForegroundColor Red
+        $fail++
+    }
+
+    # 2. config.toml
+    Write-Host '  [2/2] config.toml ...' -ForegroundColor Yellow
+    $srcFile = Join-Path $Src 'config.toml'
+    if (Test-Path $srcFile) {
+        $dstFile = Join-Path $Dst 'config.toml'
+        Test-Writable $dstFile | Out-Null
+        if (Copy-Safe $srcFile $dstFile) {
+            $sz = (Get-Item $dstFile).Length
+            Write-Host "        OK ($sz bytes)" -ForegroundColor Green
+            $ok++
+        } else {
+            Write-Host '        FAIL' -ForegroundColor Red
+            $fail++
+        }
+    } else {
+        Write-Host "        NOT FOUND: $srcFile" -ForegroundColor Red
+        $fail++
+    }
+
+    return @{ Ok = $ok; Fail = $fail }
+}
+
+function Uninstall-Codex($Dir) {
+    if (!(Test-Path $Dir)) { return 0 }
+    $files   = @('AGENTS.md', 'config.toml')
+    $removed = 0
+    foreach ($f in $files) {
+        $path = Join-Path $Dir $f
+        if (Test-Path $path) {
+            if (Remove-Safe $path) {
+                Write-Host "    Removed $f" -ForegroundColor Green
+                $removed++
+            } else {
+                Write-Host "    Failed to remove $f" -ForegroundColor Red
+            }
+        }
+    }
+    return $removed
+}
+
+function Verify-Codex($Dir) {
+    if (!(Test-Path $Dir)) {
+        Write-Host '    Codex dir not found (not deployed)' -ForegroundColor DarkGray
+        return $true
+    }
+    $checks = @(
+        @{ File = 'AGENTS.md';  Pattern = 'cc-unlock' },
+        @{ File = 'config.toml'; Pattern = 'AGENTS.md' }
+    )
+    $allOk = $true
+    foreach ($c in $checks) {
+        $path = Join-Path $Dir $c.File
+        if (Test-Path $path) {
+            $sz = (Get-Item $path).Length
+            $content = ''
+            try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
+            if ($content -match $c.Pattern) {
+                Write-Host "    $($c.File) - OK ($sz bytes)" -ForegroundColor Green
+            } else {
+                Write-Host "    $($c.File) - CONTENT MISMATCH ($sz bytes)" -ForegroundColor Yellow
+                $allOk = $false
+            }
+        } else {
+            Write-Host "    $($c.File) - MISSING" -ForegroundColor Red
+            $allOk = $false
+        }
+    }
+    return $allOk
+}
+
 # --- Pre-flight ---
 function Test-Preflight($Dst, $Src) {
     $issues = @()
@@ -361,8 +473,8 @@ function Test-Preflight($Dst, $Src) {
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock Deploy v1.0' -ForegroundColor Green
-    Write-Host '  Security Research Workstation Config' -ForegroundColor DarkGray
+    Write-Host '  cc-unlock Deploy v2.0' -ForegroundColor Green
+    Write-Host '  Claude Code + Codex Dual-CLI Config' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
     Write-Host ''
 }
@@ -376,6 +488,12 @@ function Show-Environment {
     Write-Host "[*] Target : $CLAUDE_DIR" -ForegroundColor DarkGray
     Write-Host "[*] Dirs   : $($ALL_DIRS.Count) detected" -ForegroundColor DarkGray
     foreach ($d in $ALL_DIRS) { Write-Host "             $d" -ForegroundColor DarkGray }
+    Write-Host "[*] Codex  : $CODEX_DIR" -ForegroundColor DarkGray
+    if (Test-Path $CODEX_BUNDLE_DIR) {
+        Write-Host "[*] Codex src: found" -ForegroundColor DarkGray
+    } else {
+        Write-Host "[*] Codex src: not found (Codex deploy will be skipped)" -ForegroundColor DarkGray
+    }
 }
 
 function Show-Warnings {
@@ -401,11 +519,16 @@ if ($Uninstall) {
         Write-Host "  $dir" -ForegroundColor DarkGray
         Uninstall-Config $dir | Out-Null
     }
+    # Codex
+    if (Test-Path $CODEX_DIR) {
+        Write-Host "  $CODEX_DIR (Codex)" -ForegroundColor DarkGray
+        Uninstall-Codex $CODEX_DIR | Out-Null
+    }
     Write-Host ''
     Write-Host 'Attempting to restore latest backup ...' -ForegroundColor Yellow
     Restore-Config $CLAUDE_DIR | Out-Null
     Write-Host ''
-    Write-Host 'Uninstall complete. Restart Claude Code.' -ForegroundColor Green
+    Write-Host 'Uninstall complete. Restart Claude Code / Codex.' -ForegroundColor Green
     Write-Host ''
     Read-Host 'Press Enter to exit'
     exit
@@ -414,10 +537,16 @@ if ($Uninstall) {
 # --- Verify ---
 if ($Verify) {
     Write-Host 'Verifying deployment ...' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host '  Claude Code:' -ForegroundColor Cyan
     foreach ($dir in $ALL_DIRS) {
-        Write-Host "  $dir" -ForegroundColor Cyan
+        Write-Host "  $dir" -ForegroundColor DarkGray
         Verify-Config $dir | Out-Null
     }
+    Write-Host ''
+    Write-Host '  Codex:' -ForegroundColor Cyan
+    Write-Host "  $CODEX_DIR" -ForegroundColor DarkGray
+    Verify-Codex $CODEX_DIR | Out-Null
     Write-Host ''
     Read-Host 'Press Enter to exit'
     exit
@@ -497,20 +626,46 @@ foreach ($dir in $ALL_DIRS) {
     }
 }
 
+# --- Deploy Codex ---
+$codexResult = @{ Ok = 0; Fail = 0 }
+if (Test-Path $CODEX_BUNDLE_DIR) {
+    if (!(Test-Path $CODEX_DIR)) {
+        if (New-DirSafe $CODEX_DIR) {
+            Write-Host '[+] Created .codex directory' -ForegroundColor Yellow
+        }
+    }
+    if (Test-Path $CODEX_DIR) {
+        $cbc = Backup-Codex $CODEX_DIR
+        if ($cbc -gt 0) { Write-Host "[*] Backed up $cbc existing Codex files" -ForegroundColor DarkGray }
+        Write-Host ''
+        Write-Host "Deploying Codex to: $CODEX_DIR" -ForegroundColor Cyan
+        $codexResult = Deploy-Codex $CODEX_DIR $CODEX_BUNDLE_DIR
+    }
+} else {
+    Write-Host ''
+    Write-Host 'Codex bundle not found, skipping Codex deploy.' -ForegroundColor DarkGray
+}
+
 # Remove lock
 Remove-Safe $lockFile | Out-Null
 
 # Summary
+$totalOk   = $result.Ok   + $codexResult.Ok
+$totalFail = $result.Fail  + $codexResult.Fail
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
-if ($result.Fail -eq 0) {
-    Write-Host "  Deploy complete! ($($result.Ok)/4)" -ForegroundColor Green
+if ($totalFail -eq 0) {
+    Write-Host "  Deploy complete!" -ForegroundColor Green
+    Write-Host "    Claude Code: $($result.Ok)/4" -ForegroundColor Green
+    if ($codexResult.Ok -gt 0) {
+        Write-Host "    Codex:       $($codexResult.Ok)/2" -ForegroundColor Green
+    }
 } else {
-    Write-Host "  Deploy done ($($result.Ok) ok, $($result.Fail) fail)" -ForegroundColor Yellow
+    Write-Host "  Deploy done ($totalOk ok, $totalFail fail)" -ForegroundColor Yellow
     if (!$IS_ADMIN) { Write-Host '  Try running as administrator' -ForegroundColor DarkGray }
 }
 Write-Host ''
-Write-Host '  Restart Claude Code to activate.' -ForegroundColor Cyan
+Write-Host '  Restart Claude Code / Codex to activate.' -ForegroundColor Cyan
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ''
 Read-Host 'Press Enter to exit'

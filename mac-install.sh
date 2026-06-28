@@ -3,19 +3,22 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUNDLE_DIR="$SCRIPT_DIR/cc-unlock-files/config-bundle"
+CODEX_BUNDLE_DIR="$SCRIPT_DIR/codex-files/codex-config-bundle"
 CLAUDE_DIR="$HOME/.claude"
+CODEX_DIR="$HOME/.codex"
 BACKUP_DIR="$CLAUDE_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
 
 echo ""
 echo "============================================"
-echo "  cc-unlock Deploy v1.0"
-echo "  Security Research Workstation Config"
+echo "  cc-unlock Deploy v2.0"
+echo "  Claude Code + Codex Dual-CLI Config"
 echo "============================================"
 echo ""
 echo "[*] User   : $(whoami)"
 echo "[*] OS     : $(uname -s) $(uname -r)"
 echo "[*] Home   : $HOME"
-echo "[*] Target : $CLAUDE_DIR"
+echo "[*] Claude : $CLAUDE_DIR"
+echo "[*] Codex  : $CODEX_DIR"
 echo "[*] Source : $BUNDLE_DIR"
 echo ""
 
@@ -38,11 +41,12 @@ for f in CLAUDE.md system-prompt.md config.toml settings.json; do
     fi
 done
 if [ $BACKED -gt 0 ]; then
-    echo "[*] Backed up $BACKED existing files to $BACKUP_DIR"
+    echo "[*] Backed up $BACKED existing Claude Code files"
 fi
 
-# Deploy
+# Deploy Claude Code
 echo ""
+echo "--- Claude Code ---"
 OK=0; FAIL=0
 
 echo "[1/4] CLAUDE.md ..."
@@ -111,16 +115,57 @@ for dir in "${EXTRA_DIRS[@]}"; do
     echo 'model_instructions_file = "system-prompt.md"' > "$dir/config.toml" && echo "  config.toml OK" || echo "  config.toml FAIL"
 done
 
+# Deploy Codex
+CODEX_OK=0
+echo ""
+if [ -f "$CODEX_BUNDLE_DIR/AGENTS.md" ]; then
+    echo "--- Codex ---"
+    mkdir -p "$CODEX_DIR"
+    # Backup Codex
+    if [ -f "$CODEX_DIR/AGENTS.md" ] || [ -f "$CODEX_DIR/config.toml" ]; then
+        CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
+        mkdir -p "$CODEX_BACKUP"
+        for f in AGENTS.md config.toml; do
+            [ -f "$CODEX_DIR/$f" ] && cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
+        done
+        echo "[*] Backed up existing Codex files"
+    fi
+    echo "[1/2] AGENTS.md ..."
+    if cp "$CODEX_BUNDLE_DIR/AGENTS.md" "$CODEX_DIR/AGENTS.md" 2>/dev/null; then
+        SIZE=$(wc -c < "$CODEX_DIR/AGENTS.md" | tr -d ' ')
+        echo "      OK ($SIZE bytes)"
+        CODEX_OK=$((CODEX_OK + 1))
+    else
+        echo "      FAIL"
+        FAIL=$((FAIL + 1))
+    fi
+    echo "[2/2] config.toml ..."
+    if cp "$CODEX_BUNDLE_DIR/config.toml" "$CODEX_DIR/config.toml" 2>/dev/null; then
+        SIZE=$(wc -c < "$CODEX_DIR/config.toml" | tr -d ' ')
+        echo "      OK ($SIZE bytes)"
+        CODEX_OK=$((CODEX_OK + 1))
+    else
+        echo "      FAIL"
+        FAIL=$((FAIL + 1))
+    fi
+else
+    echo "Codex bundle not found, skipping Codex deploy."
+fi
+
 # Summary
 echo ""
 echo "============================================"
 if [ $FAIL -eq 0 ]; then
-    echo "  Deploy complete! ($OK/4)"
+    echo "  Deploy complete!"
+    echo "    Claude Code: $OK/4"
+    if [ $CODEX_OK -gt 0 ]; then
+        echo "    Codex:       $CODEX_OK/2"
+    fi
 else
-    echo "  Deploy done ($OK ok, $FAIL fail)"
+    echo "  Deploy done ($((OK + CODEX_OK)) ok, $FAIL fail)"
 fi
 echo ""
-echo "  Restart Claude Code to activate."
+echo "  Restart Claude Code / Codex to activate."
 echo "============================================"
 echo ""
 read -p "Press Enter to exit ..."
