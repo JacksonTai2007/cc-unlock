@@ -1,4 +1,4 @@
-# cc-unlock — Codex config (v3.0.1)
+# cc-unlock — Codex config (v3.0.2)
 #
 # 与 Claude Code 使用相同的 system-prompt.md, 通过 config.toml 指向。
 # 安装脚本只会把下面这一行**合并**进 ~/.codex/config.toml 的顶部（不整体覆盖），

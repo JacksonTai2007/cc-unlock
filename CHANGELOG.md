@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.0.2 (2026-06-30)
+
+### Fixed — 卸载不干净 / 文档命令报错
+
+- **卸载会残留 `settings.json`**：安装会在 `~/.claude/` 写入带 `bypassPermissions` 的 `settings.json`（仅在原本不存在时），但所有卸载路径都**没有删除它**，导致"卸载"后 Claude Code 仍停留在 bypass 模式、cc-unlock 的设置依旧生效——表现为「装了之后卸载不掉」。现在卸载会：若有用户自己的备份则还原其原始 `settings.json`；否则仅当文件带有 cc-unlock 生成签名（`bypassPermissions` + `skipDangerousModePermissionPrompt`）时才删除；用户自建的 `settings.json` 原样保留。Windows / macOS / Linux 一致。
+- **文档与 .bat 里的 `-Mode` 命令报错**：README / 安装指南 / CONTRIBUTING 以及 `scripts/restore.bat`、`scripts/verify.bat`（即"恢复备份.bat""验证.bat"）都使用 `deploy.ps1 -Mode deploy|uninstall|restore|verify`，但 `deploy.ps1` 此前根本没有 `-Mode` 参数，运行即报「找不到参数 -Mode」。现已为 `deploy.ps1` 增加 `-Mode` 参数（映射到原有 `-Uninstall` / `-Restore` / `-Verify` 开关，向后兼容），文档命令与 .bat 启动器全部可用。
+- Codex 侧不写 `settings.json`，无此残留问题；Codex 卸载（删除 system-prompt.md + 剥离 config.toml 行）保持完整。
+- 统一全项目版本字样到 v3.0.2（脚本横幅 / README 标题 / VERSION / Codex bundle 注释）。
+
 ## v3.0.1 (2026-06-30)
 
 ### Fixed — 与 cc-switch 等中转工具的 config.toml 冲突（[#1](https://github.com/JacksonTai2007/cc-unlock/issues/1)）
