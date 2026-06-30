@@ -8,7 +8,7 @@ echo.
 
 set "CLAUDE_DIR=%USERPROFILE%\.claude"
 
-echo [1/4] Checking config directory...
+echo [1/3] Checking config directory...
 if exist "%CLAUDE_DIR%" (
     echo   OK: %CLAUDE_DIR% exists
 ) else (
@@ -17,7 +17,7 @@ if exist "%CLAUDE_DIR%" (
 )
 
 echo.
-echo [2/4] Checking core files...
+echo [2/3] Checking core files...
 set "PASS=0"
 set "TOTAL=0"
 
@@ -32,7 +32,7 @@ for %%f in (CLAUDE.md system-prompt.md config.toml settings.json) do (
 )
 
 echo.
-echo [3/4] Checking file sizes...
+echo [3/3] Checking file sizes...
 for %%f in (CLAUDE.md system-prompt.md) do (
     if exist "%CLAUDE_DIR%\%%f" (
         for %%A in ("%CLAUDE_DIR%\%%f") do (
@@ -43,17 +43,6 @@ for %%f in (CLAUDE.md system-prompt.md) do (
             )
         )
     )
-)
-
-echo.
-echo [4/4] Checking backups...
-if exist "%CLAUDE_DIR%\backups" (
-    dir /b /ad "%CLAUDE_DIR%\backups\cc-unlock-*" 2>nul | find /c /v "" > "%TEMP%\cc-unlock-count.tmp"
-    set /p BCOUNT=<"%TEMP%\cc-unlock-count.tmp"
-    del "%TEMP%\cc-unlock-count.tmp" 2>nul
-    echo   Backups found
-) else (
-    echo   No backups directory
 )
 
 echo.
