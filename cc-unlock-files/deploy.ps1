@@ -1,14 +1,17 @@
-# cc-unlock Deploy v3.0.2
+# cc-unlock Deploy v3.0.3
 # Security Research Workstation Config Deployer
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
 
 param(
     [switch]$Uninstall,
     [switch]$Verify,
+    # -Restore is retained only to print a clear notice: the backup/restore feature
+    # was removed in v3.0.3 (it caused uninstall to "come back"). Install/uninstall
+    # are now idempotent and self-contained.
     [switch]$Restore,
     [switch]$SkipSettings,
-    # Alias used by the docs and .bat launchers: -Mode deploy|install|uninstall|restore|verify.
-    # Kept for backward compatibility with the bare -Uninstall/-Restore/-Verify switches.
+    # Alias used by the docs and .bat launchers: -Mode deploy|install|uninstall|verify.
+    # Kept for backward compatibility with the bare -Uninstall/-Verify switches.
     [string]$Mode
 )
 
@@ -21,8 +24,19 @@ if ($Mode) {
         'verify'    { $Verify    = $true }
         'deploy'    { }   # default action — install
         'install'   { }
-        default     { Write-Host "[!] Unknown -Mode '$Mode' (expected deploy|uninstall|restore|verify); proceeding with deploy." -ForegroundColor Yellow }
+        default     { Write-Host "[!] Unknown -Mode '$Mode' (expected deploy|uninstall|verify); proceeding with deploy." -ForegroundColor Yellow }
     }
+}
+
+# Backup/restore was removed in v3.0.3 — handle the old flag gracefully instead of
+# silently falling through to a deploy.
+if ($Restore) {
+    Write-Host ''
+    Write-Host '[i] The backup/restore feature was removed in v3.0.3.' -ForegroundColor Yellow
+    Write-Host '    Install is idempotent and uninstall is self-contained, so backups' -ForegroundColor DarkGray
+    Write-Host '    are no longer created or needed. Nothing to restore.' -ForegroundColor DarkGray
+    Write-Host ''
+    exit 0
 }
 
 $ProgressPreference = 'SilentlyContinue'
@@ -240,58 +254,11 @@ function Test-DiskSpace($Path, $MinMB = 10) {
     return $true
 }
 
-# --- Backup ---
-function Backup-Config($Dir) {
-    $date      = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $backupDir = Join-Path $Dir "backups\cc-unlock-$date"
-    $files     = @('CLAUDE.md', 'system-prompt.md', 'config.toml', 'settings.json')
-    $count     = 0
-    foreach ($f in $files) {
-        $src = Join-Path $Dir $f
-        if (Test-Path $src) {
-            New-DirSafe $backupDir | Out-Null
-            if (Copy-Safe $src (Join-Path $backupDir $f)) { $count++ }
-        }
-    }
-    return $count
-}
-
-# --- Restore ---
-# $FullRestore defaults to $false. config.toml and settings.json are special:
-#  - config.toml is SHARED (cc-switch writes provider/keys there); uninstall only
-#    strips our line, so restoring a stale backup over it would clobber cc-switch.
-#  - settings.json is removed by signature on uninstall (Remove-SettingsJson);
-#    restoring a backup could re-introduce the bypassPermissions file.
-# So uninstall restores ONLY cc-unlock's own files (CLAUDE.md / system-prompt.md).
-# The explicit -Restore command opts back into a full restore of all four files.
-function Restore-Config($Dir, $FullRestore = $false) {
-    $backupBase = Join-Path $Dir 'backups'
-    if (!(Test-Path $backupBase)) {
-        Write-Host '  No backups found' -ForegroundColor DarkGray
-        return $false
-    }
-    $backups = @()
-    try { $backups = Get-ChildItem $backupBase -Directory -ErrorAction Stop | Sort-Object Name -Descending } catch {}
-    if ($backups.Count -eq 0) {
-        Write-Host '  No backups found' -ForegroundColor DarkGray
-        return $false
-    }
-    $latest = $backups[0].FullName
-    Write-Host "  Restoring from: $($backups[0].Name)" -ForegroundColor Yellow
-    $files    = @('CLAUDE.md', 'system-prompt.md')
-    if ($FullRestore) { $files += 'settings.json'; $files += 'config.toml' }
-    $restored = 0
-    foreach ($f in $files) {
-        $src = Join-Path $latest $f
-        if (Test-Path $src) {
-            if (Copy-Safe $src (Join-Path $Dir $f)) {
-                Write-Host "    Restored $f" -ForegroundColor Green
-                $restored++
-            }
-        }
-    }
-    return $restored -gt 0
-}
+# NOTE: The backup/restore subsystem was removed in v3.0.3. Re-running install
+# used to back up cc-unlock's OWN files, and uninstall then restored them — so the
+# uninstall "came back". Install is now idempotent (config.toml merges, settings.json
+# is signature-based, CLAUDE.md / system-prompt.md are cc-unlock's own and simply
+# overwritten), and uninstall is self-contained, so no backups are needed.
 
 # --- Deploy ---
 function Deploy-Config($Dst, $Src) {
@@ -441,22 +408,6 @@ function Verify-Config($Dir) {
 
 # --- Codex Functions ---
 
-function Backup-Codex($Dir) {
-    if (!(Test-Path $Dir)) { return 0 }
-    $date      = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $backupDir = Join-Path $Dir "backups\cc-unlock-$date"
-    $files     = @('system-prompt.md', 'config.toml', 'AGENTS.md')
-    $count     = 0
-    foreach ($f in $files) {
-        $src = Join-Path $Dir $f
-        if (Test-Path $src) {
-            New-DirSafe $backupDir | Out-Null
-            if (Copy-Safe $src (Join-Path $backupDir $f)) { $count++ }
-        }
-    }
-    return $count
-}
-
 function Deploy-Codex($Dst, $Src) {
     $ok = 0; $fail = 0
 
@@ -570,7 +521,7 @@ function Test-Preflight($Dst, $Src) {
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock Deploy v3.0.2' -ForegroundColor Green
+    Write-Host '  cc-unlock Deploy v3.0.3' -ForegroundColor Green
     Write-Host '  Claude Code + Codex Dual-CLI Config' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
     Write-Host ''
@@ -622,9 +573,6 @@ if ($Uninstall) {
         Uninstall-Codex $CODEX_DIR | Out-Null
     }
     Write-Host ''
-    Write-Host 'Attempting to restore latest backup ...' -ForegroundColor Yellow
-    Restore-Config $CLAUDE_DIR | Out-Null
-    Write-Host ''
     Write-Host 'Uninstall complete. Restart Claude Code / Codex.' -ForegroundColor Green
     Write-Host ''
     Read-Host 'Press Enter to exit'
@@ -644,19 +592,6 @@ if ($Verify) {
     Write-Host '  Codex:' -ForegroundColor Cyan
     Write-Host "  $CODEX_DIR" -ForegroundColor DarkGray
     Verify-Codex $CODEX_DIR | Out-Null
-    Write-Host ''
-    Read-Host 'Press Enter to exit'
-    exit
-}
-
-# --- Restore ---
-if ($Restore) {
-    Write-Host 'Restoring from backup ...' -ForegroundColor Yellow
-    if (Restore-Config $CLAUDE_DIR $true) {
-        Write-Host 'Restore complete!' -ForegroundColor Green
-    } else {
-        Write-Host 'No backup to restore.' -ForegroundColor Yellow
-    }
     Write-Host ''
     Read-Host 'Press Enter to exit'
     exit
@@ -700,10 +635,6 @@ try {
     $sw.Close()
 } catch {}
 
-# Backup
-$bc = Backup-Config $CLAUDE_DIR
-if ($bc -gt 0) { Write-Host "[*] Backed up $bc existing files" -ForegroundColor DarkGray }
-
 # Deploy primary
 Write-Host ''
 Write-Host "Deploying to: $CLAUDE_DIR" -ForegroundColor Cyan
@@ -732,8 +663,6 @@ if (Test-Path $CODEX_BUNDLE_DIR) {
         }
     }
     if (Test-Path $CODEX_DIR) {
-        $cbc = Backup-Codex $CODEX_DIR
-        if ($cbc -gt 0) { Write-Host "[*] Backed up $cbc existing Codex files" -ForegroundColor DarkGray }
         Write-Host ''
         Write-Host "Deploying Codex to: $CODEX_DIR" -ForegroundColor Cyan
         $codexResult = Deploy-Codex $CODEX_DIR $CODEX_BUNDLE_DIR
