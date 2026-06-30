@@ -97,6 +97,22 @@ chmod +x cc-unlock-files/linux-install.sh
 
 ---
 
+## 与 cc-switch 等中转工具共存 | Coexistence with cc-switch
+
+> 修复 [#1](https://github.com/JacksonTai2007/cc-unlock/issues/1)：v3.0.0 及更早版本安装时会**整体覆盖** `~/.codex/config.toml`，把 [cc-switch](https://github.com/farion1231/cc-switch) 写入的 `model_provider` / `base_url` / 密钥全部抹掉；反之 cc-switch 切换供应商时也会覆盖掉 cc-unlock 写入的行，两者互相冲突。**v3.0.1 起 cc-unlock 不再整体覆盖 config.toml**。
+
+cc-unlock 只需要在 `~/.codex/config.toml`（以及 `~/.claude/config.toml`）里写入**一行** `model_instructions_file = "system-prompt.md"`。从 v3.0.1 起：
+
+- **安装为合并式写入**：只在文件顶部注入/刷新这一行（保证它是 TOML 根级键，位于第一个 `[table]` 之前），**完整保留** cc-switch 写入的供应商、`base_url`、密钥等其余内容。多次运行结果一致（幂等）。
+- **卸载为非破坏式**：只删除我们注入的那一行，其余内容原样保留；只有当文件除这一行外没有任何内容时才删除整个文件。卸载也不再用旧备份覆盖当前的 `config.toml`（避免覆盖 cc-switch 的最新配置）。
+- **密钥从不被触碰**：cc-switch 的密钥存放在 `~/.codex/auth.json`，cc-unlock 完全不读写该文件。
+
+**推荐用法**：在 cc-switch 里切换供应商后，如果发现 `model_instructions_file` 行被 cc-switch 覆盖丢失，重新运行一次 cc-unlock 安装即可补回该行（不会影响 cc-switch 的供应商配置）。若希望永久共存，也可把 `model_instructions_file = "system-prompt.md"` 加进 cc-switch 对应供应商的 config 模板里。
+
+> cc-unlock now writes only a single `model_instructions_file` line into `config.toml` via a non-destructive merge, preserving everything cc-switch manages (provider/base_url/keys). Uninstall strips only that line. cc-switch's API keys live in `~/.codex/auth.json`, which cc-unlock never touches.
+
+---
+
 ## 文件结构 | File Structure
 
 ```
