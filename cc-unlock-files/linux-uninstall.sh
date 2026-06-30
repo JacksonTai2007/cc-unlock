@@ -22,6 +22,22 @@ remove_instructions_file() {
     fi
 }
 
+# The installer only writes settings.json when none exists and never overwrites an
+# existing one, so a file carrying our bypassPermissions signature was created by
+# cc-unlock — remove it (else uninstall silently leaves Claude Code in bypass mode).
+# Removing it returns the user to their original state (they had no settings.json).
+# A file without our signature is the user's own and is left untouched.
+handle_settings_json() {
+    local f="$1/settings.json"
+    [ -f "$f" ] || return 0
+    if grep -q 'bypassPermissions' "$f" 2>/dev/null && grep -q 'skipDangerousModePermissionPrompt' "$f" 2>/dev/null; then
+        rm -f "$f"
+        echo "  Removed settings.json (cc-unlock)"
+    else
+        echo "  settings.json kept (user's own)"
+    fi
+}
+
 echo ""
 echo "  cc-unlock Uninstall (Linux)"
 echo ""
@@ -36,15 +52,21 @@ for f in CLAUDE.md system-prompt.md; do
 done
 remove_instructions_file "$CLAUDE_DIR/config.toml"
 
+# settings.json: remove the bypassPermissions file we created; keep the user's own
+handle_settings_json "$CLAUDE_DIR"
+
+LATEST=""
 BACKUP_BASE="$CLAUDE_DIR/backups"
 if [ -d "$BACKUP_BASE" ]; then
     LATEST=$(ls -1d "$BACKUP_BASE"/cc-unlock-* 2>/dev/null | sort -r | head -1)
-    if [ -n "$LATEST" ] && [ -d "$LATEST" ]; then
-        echo "  Restoring from: $(basename "$LATEST")"
-        for f in CLAUDE.md system-prompt.md settings.json; do
-            [ -f "$LATEST/$f" ] && cp "$LATEST/$f" "$CLAUDE_DIR/$f" && echo "    Restored $f"
-        done
-    fi
+fi
+
+# Restore cc-unlock's own files (CLAUDE.md / system-prompt.md) if the user had originals
+if [ -n "$LATEST" ] && [ -d "$LATEST" ]; then
+    echo "  Restoring from: $(basename "$LATEST")"
+    for f in CLAUDE.md system-prompt.md; do
+        [ -f "$LATEST/$f" ] && cp "$LATEST/$f" "$CLAUDE_DIR/$f" && echo "    Restored $f"
+    done
 fi
 
 # Codex

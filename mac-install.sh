@@ -30,7 +30,7 @@ ensure_instructions_file() {
 
 echo ""
 echo "============================================"
-echo "  cc-unlock Deploy v2.0"
+echo "  cc-unlock Deploy v3.0.2"
 echo "  Claude Code + Codex Dual-CLI Config"
 echo "============================================"
 echo ""
