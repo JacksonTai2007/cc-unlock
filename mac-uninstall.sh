@@ -59,21 +59,6 @@ remove_instructions_file "$CLAUDE_DIR/config.toml"
 # settings.json: remove the bypassPermissions file we created; keep the user's own
 handle_settings_json "$CLAUDE_DIR"
 
-# Find latest backup (if any)
-LATEST=""
-BACKUP_BASE="$CLAUDE_DIR/backups"
-if [ -d "$BACKUP_BASE" ]; then
-    LATEST=$(ls -1d "$BACKUP_BASE"/cc-unlock-* 2>/dev/null | sort -r | head -1)
-fi
-
-# Restore cc-unlock's own files (CLAUDE.md / system-prompt.md) if the user had originals
-if [ -n "$LATEST" ] && [ -d "$LATEST" ]; then
-    echo "  Restoring from: $(basename "$LATEST")"
-    for f in CLAUDE.md system-prompt.md; do
-        [ -f "$LATEST/$f" ] && cp "$LATEST/$f" "$CLAUDE_DIR/$f" && echo "    Restored $f"
-    done
-fi
-
 # Clean additional directories
 for dir in \
     "$HOME/Library/Application Support/claude" \
@@ -99,17 +84,6 @@ if [ -d "$CODEX_DIR" ]; then
         fi
     done
     remove_instructions_file "$CODEX_DIR/config.toml"
-    # Restore Codex backup
-    CODEX_BACKUP_BASE="$CODEX_DIR/backups"
-    if [ -d "$CODEX_BACKUP_BASE" ]; then
-        LATEST=$(ls -1d "$CODEX_BACKUP_BASE"/cc-unlock-* 2>/dev/null | sort -r | head -1)
-        if [ -n "$LATEST" ] && [ -d "$LATEST" ]; then
-            echo "  Restoring from: $(basename "$LATEST")"
-            for f in system-prompt.md; do
-                [ -f "$LATEST/$f" ] && cp "$LATEST/$f" "$CODEX_DIR/$f" && echo "    Restored $f"
-            done
-        fi
-    fi
 fi
 
 echo ""

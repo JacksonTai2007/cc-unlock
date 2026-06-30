@@ -1,5 +1,18 @@
 # Release Notes
 
+## v3.0.3 — 移除备份/还原，安装流程幂等自包含 (2026-06-30)
+
+### Overview
+
+修复"卸载了又被覆盖回去"的问题：根因是重复安装会备份 cc-unlock 自己的文件，卸载又从备份还原。移除整个备份/还原子系统。
+
+### 核心变更
+
+- **不再创建备份**：安装幂等（config.toml 合并、settings.json 按签名、CLAUDE.md/system-prompt.md 直接覆盖），无需备份。
+- **卸载自包含**：删除 cc-unlock 自有文件 + 按签名删 settings.json + 仅剥离 config.toml 注入行，不再从备份还原。
+- 删除 `restore.bat` / `恢复备份.bat`；`-Restore` / `-Mode restore` 打印"功能已移除"并退出。
+- 注意：安装会覆盖你已有的 `~/.claude/CLAUDE.md`，如有自定义请先自行保存。
+
 ## v3.0.2 — 修复卸载残留与 -Mode 命令报错 (2026-06-30)
 
 ### Overview

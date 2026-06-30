@@ -25,7 +25,6 @@ Response time: within 72 hours.
 This security policy covers:
 - Deployment scripts (deploy.ps1, install.sh, etc.)
 - Configuration files that could lead to unintended system access
-- Backup/restore functionality
 
 This policy does **NOT** cover:
 - Claude Code's own security model
