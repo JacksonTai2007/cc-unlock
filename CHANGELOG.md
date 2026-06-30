@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.0.1 (2026-06-30)
+
+### Fixed — 与 cc-switch 等中转工具的 config.toml 冲突（[#1](https://github.com/JacksonTai2007/cc-unlock/issues/1)）
+
+- **安装不再整体覆盖 `config.toml`**：此前 deploy.ps1 / linux-install.sh / mac-install.sh 会用单行 `model_instructions_file = "system-prompt.md"` 整体覆盖 `~/.codex/config.toml`（及 `~/.claude/config.toml`），抹掉 cc-switch 写入的 `model_provider` / `base_url` / 密钥等配置。改为**合并式写入**：仅在文件顶部注入/刷新该行（保证其为 TOML 根级键，位于首个 `[table]` 之前），保留其余全部内容，且幂等。
+- **卸载改为非破坏式**：只删除 cc-unlock 注入的 `model_instructions_file` 行；若文件除该行外仍有内容则保留文件，仅在内容为空时删除。卸载不再用旧备份覆盖当前 `config.toml`（避免覆盖 cc-switch 的最新配置）；显式 `-Restore` 命令仍可恢复 config.toml。
+- 三个平台（Windows / macOS / Linux）的安装与卸载脚本行为保持一致。
+- cc-switch 的密钥位于 `~/.codex/auth.json`，cc-unlock 不读写该文件。
+
 ## v3.0.0 (2026-06-29)
 
 ### Changed — 对齐真实 Claude Code 策略
