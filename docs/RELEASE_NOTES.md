@@ -1,5 +1,29 @@
 # Release Notes
 
+## v3.0.2 — 修复卸载残留与 -Mode 命令报错 (2026-06-30)
+
+### Overview
+
+修复两个影响「装了卸不掉」体验的问题，并统一全项目版本字样到 v3.0.2。
+
+### 核心修正
+
+- **卸载残留 `settings.json`**：安装会写入带 `bypassPermissions` 的 `~/.claude/settings.json`（仅当原本不存在），但卸载从不删除它，导致卸载后 Claude Code 仍处于 bypass 模式。现在卸载会优先还原用户自己的备份；否则仅删除带 cc-unlock 签名的生成文件；用户自建文件原样保留。三平台一致。
+- **`-Mode` 命令报错**：文档与 `restore.bat` / `verify.bat` 使用的 `deploy.ps1 -Mode deploy|uninstall|restore|verify` 此前因缺少 `-Mode` 参数而报错。已为 `deploy.ps1` 增加 `-Mode`（映射到原有开关，向后兼容）。
+- Codex 不写 settings.json，无该残留；其卸载流程保持完整。
+
+## v3.0.1 — 与 cc-switch 等中转工具共存 (2026-06-30)
+
+### Overview
+
+修复 [#1](https://github.com/JacksonTai2007/cc-unlock/issues/1)：cc-unlock 与 cc-switch 共享 `~/.codex/config.toml`，旧版本安装时整体覆盖该文件、抹掉 cc-switch 的供应商/密钥配置，反之亦然，两者互相冲突。
+
+### 核心修正
+
+- **config.toml 改为非破坏式处理**：安装仅在文件顶部合并/刷新 `model_instructions_file` 一行（保证为 TOML 根级键，位于首个 `[table]` 之前），保留 cc-switch 写入的供应商/`base_url`/密钥；幂等。
+- **卸载只剥离该行**：文件仍有其余内容则保留，仅当为空才删除；不再用旧备份覆盖当前 config.toml。
+- cc-switch 的密钥在 `~/.codex/auth.json`，cc-unlock 不读写。
+
 ## v3.0.0 — 对齐真实 Claude Code 策略 + 新增 Codex 通道 (2026-06-29)
 
 ### Overview

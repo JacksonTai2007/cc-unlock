@@ -1,4 +1,4 @@
-# cc-unlock Deploy v1.0
+# cc-unlock Deploy v3.0.2
 # Security Research Workstation Config Deployer
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
 
@@ -6,8 +6,24 @@ param(
     [switch]$Uninstall,
     [switch]$Verify,
     [switch]$Restore,
-    [switch]$SkipSettings
+    [switch]$SkipSettings,
+    # Alias used by the docs and .bat launchers: -Mode deploy|install|uninstall|restore|verify.
+    # Kept for backward compatibility with the bare -Uninstall/-Restore/-Verify switches.
+    [string]$Mode
 )
+
+# Normalize -Mode into the switch flags so the documented commands actually work.
+if ($Mode) {
+    switch ($Mode.ToLower()) {
+        'uninstall' { $Uninstall = $true }
+        'remove'    { $Uninstall = $true }
+        'restore'   { $Restore   = $true }
+        'verify'    { $Verify    = $true }
+        'deploy'    { }   # default action — install
+        'install'   { }
+        default     { Write-Host "[!] Unknown -Mode '$Mode' (expected deploy|uninstall|restore|verify); proceeding with deploy." -ForegroundColor Yellow }
+    }
+}
 
 $ProgressPreference = 'SilentlyContinue'
 
@@ -172,6 +188,28 @@ function Remove-InstructionsFile($ConfigPath) {
     return 'removed'
 }
 
+# Uninstall settings.json correctly: the installer only WRITES settings.json when
+# none exists and never overwrites an existing one, so a file carrying our
+# bypassPermissions signature was created by cc-unlock — remove it, else "uninstall"
+# silently leaves Claude Code in bypass mode. Removing it returns the user to their
+# original state (they had no settings.json). A file without our signature is the
+# user's own and is left untouched.
+function Remove-SettingsJson($Dir) {
+    $path = Join-Path $Dir 'settings.json'
+    if (!(Test-Path $path)) { return }
+    $content = ''
+    try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
+    if ($content -match 'bypassPermissions' -and $content -match 'skipDangerousModePermissionPrompt') {
+        if (Remove-Safe $path) {
+            Write-Host '    Removed settings.json (cc-unlock)' -ForegroundColor Green
+        } else {
+            Write-Host '    Failed to remove settings.json' -ForegroundColor Red
+        }
+    } else {
+        Write-Host '    settings.json kept (user customized)' -ForegroundColor DarkGray
+    }
+}
+
 function Test-Writable($Path) {
     if (!(Test-Path $Path)) { return $true }
     try {
@@ -219,11 +257,14 @@ function Backup-Config($Dir) {
 }
 
 # --- Restore ---
-# $IncludeConfigToml defaults to $false: config.toml is a SHARED file (cc-switch
-# writes provider/keys there too), and uninstall already strips only our line
-# from the live file. Wholesale-restoring a stale backup over it would clobber
-# cc-switch's current settings. The explicit -Restore command opts back in.
-function Restore-Config($Dir, $IncludeConfigToml = $false) {
+# $FullRestore defaults to $false. config.toml and settings.json are special:
+#  - config.toml is SHARED (cc-switch writes provider/keys there); uninstall only
+#    strips our line, so restoring a stale backup over it would clobber cc-switch.
+#  - settings.json is removed by signature on uninstall (Remove-SettingsJson);
+#    restoring a backup could re-introduce the bypassPermissions file.
+# So uninstall restores ONLY cc-unlock's own files (CLAUDE.md / system-prompt.md).
+# The explicit -Restore command opts back into a full restore of all four files.
+function Restore-Config($Dir, $FullRestore = $false) {
     $backupBase = Join-Path $Dir 'backups'
     if (!(Test-Path $backupBase)) {
         Write-Host '  No backups found' -ForegroundColor DarkGray
@@ -237,8 +278,8 @@ function Restore-Config($Dir, $IncludeConfigToml = $false) {
     }
     $latest = $backups[0].FullName
     Write-Host "  Restoring from: $($backups[0].Name)" -ForegroundColor Yellow
-    $files    = @('CLAUDE.md', 'system-prompt.md', 'settings.json')
-    if ($IncludeConfigToml) { $files += 'config.toml' }
+    $files    = @('CLAUDE.md', 'system-prompt.md')
+    if ($FullRestore) { $files += 'settings.json'; $files += 'config.toml' }
     $restored = 0
     foreach ($f in $files) {
         $src = Join-Path $latest $f
@@ -363,6 +404,9 @@ function Uninstall-Config($Dir) {
         'kept'    { Write-Host '    config.toml (kept other settings)' -ForegroundColor DarkGray }
         default   { Write-Host '    config.toml not found' -ForegroundColor DarkGray }
     }
+    # settings.json: remove the bypassPermissions file we created (else uninstall
+    # leaves Claude Code permanently in bypass mode); keep a user's own file.
+    Remove-SettingsJson $Dir
     return $removed
 }
 
@@ -526,7 +570,7 @@ function Test-Preflight($Dst, $Src) {
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock Deploy v2.0' -ForegroundColor Green
+    Write-Host '  cc-unlock Deploy v3.0.2' -ForegroundColor Green
     Write-Host '  Claude Code + Codex Dual-CLI Config' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
     Write-Host ''
