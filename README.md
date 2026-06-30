@@ -1,4 +1,4 @@
-# cc-unlock v3.0
+# cc-unlock v3.0.2
 
 **Claude Code + Codex 安全研究配置工具** | Security Research Config Tool for Claude Code & Codex
 
