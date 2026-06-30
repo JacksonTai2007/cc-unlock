@@ -7,6 +7,26 @@ CODEX_BUNDLE_DIR="$SCRIPT_DIR/../codex-files/codex-config-bundle"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 
+# Inject / refresh `model_instructions_file = "system-prompt.md"` as a TOML root
+# key WITHOUT clobbering the rest of config.toml. Other tools (e.g. cc-switch)
+# write the active provider / base_url / key into the same file; we must keep
+# those. Re-added at the top so it stays a root key (root keys must precede the
+# first [table] header). Idempotent.
+ensure_instructions_file() {
+    local cfg="$1"
+    local line='model_instructions_file = "system-prompt.md"'
+    if [ ! -f "$cfg" ]; then
+        printf '%s\n' "$line" > "$cfg"
+        return 0
+    fi
+    local tmp="${cfg}.cc-unlock.tmp"
+    {
+        printf '%s\n' "$line"
+        grep -Ev '^[[:space:]]*model_instructions_file[[:space:]]*=' "$cfg" || true
+    } > "$tmp"
+    mv "$tmp" "$cfg"
+}
+
 echo ""
 echo "============================================"
 echo "  cc-unlock Deploy v2.1 (Linux)"
@@ -36,8 +56,8 @@ cp "$BUNDLE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 echo "[+] CLAUDE.md"
 cp "$BUNDLE_DIR/system-prompt.md" "$CLAUDE_DIR/system-prompt.md"
 echo "[+] system-prompt.md"
-echo 'model_instructions_file = "system-prompt.md"' > "$CLAUDE_DIR/config.toml"
-echo "[+] config.toml"
+ensure_instructions_file "$CLAUDE_DIR/config.toml"
+echo "[+] config.toml (merged)"
 
 if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
     cat > "$CLAUDE_DIR/settings.json" << 'EOF'
@@ -73,8 +93,8 @@ if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
     done
     cp "$CODEX_BUNDLE_DIR/system-prompt.md" "$CODEX_DIR/system-prompt.md"
     echo "[+] system-prompt.md"
-    cp "$CODEX_BUNDLE_DIR/config.toml" "$CODEX_DIR/config.toml"
-    echo "[+] config.toml"
+    ensure_instructions_file "$CODEX_DIR/config.toml"
+    echo "[+] config.toml (merged)"
     # Clean up old AGENTS.md
     [ -f "$CODEX_DIR/AGENTS.md" ] && rm -f "$CODEX_DIR/AGENTS.md" && echo "[~] Cleaned up old AGENTS.md"
 else

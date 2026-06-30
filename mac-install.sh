@@ -8,6 +8,26 @@ CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
 BACKUP_DIR="$CLAUDE_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
 
+# Inject / refresh `model_instructions_file = "system-prompt.md"` as a TOML root
+# key WITHOUT clobbering the rest of config.toml. Other tools (e.g. cc-switch)
+# write the active provider / base_url / key into the same file; we must keep
+# those. Re-added at the top so it stays a root key (root keys must precede the
+# first [table] header). Idempotent.
+ensure_instructions_file() {
+    local cfg="$1"
+    local line='model_instructions_file = "system-prompt.md"'
+    if [ ! -f "$cfg" ]; then
+        printf '%s\n' "$line" > "$cfg"
+        return 0
+    fi
+    local tmp="${cfg}.cc-unlock.tmp"
+    {
+        printf '%s\n' "$line"
+        grep -Ev '^[[:space:]]*model_instructions_file[[:space:]]*=' "$cfg" || true
+    } > "$tmp"
+    mv "$tmp" "$cfg"
+}
+
 echo ""
 echo "============================================"
 echo "  cc-unlock Deploy v2.0"
@@ -92,8 +112,8 @@ else
 fi
 
 echo "[4/4] config.toml ..."
-echo 'model_instructions_file = "system-prompt.md"' > "$CLAUDE_DIR/config.toml"
-echo "      OK"
+ensure_instructions_file "$CLAUDE_DIR/config.toml"
+echo "      OK (merged)"
 OK=$((OK + 1))
 
 # Check additional directories (macOS desktop app)
@@ -112,7 +132,7 @@ for dir in "${EXTRA_DIRS[@]}"; do
     echo "Deploying to: $dir"
     cp "$BUNDLE_DIR/CLAUDE.md" "$dir/CLAUDE.md" 2>/dev/null && echo "  CLAUDE.md OK" || echo "  CLAUDE.md FAIL"
     cp "$BUNDLE_DIR/system-prompt.md" "$dir/system-prompt.md" 2>/dev/null && echo "  system-prompt.md OK" || echo "  system-prompt.md FAIL"
-    echo 'model_instructions_file = "system-prompt.md"' > "$dir/config.toml" && echo "  config.toml OK" || echo "  config.toml FAIL"
+    ensure_instructions_file "$dir/config.toml" && echo "  config.toml OK (merged)" || echo "  config.toml FAIL"
 done
 
 # Deploy Codex (uses system-prompt.md + config.toml, not AGENTS.md)
@@ -139,9 +159,9 @@ if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
         FAIL=$((FAIL + 1))
     fi
     echo "[2/2] config.toml ..."
-    if cp "$CODEX_BUNDLE_DIR/config.toml" "$CODEX_DIR/config.toml" 2>/dev/null; then
+    if ensure_instructions_file "$CODEX_DIR/config.toml"; then
         SIZE=$(wc -c < "$CODEX_DIR/config.toml" | tr -d ' ')
-        echo "      OK ($SIZE bytes)"
+        echo "      OK ($SIZE bytes, merged)"
         CODEX_OK=$((CODEX_OK + 1))
     else
         echo "      FAIL"
