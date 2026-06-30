@@ -17,4 +17,4 @@ cc-unlock - macOS 使用说明
   或终端运行 ./mac-uninstall.sh
 
 部署完成后重启 Claude Code 即可生效。
-备份位置: ~/.claude/backups/cc-unlock-*
+注: v3.0.3 起不再创建备份(安装幂等、卸载干净)。若安装前已有自己的 ~/.claude/CLAUDE.md, 请自行先保存。

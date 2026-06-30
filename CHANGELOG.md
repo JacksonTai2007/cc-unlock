@@ -1,5 +1,16 @@
 # Changelog
 
+## v3.0.3 (2026-06-30)
+
+### Changed — 移除备份/还原功能，安装流程改为幂等自包含
+
+- **移除备份/还原子系统**：此前**重复安装**会把 cc-unlock**自己**已部署的文件（CLAUDE.md / system-prompt.md / config.toml / settings.json）备份一份，卸载时再从备份**还原**回去，导致"卸载了又被覆盖回来"。由于 v3.0.1/v3.0.2 已让安装幂等（config.toml 合并、settings.json 按签名处理、CLAUDE.md/system-prompt.md 为 cc-unlock 自有文件直接覆盖），备份/还原既冗余又是该 bug 的根源，故整体移除。
+- 安装脚本（deploy.ps1 / linux-install.sh / mac-install.sh）不再创建备份；卸载脚本（deploy.ps1 / linux-uninstall.sh / mac-uninstall.sh）不再从备份还原。卸载现在是自包含的：删除 cc-unlock 自有文件、按签名删除其创建的 settings.json、仅剥离 config.toml 中注入的那一行。
+- 删除 `scripts/restore.bat` 与 `scripts/恢复备份.bat`；`deploy.ps1 -Restore` / `-Mode restore` 改为打印"功能已移除"提示并退出（不再误触发安装）。
+- 移除 verify.sh / test.bat 中的备份检查；更新 README / 安装指南 / Mac使用说明 / SECURITY 的相关说明。
+- 注意：若用户在安装 cc-unlock 前已有自己的 `~/.claude/CLAUDE.md`，安装会覆盖它（请自行先备份）。
+- 统一版本字样到 v3.0.3。
+
 ## v3.0.2 (2026-06-30)
 
 ### Fixed — 卸载不干净 / 文档命令报错

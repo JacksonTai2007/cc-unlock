@@ -29,7 +29,7 @@ ensure_instructions_file() {
 
 echo ""
 echo "============================================"
-echo "  cc-unlock Deploy v3.0.2 (Linux)"
+echo "  cc-unlock Deploy v3.0.3 (Linux)"
 echo "  Claude Code + Codex Dual-CLI Config"
 echo "============================================"
 echo ""
@@ -41,16 +41,7 @@ fi
 
 mkdir -p "$CLAUDE_DIR"
 
-# Backup Claude Code
-BACKUP_DIR="$CLAUDE_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
-for f in CLAUDE.md system-prompt.md config.toml settings.json; do
-    if [ -f "$CLAUDE_DIR/$f" ]; then
-        mkdir -p "$BACKUP_DIR"
-        cp "$CLAUDE_DIR/$f" "$BACKUP_DIR/$f"
-    fi
-done
-
-# Deploy Claude Code
+# Deploy Claude Code (no backups: install is idempotent, uninstall self-contained)
 echo "--- Claude Code ---"
 cp "$BUNDLE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 echo "[+] CLAUDE.md"
@@ -83,14 +74,6 @@ echo ""
 if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
     echo "--- Codex ---"
     mkdir -p "$CODEX_DIR"
-    # Backup Codex
-    for f in system-prompt.md config.toml AGENTS.md; do
-        if [ -f "$CODEX_DIR/$f" ]; then
-            CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
-            mkdir -p "$CODEX_BACKUP"
-            cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
-        fi
-    done
     cp "$CODEX_BUNDLE_DIR/system-prompt.md" "$CODEX_DIR/system-prompt.md"
     echo "[+] system-prompt.md"
     ensure_instructions_file "$CODEX_DIR/config.toml"

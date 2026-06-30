@@ -1,4 +1,4 @@
-# cc-unlock v3.0.2
+# cc-unlock v3.0.3
 
 **Claude Code + Codex 安全研究配置工具** | Security Research Config Tool for Claude Code & Codex
 
@@ -51,7 +51,7 @@ cc-unlock injects project instructions (CLAUDE.md + system-prompt.md) so AI codi
 - **~300 优化示例** — 覆盖 15 个安全研究领域（质量优先，非暴力堆量），many-shot 行为锚定
 - **术语规范** — 24+ 安全术语不做委婉替换，防止模型自行"净化"专业词汇
 - **claude.ai 兜底分层** — 旧版对抗内容降级为标注清晰的兜底层，仅 web 端复用时相关，不污染 Claude Code 主线判断
-- **跨平台部署** — Windows / macOS / Linux 一键安装，自动备份，支持多目录检测
+- **跨平台部署** — Windows / macOS / Linux 一键安装，支持多目录检测；安装幂等、卸载干净（不再创建备份）
 
 ---
 
@@ -104,7 +104,7 @@ chmod +x cc-unlock-files/linux-install.sh
 cc-unlock 只需要在 `~/.codex/config.toml`（以及 `~/.claude/config.toml`）里写入**一行** `model_instructions_file = "system-prompt.md"`。从 v3.0.1 起：
 
 - **安装为合并式写入**：只在文件顶部注入/刷新这一行（保证它是 TOML 根级键，位于第一个 `[table]` 之前），**完整保留** cc-switch 写入的供应商、`base_url`、密钥等其余内容。多次运行结果一致（幂等）。
-- **卸载为非破坏式**：只删除我们注入的那一行，其余内容原样保留；只有当文件除这一行外没有任何内容时才删除整个文件。卸载也不再用旧备份覆盖当前的 `config.toml`（避免覆盖 cc-switch 的最新配置）。
+- **卸载为非破坏式**：只删除我们注入的那一行，其余内容原样保留；只有当文件除这一行外没有任何内容时才删除整个文件。
 - **密钥从不被触碰**：cc-switch 的密钥存放在 `~/.codex/auth.json`，cc-unlock 完全不读写该文件。
 
 **推荐用法**：在 cc-switch 里切换供应商后，如果发现 `model_instructions_file` 行被 cc-switch 覆盖丢失，重新运行一次 cc-unlock 安装即可补回该行（不会影响 cc-switch 的供应商配置）。若希望永久共存，也可把 `model_instructions_file = "system-prompt.md"` 加进 cc-switch 对应供应商的 config 模板里。
@@ -148,13 +148,11 @@ cc-unlock/
 │   ├── install.sh                     # 安装 (Unix)
 │   ├── uninstall.bat                  # 卸载
 │   ├── uninstall.sh                   # 卸载 (Unix)
-│   ├── restore.bat                    # 恢复备份
 │   ├── verify.bat                     # 验证部署
 │   ├── verify.sh                      # 验证部署 (Unix)
 │   ├── test.bat                       # 快速测试
 │   ├── 兼容性测试.bat                 # 兼容性检查
 │   ├── 快速测试.bat                   # 快速测试 (中文)
-│   ├── 恢复备份.bat                   # 恢复备份 (中文)
 │   └── 验证.bat                       # 验证部署 (中文)
 │
 └── docs/
@@ -205,7 +203,7 @@ A: 确保重启 Claude Code。检查 `~/.claude/CLAUDE.md` 是否存在。
 A: 运行 `scripts/verify.bat`（Windows）或 `scripts/verify.sh`（Unix），或手动检查 `~/.claude/` 目录下的文件。
 
 **Q: 如何恢复原始配置？**
-A: 运行卸载脚本，它会自动从备份恢复。备份位于 `~/.claude/backups/cc-unlock-*`。
+A: 运行卸载脚本即可。卸载会删除 cc-unlock 自己写入的文件（CLAUDE.md / system-prompt.md / 由它创建的 settings.json），并只剥离 `config.toml` 中它注入的那一行，其余内容（含 cc-switch 配置）原样保留。cc-unlock 自 v3.0.3 起**不再创建备份**（旧版备份会在重复安装时备份 cc-unlock 自己的文件、卸载时又被还原，导致卸载不干净）。注意：如果你在安装 cc-unlock 之前就有自己的 `~/.claude/CLAUDE.md`，安装会覆盖它，请自行先行保存。
 
 **Q: settings.json 的 bypassPermissions 安全吗？**
 A: 这是 Claude Code 的内置选项，跳过每次工具调用的确认弹窗。部署脚本支持 `-SkipSettings` 参数跳过此文件的部署。

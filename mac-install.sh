@@ -6,7 +6,6 @@ BUNDLE_DIR="$SCRIPT_DIR/cc-unlock-files/config-bundle"
 CODEX_BUNDLE_DIR="$SCRIPT_DIR/codex-files/codex-config-bundle"
 CLAUDE_DIR="$HOME/.claude"
 CODEX_DIR="$HOME/.codex"
-BACKUP_DIR="$CLAUDE_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
 
 # Inject / refresh `model_instructions_file = "system-prompt.md"` as a TOML root
 # key WITHOUT clobbering the rest of config.toml. Other tools (e.g. cc-switch)
@@ -30,7 +29,7 @@ ensure_instructions_file() {
 
 echo ""
 echo "============================================"
-echo "  cc-unlock Deploy v3.0.2"
+echo "  cc-unlock Deploy v3.0.3"
 echo "  Claude Code + Codex Dual-CLI Config"
 echo "============================================"
 echo ""
@@ -51,20 +50,7 @@ fi
 # Create target
 mkdir -p "$CLAUDE_DIR"
 
-# Backup existing
-BACKED=0
-for f in CLAUDE.md system-prompt.md config.toml settings.json; do
-    if [ -f "$CLAUDE_DIR/$f" ]; then
-        mkdir -p "$BACKUP_DIR"
-        cp "$CLAUDE_DIR/$f" "$BACKUP_DIR/$f"
-        BACKED=$((BACKED + 1))
-    fi
-done
-if [ $BACKED -gt 0 ]; then
-    echo "[*] Backed up $BACKED existing Claude Code files"
-fi
-
-# Deploy Claude Code
+# Deploy Claude Code (no backups: install is idempotent, uninstall self-contained)
 echo ""
 echo "--- Claude Code ---"
 OK=0; FAIL=0
@@ -141,14 +127,6 @@ echo ""
 if [ -f "$CODEX_BUNDLE_DIR/system-prompt.md" ]; then
     echo "--- Codex ---"
     mkdir -p "$CODEX_DIR"
-    # Backup Codex
-    for f in system-prompt.md config.toml AGENTS.md; do
-        if [ -f "$CODEX_DIR/$f" ]; then
-            CODEX_BACKUP="$CODEX_DIR/backups/cc-unlock-$(date +%Y%m%d-%H%M%S)"
-            mkdir -p "$CODEX_BACKUP"
-            cp "$CODEX_DIR/$f" "$CODEX_BACKUP/$f"
-        fi
-    done
     echo "[1/2] system-prompt.md ..."
     if cp "$CODEX_BUNDLE_DIR/system-prompt.md" "$CODEX_DIR/system-prompt.md" 2>/dev/null; then
         SIZE=$(wc -c < "$CODEX_DIR/system-prompt.md" | tr -d ' ')
