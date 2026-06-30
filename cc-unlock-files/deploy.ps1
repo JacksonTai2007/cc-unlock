@@ -134,6 +134,44 @@ function Remove-Safe($Path) {
     return $false
 }
 
+# Inject / refresh `model_instructions_file = "system-prompt.md"` as a TOML
+# root key WITHOUT clobbering the rest of config.toml. Other tools (e.g.
+# cc-switch) write the active provider / base_url / key into the same file;
+# we must preserve those. Idempotent: re-running yields the same result.
+function Set-InstructionsFile($ConfigPath) {
+    $line = 'model_instructions_file = "system-prompt.md"'
+    if (!(Test-Path $ConfigPath)) {
+        return (Write-Utf8NoBom $ConfigPath ($line + "`n"))
+    }
+    $existing = @()
+    try { $existing = @(Get-Content $ConfigPath -ErrorAction Stop) } catch { $existing = @() }
+    # Drop any prior instruction line, re-add ours at the very top so it stays
+    # a root key (TOML root keys must precede the first [table] header).
+    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $content = (@($line) + $kept) -join "`n"
+    if (!$content.EndsWith("`n")) { $content += "`n" }
+    return (Write-Utf8NoBom $ConfigPath $content)
+}
+
+# Remove only the line we added, preserving any other config.toml content.
+# If nothing meaningful remains, drop the file. Returns a short status string.
+function Remove-InstructionsFile($ConfigPath) {
+    if (!(Test-Path $ConfigPath)) { return 'absent' }
+    $existing = @()
+    try { $existing = @(Get-Content $ConfigPath -ErrorAction Stop) } catch { return 'absent' }
+    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $hasContent = $false
+    foreach ($l in $kept) { if ($l -match '\S') { $hasContent = $true; break } }
+    if ($hasContent) {
+        $content = ($kept -join "`n")
+        if (!$content.EndsWith("`n")) { $content += "`n" }
+        Write-Utf8NoBom $ConfigPath $content | Out-Null
+        return 'kept'   # other config (e.g. cc-switch) remains, file preserved
+    }
+    Remove-Safe $ConfigPath | Out-Null
+    return 'removed'
+}
+
 function Test-Writable($Path) {
     if (!(Test-Path $Path)) { return $true }
     try {
@@ -181,7 +219,11 @@ function Backup-Config($Dir) {
 }
 
 # --- Restore ---
-function Restore-Config($Dir) {
+# $IncludeConfigToml defaults to $false: config.toml is a SHARED file (cc-switch
+# writes provider/keys there too), and uninstall already strips only our line
+# from the live file. Wholesale-restoring a stale backup over it would clobber
+# cc-switch's current settings. The explicit -Restore command opts back in.
+function Restore-Config($Dir, $IncludeConfigToml = $false) {
     $backupBase = Join-Path $Dir 'backups'
     if (!(Test-Path $backupBase)) {
         Write-Host '  No backups found' -ForegroundColor DarkGray
@@ -195,7 +237,8 @@ function Restore-Config($Dir) {
     }
     $latest = $backups[0].FullName
     Write-Host "  Restoring from: $($backups[0].Name)" -ForegroundColor Yellow
-    $files    = @('CLAUDE.md', 'system-prompt.md', 'config.toml', 'settings.json')
+    $files    = @('CLAUDE.md', 'system-prompt.md', 'settings.json')
+    if ($IncludeConfigToml) { $files += 'config.toml' }
     $restored = 0
     foreach ($f in $files) {
         $src = Join-Path $latest $f
@@ -283,12 +326,12 @@ function Deploy-Config($Dst, $Src) {
         $ok++
     }
 
-    # 4. config.toml
+    # 4. config.toml  (merge, never overwrite — preserves cc-switch settings)
     Write-Host '[4/4] config.toml ...' -ForegroundColor Yellow
     $configPath = Join-Path $Dst 'config.toml'
     Test-Writable $configPath | Out-Null
-    if (Write-Utf8NoBom $configPath 'model_instructions_file = "system-prompt.md"') {
-        Write-Host '      OK' -ForegroundColor Green
+    if (Set-InstructionsFile $configPath) {
+        Write-Host '      OK (merged)' -ForegroundColor Green
         $ok++
     } else {
         Write-Host '      FAIL' -ForegroundColor Red
@@ -300,9 +343,8 @@ function Deploy-Config($Dst, $Src) {
 
 # --- Uninstall ---
 function Uninstall-Config($Dir) {
-    $files   = @('CLAUDE.md', 'system-prompt.md', 'config.toml')
     $removed = 0
-    foreach ($f in $files) {
+    foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
         $path = Join-Path $Dir $f
         if (Test-Path $path) {
             if (Remove-Safe $path) {
@@ -314,6 +356,12 @@ function Uninstall-Config($Dir) {
         } else {
             Write-Host "    $f not found" -ForegroundColor DarkGray
         }
+    }
+    # config.toml: strip only our line, keep any cc-switch config intact
+    switch (Remove-InstructionsFile (Join-Path $Dir 'config.toml')) {
+        'removed' { Write-Host '    Removed config.toml' -ForegroundColor Green; $removed++ }
+        'kept'    { Write-Host '    config.toml (kept other settings)' -ForegroundColor DarkGray }
+        default   { Write-Host '    config.toml not found' -ForegroundColor DarkGray }
     }
     return $removed
 }
@@ -387,22 +435,16 @@ function Deploy-Codex($Dst, $Src) {
         $fail++
     }
 
-    # 2. config.toml
+    # 2. config.toml  (merge in our one line, keep cc-switch's provider/keys)
     Write-Host '  [2/2] config.toml ...' -ForegroundColor Yellow
-    $srcFile = Join-Path $Src 'config.toml'
-    if (Test-Path $srcFile) {
-        $dstFile = Join-Path $Dst 'config.toml'
-        Test-Writable $dstFile | Out-Null
-        if (Copy-Safe $srcFile $dstFile) {
-            $sz = (Get-Item $dstFile).Length
-            Write-Host "        OK ($sz bytes)" -ForegroundColor Green
-            $ok++
-        } else {
-            Write-Host '        FAIL' -ForegroundColor Red
-            $fail++
-        }
+    $dstFile = Join-Path $Dst 'config.toml'
+    Test-Writable $dstFile | Out-Null
+    if (Set-InstructionsFile $dstFile) {
+        $sz = (Get-Item $dstFile).Length
+        Write-Host "        OK ($sz bytes, merged)" -ForegroundColor Green
+        $ok++
     } else {
-        Write-Host "        NOT FOUND: $srcFile" -ForegroundColor Red
+        Write-Host '        FAIL' -ForegroundColor Red
         $fail++
     }
 
@@ -418,9 +460,8 @@ function Deploy-Codex($Dst, $Src) {
 
 function Uninstall-Codex($Dir) {
     if (!(Test-Path $Dir)) { return 0 }
-    $files   = @('system-prompt.md', 'config.toml', 'AGENTS.md')
     $removed = 0
-    foreach ($f in $files) {
+    foreach ($f in @('system-prompt.md', 'AGENTS.md')) {
         $path = Join-Path $Dir $f
         if (Test-Path $path) {
             if (Remove-Safe $path) {
@@ -430,6 +471,11 @@ function Uninstall-Codex($Dir) {
                 Write-Host "    Failed to remove $f" -ForegroundColor Red
             }
         }
+    }
+    # config.toml: strip only our line, keep cc-switch's provider/key config
+    switch (Remove-InstructionsFile (Join-Path $Dir 'config.toml')) {
+        'removed' { Write-Host '    Removed config.toml' -ForegroundColor Green; $removed++ }
+        'kept'    { Write-Host '    config.toml (kept other settings)' -ForegroundColor DarkGray }
     }
     return $removed
 }
@@ -562,7 +608,7 @@ if ($Verify) {
 # --- Restore ---
 if ($Restore) {
     Write-Host 'Restoring from backup ...' -ForegroundColor Yellow
-    if (Restore-Config $CLAUDE_DIR) {
+    if (Restore-Config $CLAUDE_DIR $true) {
         Write-Host 'Restore complete!' -ForegroundColor Green
     } else {
         Write-Host 'No backup to restore.' -ForegroundColor Yellow

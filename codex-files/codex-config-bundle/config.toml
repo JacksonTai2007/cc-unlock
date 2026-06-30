@@ -1,5 +1,7 @@
-# cc-unlock — Codex config (v3.1)
+# cc-unlock — Codex config (v3.0.1)
 #
 # 与 Claude Code 使用相同的 system-prompt.md, 通过 config.toml 指向。
-# 部署到 ~/.codex/ 即可生效。
+# 安装脚本只会把下面这一行**合并**进 ~/.codex/config.toml 的顶部（不整体覆盖），
+# 以保留 cc-switch 等工具写入的 model_provider / base_url / 密钥等其余内容。
+# 本文件仅作参考；实际生效的是被合并进 ~/.codex/config.toml 的那一行。
 model_instructions_file = "system-prompt.md"
