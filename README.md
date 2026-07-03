@@ -30,6 +30,10 @@ cc-unlock v5.0 uses Claude Code's **persistent memory system** to inject securit
 
 ![Claude Desktop App - DNF Migration](docs/images/claude-desktop-dnf-migration.png)
 
+### Claude Code (Sonnet 5)
+
+![Claude Code Sonnet 5 - DNF Migration](docs/images/claude-code-sonnet5-dnf-migration.png)
+
 ### Codex Desktop App (GPT 5.5)
 
 ![Codex Desktop App - DNF Migration](docs/images/codex-desktop-dnf-migration.png)
