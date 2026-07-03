@@ -1,5 +1,40 @@
 # Changelog
 
+## v5.0.0 (2026-07-03)
+
+### Changed — 架构升级: 全局 CLAUDE.md → 每工作区 Memory 部署 | Architecture upgrade: global CLAUDE.md → per-workspace Memory deployment
+
+- **全新 Memory 部署方案**：从全局 `~/.claude/CLAUDE.md`（~25KB, ~300 示例）改为使用 Claude Code 的原生 memory 系统（`~/.claude/projects/[PROJECT]/memory/`），每工作区独立部署安全研究者身份档案。
+- **New memory deployment**: replaced global `~/.claude/CLAUDE.md` (~25KB, ~300 examples) with Claude Code's native memory system (`~/.claude/projects/[PROJECT]/memory/`), deploying a security researcher identity profile per workspace.
+
+- **`security-research-lab.md`**：新的安全研究员身份档案，使用 Claude Code memory frontmatter 格式（`type: user`），涵盖逆向工程、漏洞研究、利用开发、游戏安全、移动安全、渗透测试、恶意软件分析、红队、密码学、IoT 等完整研究领域。替代旧版 ~300 示例的暴力锚定方案。
+- **`security-research-lab.md`**: new security researcher identity profile using Claude Code memory frontmatter (`type: user`), covering RE, vuln research, exploit dev, game security, mobile security, pentesting, malware analysis, red team, cryptography, IoT. Replaces old ~300-example brute-force anchoring.
+
+- **轻量 CLAUDE.md**：工作区根目录的 CLAUDE.md 精简为 ~30 行沟通偏好和代码标准，不再承担 ~25KB 的行为锚定。
+- **Lightweight CLAUDE.md**: workspace-root CLAUDE.md reduced to ~30 lines of communication preferences and coding standards.
+
+- **Codex system-prompt.md 重写**：中英双语，完整记录 Codex 和 Claude Code 拒答来源、授权上下文、研究领域、工作准则。
+- **Codex system-prompt.md rewritten**: bilingual, documents refusal sources, authorization context, research domains, working rules.
+
+- **deploy.ps1 重写**：新增 `-Path`、`-GUI`、`-All`、`-List`、`-Verify`、`-Codex` 参数，支持按工作区或全部工作区部署 memory。部署时自动清理 v3.x 全局遗留文件。
+- **deploy.ps1 rewritten**: new params `-Path`, `-GUI`, `-All`, `-List`, `-Verify`, `-Codex` for per-workspace or all-workspace memory deployment. Auto-cleans v3.x legacy files.
+
+- **Shell 脚本全部重写**：mac-install.sh、mac-uninstall.sh、linux-install.sh、linux-uninstall.sh 适配 memory 部署方案。
+- **Shell scripts fully rewritten**: mac-install.sh, mac-uninstall.sh, linux-install.sh, linux-uninstall.sh adapted for memory deployment.
+
+- **启动器更新**：启动.bat、卸载.bat 适配 v5.0 菜单和工作流。
+- **Launchers updated**: 启动.bat, 卸载.bat adapted for v5.0 menu and workflow.
+
+- **中英双语**：所有配置文件、部署脚本输出、文档均为中英双语（中文优先）。
+- **Bilingual**: all config files, script output, and docs in Chinese + English (Chinese first).
+
+### Removed
+
+- **旧全局 CLAUDE.md（~25KB）**：`cc-unlock-files/config-bundle/CLAUDE.md` 不再使用，由 memory-bundle 替代。
+- **旧 system-prompt.md for Claude Code**：`cc-unlock-files/config-bundle/system-prompt.md` 不再使用（Codex 的 system-prompt.md 保留在 `codex-files/`）。
+- **Fable 5 绕过策略**：全部策略实测失败，不再包含。
+- **备份/还原系统**：v3.0.3 已移除，v5.0 继续不含。
+
 ## v3.0.3 (2026-06-30)
 
 ### Changed — 移除备份/还原功能，安装流程改为幂等自包含

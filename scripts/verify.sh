@@ -1,62 +1,63 @@
 #!/bin/bash
+# cc-unlock v5.0 — Verify deployment
 set -e
 
 CLAUDE_DIR="$HOME/.claude"
+CLAUDE_PROJECTS="$CLAUDE_DIR/projects"
 CODEX_DIR="$HOME/.codex"
-PASS=0
-TOTAL=0
+MEMORY_FILE="security-research-lab.md"
 
 echo ""
 echo "============================================"
-echo "  cc-unlock - Verify Deployment"
+echo "  cc-unlock v5.0 - Verify Deployment"
 echo "============================================"
 echo ""
 
-echo "[1/3] Checking Claude Code directory..."
-if [ -d "$CLAUDE_DIR" ]; then
-    echo "  OK: $CLAUDE_DIR exists"
-else
-    echo "  FAIL: $CLAUDE_DIR not found"
-    exit 1
-fi
-
-echo ""
-echo "[2/3] Checking Claude Code files..."
-for f in CLAUDE.md system-prompt.md config.toml; do
-    TOTAL=$((TOTAL + 1))
-    if [ -f "$CLAUDE_DIR/$f" ]; then
-        SIZE=$(wc -c < "$CLAUDE_DIR/$f" | tr -d ' ')
-        echo "  OK: $f ($SIZE bytes)"
-        PASS=$((PASS + 1))
+echo "[1/3] Claude Code memory deployments..."
+if [ -d "$CLAUDE_PROJECTS" ]; then
+    found=0
+    for d in "$CLAUDE_PROJECTS"/*/; do
+        [ -d "$d" ] || continue
+        mem_dir="$d/memory"
+        project_name=$(basename "$d")
+        if [ -f "$mem_dir/$MEMORY_FILE" ]; then
+            SIZE=$(wc -c < "$mem_dir/$MEMORY_FILE" | tr -d ' ')
+            echo "  [*] $project_name ($SIZE bytes)"
+            found=$((found + 1))
+        fi
+    done
+    if [ $found -eq 0 ]; then
+        echo "  No deployments found"
     else
-        echo "  MISSING: $f"
+        echo "  $found workspace(s) deployed"
     fi
-done
-
-# settings.json is optional
-if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    echo "  OK: settings.json (optional)"
+else
+    echo "  No Claude projects found"
 fi
 
 echo ""
-echo "[3/3] Checking Codex files..."
+echo "[2/3] Global settings..."
+if [ -f "$CLAUDE_DIR/settings.json" ]; then
+    echo "  [ok] settings.json"
+else
+    echo "  [--] settings.json (not deployed)"
+fi
+
+echo ""
+echo "[3/3] Codex..."
 if [ -d "$CODEX_DIR" ]; then
     for f in system-prompt.md config.toml; do
-        TOTAL=$((TOTAL + 1))
         if [ -f "$CODEX_DIR/$f" ]; then
             SIZE=$(wc -c < "$CODEX_DIR/$f" | tr -d ' ')
-            echo "  OK: $f ($SIZE bytes)"
-            PASS=$((PASS + 1))
+            echo "  [ok] $f ($SIZE bytes)"
         else
-            echo "  MISSING: $f"
+            echo "  [--] $f (not deployed)"
         fi
     done
 else
-    echo "  Codex dir not found (not deployed)"
+    echo "  Codex not deployed"
 fi
 
 echo ""
-echo "============================================"
-echo "  Result: $PASS/$TOTAL core files present"
 echo "============================================"
 echo ""

@@ -4,7 +4,9 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.x   | Yes       |
+| 5.0.x   | Yes       |
+| 3.0.x   | No        |
+| < 3.0   | No        |
 
 ## Reporting a Vulnerability
 
@@ -23,13 +25,15 @@ Response time: within 72 hours.
 ## Scope
 
 This security policy covers:
-- Deployment scripts (deploy.ps1, install.sh, etc.)
-- Configuration files that could lead to unintended system access
+- Deployment scripts (deploy.ps1, linux-install.sh, mac-install.sh, etc.)
+- Memory bundle files deployed to `~/.claude/projects/[PROJECT]/memory/`
+- Configuration files (settings.json, config.toml)
+- Codex system-prompt.md
 
 This policy does **NOT** cover:
 - Claude Code's own security model
-- The behavioral effects of CLAUDE.md configuration on model output
-- Third-party tools referenced in examples
+- The behavioral effects of memory/CLAUDE.md configuration on model output
+- Third-party tools referenced in research domains
 
 ## Responsible Use
 

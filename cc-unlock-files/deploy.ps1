@@ -1,42 +1,33 @@
-# cc-unlock Deploy v3.0.3
-# Security Research Workstation Config Deployer
+# cc-unlock v5.0 — Memory-based security research authorization
+# 通过 Claude Code memory 系统部署安全研究者身份上下文
+# Deploys researcher identity via Claude Code's persistent memory system
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
 
 param(
+    [string]$Path,
     [switch]$Uninstall,
     [switch]$Verify,
-    # -Restore is retained only to print a clear notice: the backup/restore feature
-    # was removed in v3.0.3 (it caused uninstall to "come back"). Install/uninstall
-    # are now idempotent and self-contained.
-    [switch]$Restore,
+    [switch]$All,
+    [switch]$List,
+    [switch]$GUI,
+    [switch]$Codex,
     [switch]$SkipSettings,
-    # Alias used by the docs and .bat launchers: -Mode deploy|install|uninstall|verify.
-    # Kept for backward compatibility with the bare -Uninstall/-Verify switches.
     [string]$Mode
 )
 
-# Normalize -Mode into the switch flags so the documented commands actually work.
 if ($Mode) {
     switch ($Mode.ToLower()) {
+        'deploy'    { }
+        'install'   { }
         'uninstall' { $Uninstall = $true }
         'remove'    { $Uninstall = $true }
-        'restore'   { $Restore   = $true }
-        'verify'    { $Verify    = $true }
-        'deploy'    { }   # default action — install
-        'install'   { }
-        default     { Write-Host "[!] Unknown -Mode '$Mode' (expected deploy|uninstall|verify); proceeding with deploy." -ForegroundColor Yellow }
+        'verify'    { $Verify = $true }
+        'list'      { $List = $true }
+        'all'       { $All = $true }
+        'gui'       { $GUI = $true }
+        'codex'     { $Codex = $true }
+        default     { Write-Host "[!] Unknown -Mode '$Mode'" -ForegroundColor Yellow; exit 1 }
     }
-}
-
-# Backup/restore was removed in v3.0.3 — handle the old flag gracefully instead of
-# silently falling through to a deploy.
-if ($Restore) {
-    Write-Host ''
-    Write-Host '[i] The backup/restore feature was removed in v3.0.3.' -ForegroundColor Yellow
-    Write-Host '    Install is idempotent and uninstall is self-contained, so backups' -ForegroundColor DarkGray
-    Write-Host '    are no longer created or needed. Nothing to restore.' -ForegroundColor DarkGray
-    Write-Host ''
-    exit 0
 }
 
 $ProgressPreference = 'SilentlyContinue'
@@ -47,144 +38,296 @@ try { [Console]::InputEncoding  = [System.Text.Encoding]::UTF8 } catch {}
 try { $OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 try { chcp 65001 | Out-Null } catch {}
 
-# --- Environment Detection ---
-$PS_FLAVOR = 'Desktop'
-$PS_VER    = '2.0'
-try {
-    if ($PSVersionTable.PSEdition -eq 'Core') { $PS_FLAVOR = 'Core' }
-    $PS_VER = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
-} catch {}
+$UTF8NoBOM = New-Object System.Text.UTF8Encoding $false
 
-$OS_VER   = 'Unknown'
-$OS_BUILD = 0
-try {
-    $os = [System.Environment]::OSVersion.Version
-    $OS_VER   = "$($os.Major).$($os.Minor)"
-    $OS_BUILD = $os.Build
-} catch {}
-
-$IS_ADMIN = $false
-try {
-    $identity  = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-    $IS_ADMIN  = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-} catch {}
-
-# --- User Home ---
+# --- Paths ---
 $USER_HOME = $env:USERPROFILE
 if (!$USER_HOME) {
     try { $USER_HOME = [Environment]::GetFolderPath('UserProfile') } catch {}
-    if (!$USER_HOME) {
-        foreach ($drive in @('C', 'D', 'E')) {
-            $testPath = "${drive}:\Users\$env:USERNAME"
-            if (Test-Path $testPath) { $USER_HOME = $testPath; break }
-        }
-        if (!$USER_HOME) { $USER_HOME = "C:\Users\$env:USERNAME" }
-    }
+    if (!$USER_HOME) { $USER_HOME = "C:\Users\$env:USERNAME" }
 }
 
-# --- Target Directories ---
 $CLAUDE_DIR = Join-Path $USER_HOME '.claude'
-$ALL_DIRS   = @($CLAUDE_DIR)
+$CLAUDE_PROJECTS = Join-Path $CLAUDE_DIR 'projects'
+$CODEX_DIR = Join-Path $USER_HOME '.codex'
 
-$desktopCandidates = @(
-    (Join-Path $env:APPDATA 'claude'),
-    (Join-Path $env:APPDATA 'Claude'),
-    (Join-Path $env:APPDATA 'Claude-3p'),
-    (Join-Path $env:LOCALAPPDATA 'claude-code'),
-    (Join-Path $env:LOCALAPPDATA 'claude'),
-    (Join-Path $env:LOCALAPPDATA 'Claude'),
-    (Join-Path $env:LOCALAPPDATA 'Claude-3p'),
-    (Join-Path $USER_HOME 'AppData\Roaming\claude'),
-    (Join-Path $USER_HOME 'AppData\Roaming\Claude'),
-    (Join-Path $USER_HOME 'AppData\Roaming\Claude-3p'),
-    (Join-Path $USER_HOME 'AppData\Local\claude-code'),
-    (Join-Path $USER_HOME 'AppData\Local\claude'),
-    (Join-Path $USER_HOME 'AppData\Local\Claude'),
-    (Join-Path $USER_HOME 'AppData\Local\Claude-3p')
-)
-foreach ($c in $desktopCandidates) {
-    if ($c -ne $CLAUDE_DIR -and (Test-Path $c)) { $ALL_DIRS += $c }
-}
-
-# --- Source Directory ---
 $SCRIPT_DIR = $PSScriptRoot
 if (!$SCRIPT_DIR) {
     try { $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path } catch {}
     if (!$SCRIPT_DIR) { $SCRIPT_DIR = (Get-Location).Path }
 }
-$BUNDLE_DIR = Join-Path $SCRIPT_DIR 'config-bundle'
-$CODEX_BUNDLE_DIR = Join-Path $SCRIPT_DIR '..\codex-files\codex-config-bundle'
-$CODEX_DIR = Join-Path $USER_HOME '.codex'
+$MEMORY_BUNDLE = Join-Path $SCRIPT_DIR 'memory-bundle'
+$CONFIG_BUNDLE = Join-Path $SCRIPT_DIR 'config-bundle'
+$CODEX_BUNDLE  = Join-Path $SCRIPT_DIR '..\codex-files\codex-config-bundle'
+$MEMORY_FILE   = 'security-research-lab.md'
+$INDEX_FILE    = 'MEMORY.md'
 
-# --- Helper Functions ---
+# --- Banner ---
+function Show-Banner {
+    Write-Host ''
+    Write-Host '============================================' -ForegroundColor Cyan
+    Write-Host '  cc-unlock v5.0' -ForegroundColor Green
+    Write-Host '  Memory-based security research authorization' -ForegroundColor DarkGray
+    Write-Host '  基于 memory 的安全研究授权配置' -ForegroundColor DarkGray
+    Write-Host '============================================' -ForegroundColor Cyan
+    Write-Host ''
+}
 
-function Write-Utf8NoBom($Path, $Content) {
+# --- Helpers ---
+
+function Write-Utf8NoBom($FilePath, $Content) {
     try {
-        $utf8 = New-Object System.Text.UTF8Encoding $false
-        [System.IO.File]::WriteAllText($Path, $Content, $utf8)
+        [System.IO.File]::WriteAllText($FilePath, $Content, $UTF8NoBOM)
         return $true
     } catch {}
     try {
-        $Content | Out-File -FilePath $Path -Encoding UTF8 -Force -ErrorAction Stop
+        $Content | Out-File -FilePath $FilePath -Encoding UTF8 -Force -ErrorAction Stop
         return $true
     } catch {}
     return $false
 }
 
-function Copy-Safe($Src, $Dst, $Retries = 3) {
-    for ($i = 0; $i -lt $Retries; $i++) {
+function Copy-Safe($Src, $Dst) {
+    for ($i = 0; $i -lt 3; $i++) {
         try {
             Copy-Item $Src $Dst -Force -ErrorAction Stop
             return $true
         } catch {
-            if ($i -lt ($Retries - 1)) { Start-Sleep -Milliseconds (500 * ($i + 1)) }
+            if ($i -lt 2) { Start-Sleep -Milliseconds (500 * ($i + 1)) }
         }
     }
     return $false
 }
 
-function New-DirSafe($Path) {
-    if (Test-Path $Path) { return $true }
-    try {
-        New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
-        return $true
-    } catch {}
-    try {
-        & cmd /c "mkdir `"$Path`"" 2>$null
-        return (Test-Path $Path)
-    } catch {}
-    return $false
+# Workspace path -> Claude projects directory name
+# 工作区路径 -> Claude 项目目录名编码
+function ConvertTo-ClaudeProjectPath {
+    param([string]$WorkspacePath)
+    $resolved = (Resolve-Path $WorkspacePath -ErrorAction Stop).Path.TrimEnd('\')
+    return ($resolved -replace ':', '-' -replace '\\', '-' -replace ' ', '-')
 }
 
-function Remove-Safe($Path) {
-    if (!(Test-Path $Path)) { return $true }
-    try { Remove-Item $Path -Force -ErrorAction Stop; return $true } catch {}
-    try { & cmd /c "del /f `"$Path`"" 2>$null; return !(Test-Path $Path) } catch {}
-    return $false
+function Get-MemoryDir {
+    param([string]$ProjectName)
+    return Join-Path $CLAUDE_PROJECTS "$ProjectName\memory"
 }
 
-# Inject / refresh `model_instructions_file = "system-prompt.md"` as a TOML
-# root key WITHOUT clobbering the rest of config.toml. Other tools (e.g.
-# cc-switch) write the active provider / base_url / key into the same file;
-# we must preserve those. Idempotent: re-running yields the same result.
+function Test-Deployed {
+    param([string]$MemoryDir)
+    return (Test-Path (Join-Path $MemoryDir $MEMORY_FILE))
+}
+
+# Read index entry from template to avoid hardcoding Chinese in script
+function Get-IndexEntry {
+    $templateIndex = Join-Path $MEMORY_BUNDLE $INDEX_FILE
+    if (!(Test-Path $templateIndex)) { return $null }
+    $lines = [System.IO.File]::ReadAllLines($templateIndex, $UTF8NoBOM)
+    foreach ($line in $lines) {
+        if ($line -match 'security-research-lab') { return $line }
+    }
+    return $null
+}
+
+# --- Deploy to workspace ---
+function Deploy-Memory {
+    param([string]$MemoryDir, [string]$Label, [string]$WorkspacePath)
+
+    if (!(Test-Path $MemoryDir)) {
+        New-Item -ItemType Directory -Path $MemoryDir -Force | Out-Null
+    }
+
+    $ok = 0; $fail = 0
+
+    # 1. security-research-lab.md -> memory/
+    $src = Join-Path $MEMORY_BUNDLE $MEMORY_FILE
+    $dst = Join-Path $MemoryDir $MEMORY_FILE
+    if (Copy-Safe $src $dst) {
+        Write-Host "    [ok] $MEMORY_FILE" -ForegroundColor Green
+        $ok++
+    } else {
+        Write-Host "    [FAIL] $MEMORY_FILE" -ForegroundColor Red
+        $fail++
+    }
+
+    # 2. MEMORY.md index -> memory/
+    $indexPath = Join-Path $MemoryDir $INDEX_FILE
+    if (Test-Path $indexPath) {
+        $content = [System.IO.File]::ReadAllText($indexPath, $UTF8NoBOM)
+        if ($content -notmatch 'security-research-lab') {
+            $entry = Get-IndexEntry
+            if ($entry) {
+                $content = $content.TrimEnd([char]13, [char]10) + [Environment]::NewLine + $entry + [Environment]::NewLine
+                [System.IO.File]::WriteAllText($indexPath, $content, $UTF8NoBOM)
+            }
+        }
+        Write-Host "    [ok] $INDEX_FILE (merged)" -ForegroundColor Green
+        $ok++
+    } else {
+        $indexSrc = Join-Path $MEMORY_BUNDLE $INDEX_FILE
+        if (Copy-Safe $indexSrc $indexPath) {
+            Write-Host "    [ok] $INDEX_FILE" -ForegroundColor Green
+            $ok++
+        } else {
+            Write-Host "    [FAIL] $INDEX_FILE" -ForegroundColor Red
+            $fail++
+        }
+    }
+
+    # 3. CLAUDE.md -> workspace root
+    if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
+        $claudeSrc = Join-Path $MEMORY_BUNDLE 'CLAUDE.md'
+        $claudeDst = Join-Path $WorkspacePath 'CLAUDE.md'
+        if (Test-Path $claudeSrc) {
+            if (Copy-Safe $claudeSrc $claudeDst) {
+                Write-Host "    [ok] CLAUDE.md -> workspace" -ForegroundColor Green
+                $ok++
+            } else {
+                Write-Host "    [FAIL] CLAUDE.md" -ForegroundColor Red
+                $fail++
+            }
+        }
+    }
+
+    Write-Host "  [OK] $Label" -ForegroundColor Green
+    return @{ Ok = $ok; Fail = $fail }
+}
+
+# --- Remove from workspace ---
+function Remove-Memory {
+    param([string]$MemoryDir, [string]$Label, [string]$WorkspacePath)
+
+    # Remove memory file
+    $memFile = Join-Path $MemoryDir $MEMORY_FILE
+    if (Test-Path $memFile) {
+        Remove-Item $memFile -Force
+        Write-Host "    [ok] Removed $MEMORY_FILE" -ForegroundColor Yellow
+    }
+
+    # Clean index entry
+    $indexPath = Join-Path $MemoryDir $INDEX_FILE
+    if (Test-Path $indexPath) {
+        $lines = [System.IO.File]::ReadAllLines($indexPath, $UTF8NoBOM)
+        $filtered = @($lines | Where-Object { $_ -notmatch 'security-research-lab' })
+        $hasContent = ($filtered | Where-Object { $_.Trim() -ne '' }).Count -gt 0
+        if ($hasContent) {
+            [System.IO.File]::WriteAllLines($indexPath, $filtered, $UTF8NoBOM)
+            Write-Host "    [ok] $INDEX_FILE (cleaned entry)" -ForegroundColor Yellow
+        } else {
+            Remove-Item $indexPath -Force
+            Write-Host "    [ok] Removed $INDEX_FILE" -ForegroundColor Yellow
+        }
+    }
+
+    # Remove CLAUDE.md from workspace root (only if ours)
+    if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
+        $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
+        if (Test-Path $claudePath) {
+            $content = [System.IO.File]::ReadAllText($claudePath, $UTF8NoBOM)
+            if ($content -match 'Security Research Workstation') {
+                Remove-Item $claudePath -Force
+                Write-Host "    [ok] Removed CLAUDE.md from workspace" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    Write-Host "  [OK] $Label (removed)" -ForegroundColor Yellow
+}
+
+# --- Verify workspace ---
+function Verify-Memory {
+    param([string]$MemoryDir, [string]$Label, [string]$WorkspacePath)
+
+    $allOk = $true
+
+    $memFile = Join-Path $MemoryDir $MEMORY_FILE
+    if (Test-Path $memFile) {
+        $sz = (Get-Item $memFile).Length
+        Write-Host "    $MEMORY_FILE - OK ($sz bytes)" -ForegroundColor Green
+    } else {
+        Write-Host "    $MEMORY_FILE - MISSING" -ForegroundColor Red
+        $allOk = $false
+    }
+
+    $indexPath = Join-Path $MemoryDir $INDEX_FILE
+    if (Test-Path $indexPath) {
+        $content = ''
+        try { $content = Get-Content $indexPath -Raw -ErrorAction Stop } catch {}
+        if ($content -match 'security-research-lab') {
+            Write-Host "    $INDEX_FILE - OK" -ForegroundColor Green
+        } else {
+            Write-Host "    $INDEX_FILE - ENTRY MISSING" -ForegroundColor Yellow
+            $allOk = $false
+        }
+    } else {
+        Write-Host "    $INDEX_FILE - MISSING" -ForegroundColor Red
+        $allOk = $false
+    }
+
+    if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
+        $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
+        if (Test-Path $claudePath) {
+            $sz = (Get-Item $claudePath).Length
+            Write-Host "    CLAUDE.md (workspace) - OK ($sz bytes)" -ForegroundColor Green
+        } else {
+            Write-Host "    CLAUDE.md (workspace) - NOT FOUND" -ForegroundColor DarkGray
+        }
+    }
+
+    return $allOk
+}
+
+# --- Settings.json (global ~/.claude/) ---
+function Deploy-Settings {
+    $settingsPath = Join-Path $CLAUDE_DIR 'settings.json'
+    if ($SkipSettings) {
+        Write-Host '  [skip] settings.json (--SkipSettings)' -ForegroundColor DarkGray
+        return
+    }
+    if (Test-Path $settingsPath) {
+        Write-Host '  [skip] settings.json (exists)' -ForegroundColor DarkGray
+        return
+    }
+    $settingsSrc = Join-Path $CONFIG_BUNDLE 'settings.json'
+    if (Test-Path $settingsSrc) {
+        if (!(Test-Path $CLAUDE_DIR)) {
+            New-Item -ItemType Directory -Path $CLAUDE_DIR -Force | Out-Null
+        }
+        if (Copy-Safe $settingsSrc $settingsPath) {
+            Write-Host '  [ok] settings.json (bypassPermissions)' -ForegroundColor Green
+        } else {
+            Write-Host '  [FAIL] settings.json' -ForegroundColor Red
+        }
+    }
+}
+
+function Remove-Settings {
+    $path = Join-Path $CLAUDE_DIR 'settings.json'
+    if (!(Test-Path $path)) { return }
+    $content = ''
+    try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
+    if ($content -match 'bypassPermissions' -and $content -match 'skipDangerousModePermissionPrompt') {
+        Remove-Item $path -Force
+        Write-Host '  [ok] Removed settings.json (cc-unlock)' -ForegroundColor Yellow
+    } else {
+        Write-Host '  [skip] settings.json (user customized)' -ForegroundColor DarkGray
+    }
+}
+
+# --- Codex functions ---
+
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
     if (!(Test-Path $ConfigPath)) {
         return (Write-Utf8NoBom $ConfigPath ($line + "`n"))
     }
     $existing = @()
-    try { $existing = @(Get-Content $ConfigPath -ErrorAction Stop) } catch { $existing = @() }
-    # Drop any prior instruction line, re-add ours at the very top so it stays
-    # a root key (TOML root keys must precede the first [table] header).
+    try { $existing = @(Get-Content $ConfigPath -ErrorAction Stop) } catch {}
     $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $content = (@($line) + $kept) -join "`n"
     if (!$content.EndsWith("`n")) { $content += "`n" }
     return (Write-Utf8NoBom $ConfigPath $content)
 }
 
-# Remove only the line we added, preserving any other config.toml content.
-# If nothing meaningful remains, drop the file. Returns a short status string.
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
     $existing = @()
@@ -196,502 +339,298 @@ function Remove-InstructionsFile($ConfigPath) {
         $content = ($kept -join "`n")
         if (!$content.EndsWith("`n")) { $content += "`n" }
         Write-Utf8NoBom $ConfigPath $content | Out-Null
-        return 'kept'   # other config (e.g. cc-switch) remains, file preserved
+        return 'kept'
     }
-    Remove-Safe $ConfigPath | Out-Null
+    Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue
     return 'removed'
 }
 
-# Uninstall settings.json correctly: the installer only WRITES settings.json when
-# none exists and never overwrites an existing one, so a file carrying our
-# bypassPermissions signature was created by cc-unlock — remove it, else "uninstall"
-# silently leaves Claude Code in bypass mode. Removing it returns the user to their
-# original state (they had no settings.json). A file without our signature is the
-# user's own and is left untouched.
-function Remove-SettingsJson($Dir) {
-    $path = Join-Path $Dir 'settings.json'
-    if (!(Test-Path $path)) { return }
-    $content = ''
-    try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
-    if ($content -match 'bypassPermissions' -and $content -match 'skipDangerousModePermissionPrompt') {
-        if (Remove-Safe $path) {
-            Write-Host '    Removed settings.json (cc-unlock)' -ForegroundColor Green
-        } else {
-            Write-Host '    Failed to remove settings.json' -ForegroundColor Red
-        }
-    } else {
-        Write-Host '    settings.json kept (user customized)' -ForegroundColor DarkGray
+function Deploy-Codex-Config {
+    Write-Host ''
+    Write-Host '--- Codex ---' -ForegroundColor Cyan
+    if (!(Test-Path $CODEX_BUNDLE)) {
+        Write-Host '  [skip] Codex bundle not found' -ForegroundColor DarkGray
+        return
     }
-}
-
-function Test-Writable($Path) {
-    if (!(Test-Path $Path)) { return $true }
-    try {
-        $item = Get-Item $Path -ErrorAction Stop
-        if ($item.IsReadOnly) { $item.IsReadOnly = $false }
-        return $true
-    } catch {}
-    return $false
-}
-
-function Test-Locked($Path) {
-    if (!(Test-Path $Path)) { return $false }
-    try {
-        $s = [System.IO.File]::Open($Path, 'Open', 'ReadWrite', 'None')
-        $s.Close()
-        return $false
-    } catch { return $true }
-}
-
-function Test-DiskSpace($Path, $MinMB = 10) {
-    try {
-        $drive = Split-Path -Qualifier $Path -ErrorAction Stop
-        if ($drive) {
-            $disk = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='$drive'" -ErrorAction Stop
-            return ($disk.FreeSpace -gt ($MinMB * 1MB))
-        }
-    } catch {}
-    return $true
-}
-
-# NOTE: The backup/restore subsystem was removed in v3.0.3. Re-running install
-# used to back up cc-unlock's OWN files, and uninstall then restored them — so the
-# uninstall "came back". Install is now idempotent (config.toml merges, settings.json
-# is signature-based, CLAUDE.md / system-prompt.md are cc-unlock's own and simply
-# overwritten), and uninstall is self-contained, so no backups are needed.
-
-# --- Deploy ---
-function Deploy-Config($Dst, $Src) {
-    $ok = 0; $fail = 0
-
-    # 1. CLAUDE.md
-    Write-Host '[1/4] CLAUDE.md ...' -ForegroundColor Yellow
-    $srcFile = Join-Path $Src 'CLAUDE.md'
+    if (!(Test-Path $CODEX_DIR)) {
+        New-Item -ItemType Directory -Path $CODEX_DIR -Force | Out-Null
+    }
+    $srcFile = Join-Path $CODEX_BUNDLE 'system-prompt.md'
     if (Test-Path $srcFile) {
-        $dstFile = Join-Path $Dst 'CLAUDE.md'
-        Test-Writable $dstFile | Out-Null
-        if (Copy-Safe $srcFile $dstFile) {
-            $sz = (Get-Item $dstFile).Length
-            Write-Host "      OK ($sz bytes)" -ForegroundColor Green
-            $ok++
+        $dst = Join-Path $CODEX_DIR 'system-prompt.md'
+        if (Copy-Safe $srcFile $dst) {
+            $sz = (Get-Item $dst).Length
+            Write-Host "  [ok] system-prompt.md ($sz bytes)" -ForegroundColor Green
         } else {
-            Write-Host '      FAIL (locked or permission denied)' -ForegroundColor Red
-            $fail++
+            Write-Host '  [FAIL] system-prompt.md' -ForegroundColor Red
         }
-    } else {
-        Write-Host "      NOT FOUND: $srcFile" -ForegroundColor Red
-        $fail++
     }
-
-    # 2. system-prompt.md
-    Write-Host '[2/4] system-prompt.md ...' -ForegroundColor Yellow
-    $srcFile = Join-Path $Src 'system-prompt.md'
-    if (Test-Path $srcFile) {
-        $dstFile = Join-Path $Dst 'system-prompt.md'
-        Test-Writable $dstFile | Out-Null
-        if (Copy-Safe $srcFile $dstFile) {
-            $sz = (Get-Item $dstFile).Length
-            Write-Host "      OK ($sz bytes)" -ForegroundColor Green
-            $ok++
-        } else {
-            Write-Host '      FAIL' -ForegroundColor Red
-            $fail++
-        }
-    } else {
-        Write-Host "      NOT FOUND: $srcFile" -ForegroundColor Red
-        $fail++
-    }
-
-    # 3. settings.json
-    Write-Host '[3/4] settings.json ...' -ForegroundColor Yellow
-    $settingsPath = Join-Path $Dst 'settings.json'
-    if ($SkipSettings) {
-        Write-Host '      SKIPPED (--SkipSettings)' -ForegroundColor DarkGray
-        $ok++
-    } elseif (!(Test-Path $settingsPath)) {
-        $json = @"
-{
-  "effortLevel": "xhigh",
-  "env": {
-    "CLAUDE_CODE_EFFORT_LEVEL": "max",
-    "DISABLE_AUTOUPDATER": "1"
-  },
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  },
-  "skipDangerousModePermissionPrompt": true
-}
-"@
-        if (Write-Utf8NoBom $settingsPath $json) {
-            Write-Host '      OK (bypassPermissions)' -ForegroundColor Green
-            $ok++
-        } else {
-            Write-Host '      FAIL' -ForegroundColor Red
-            $fail++
-        }
-    } else {
-        Write-Host '      SKIPPED (exists)' -ForegroundColor DarkGray
-        $ok++
-    }
-
-    # 4. config.toml  (merge, never overwrite — preserves cc-switch settings)
-    Write-Host '[4/4] config.toml ...' -ForegroundColor Yellow
-    $configPath = Join-Path $Dst 'config.toml'
-    Test-Writable $configPath | Out-Null
+    $configPath = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $configPath) {
-        Write-Host '      OK (merged)' -ForegroundColor Green
-        $ok++
+        Write-Host '  [ok] config.toml (merged)' -ForegroundColor Green
     } else {
-        Write-Host '      FAIL' -ForegroundColor Red
-        $fail++
+        Write-Host '  [FAIL] config.toml' -ForegroundColor Red
     }
-
-    return @{ Ok = $ok; Fail = $fail }
+    # Clean old AGENTS.md
+    $old = Join-Path $CODEX_DIR 'AGENTS.md'
+    if (Test-Path $old) {
+        Remove-Item $old -Force -ErrorAction SilentlyContinue
+        Write-Host '  [ok] Cleaned old AGENTS.md' -ForegroundColor DarkGray
+    }
 }
 
-# --- Uninstall ---
-function Uninstall-Config($Dir) {
-    $removed = 0
-    foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
-        $path = Join-Path $Dir $f
-        if (Test-Path $path) {
-            if (Remove-Safe $path) {
-                Write-Host "    Removed $f" -ForegroundColor Green
-                $removed++
-            } else {
-                Write-Host "    Failed to remove $f" -ForegroundColor Red
-            }
-        } else {
-            Write-Host "    $f not found" -ForegroundColor DarkGray
-        }
-    }
-    # config.toml: strip only our line, keep any cc-switch config intact
-    switch (Remove-InstructionsFile (Join-Path $Dir 'config.toml')) {
-        'removed' { Write-Host '    Removed config.toml' -ForegroundColor Green; $removed++ }
-        'kept'    { Write-Host '    config.toml (kept other settings)' -ForegroundColor DarkGray }
-        default   { Write-Host '    config.toml not found' -ForegroundColor DarkGray }
-    }
-    # settings.json: remove the bypassPermissions file we created (else uninstall
-    # leaves Claude Code permanently in bypass mode); keep a user's own file.
-    Remove-SettingsJson $Dir
-    return $removed
-}
-
-# --- Verify ---
-function Verify-Config($Dir) {
-    $checks = @(
-        @{ File = 'CLAUDE.md';        Pattern = 'cc-unlock' },
-        @{ File = 'system-prompt.md'; Pattern = 'Security Research' },
-        @{ File = 'settings.json';    Pattern = 'bypassPermissions' },
-        @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
-    )
-    $allOk = $true
-    foreach ($c in $checks) {
-        $path = Join-Path $Dir $c.File
-        if (Test-Path $path) {
-            $sz = (Get-Item $path).Length
-            $content = ''
-            try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
-            if ($content -match $c.Pattern) {
-                Write-Host "    $($c.File) - OK ($sz bytes)" -ForegroundColor Green
-            } else {
-                Write-Host "    $($c.File) - CONTENT MISMATCH ($sz bytes)" -ForegroundColor Yellow
-                $allOk = $false
-            }
-        } else {
-            Write-Host "    $($c.File) - MISSING" -ForegroundColor Red
-            $allOk = $false
-        }
-    }
-    return $allOk
-}
-
-# --- Codex Functions ---
-
-function Deploy-Codex($Dst, $Src) {
-    $ok = 0; $fail = 0
-
-    # 1. system-prompt.md
-    Write-Host '  [1/2] system-prompt.md ...' -ForegroundColor Yellow
-    $srcFile = Join-Path $Src 'system-prompt.md'
-    if (Test-Path $srcFile) {
-        $dstFile = Join-Path $Dst 'system-prompt.md'
-        Test-Writable $dstFile | Out-Null
-        if (Copy-Safe $srcFile $dstFile) {
-            $sz = (Get-Item $dstFile).Length
-            Write-Host "        OK ($sz bytes)" -ForegroundColor Green
-            $ok++
-        } else {
-            Write-Host '        FAIL (locked or permission denied)' -ForegroundColor Red
-            $fail++
-        }
-    } else {
-        Write-Host "        NOT FOUND: $srcFile" -ForegroundColor Red
-        $fail++
-    }
-
-    # 2. config.toml  (merge in our one line, keep cc-switch's provider/keys)
-    Write-Host '  [2/2] config.toml ...' -ForegroundColor Yellow
-    $dstFile = Join-Path $Dst 'config.toml'
-    Test-Writable $dstFile | Out-Null
-    if (Set-InstructionsFile $dstFile) {
-        $sz = (Get-Item $dstFile).Length
-        Write-Host "        OK ($sz bytes, merged)" -ForegroundColor Green
-        $ok++
-    } else {
-        Write-Host '        FAIL' -ForegroundColor Red
-        $fail++
-    }
-
-    # Clean up old AGENTS.md if present
-    $oldAgents = Join-Path $Dst 'AGENTS.md'
-    if (Test-Path $oldAgents) {
-        Remove-Safe $oldAgents | Out-Null
-        Write-Host '        Cleaned up old AGENTS.md' -ForegroundColor DarkGray
-    }
-
-    return @{ Ok = $ok; Fail = $fail }
-}
-
-function Uninstall-Codex($Dir) {
-    if (!(Test-Path $Dir)) { return 0 }
-    $removed = 0
+function Uninstall-Codex-Config {
+    if (!(Test-Path $CODEX_DIR)) { return }
+    Write-Host ''
+    Write-Host '--- Codex ---' -ForegroundColor Cyan
     foreach ($f in @('system-prompt.md', 'AGENTS.md')) {
-        $path = Join-Path $Dir $f
-        if (Test-Path $path) {
-            if (Remove-Safe $path) {
-                Write-Host "    Removed $f" -ForegroundColor Green
-                $removed++
-            } else {
-                Write-Host "    Failed to remove $f" -ForegroundColor Red
-            }
+        $p = Join-Path $CODEX_DIR $f
+        if (Test-Path $p) {
+            Remove-Item $p -Force -ErrorAction SilentlyContinue
+            Write-Host "  [ok] Removed $f" -ForegroundColor Yellow
         }
     }
-    # config.toml: strip only our line, keep cc-switch's provider/key config
-    switch (Remove-InstructionsFile (Join-Path $Dir 'config.toml')) {
-        'removed' { Write-Host '    Removed config.toml' -ForegroundColor Green; $removed++ }
-        'kept'    { Write-Host '    config.toml (kept other settings)' -ForegroundColor DarkGray }
+    switch (Remove-InstructionsFile (Join-Path $CODEX_DIR 'config.toml')) {
+        'removed' { Write-Host '  [ok] Removed config.toml' -ForegroundColor Yellow }
+        'kept'    { Write-Host '  [ok] config.toml (kept other settings)' -ForegroundColor DarkGray }
     }
-    return $removed
 }
 
-function Verify-Codex($Dir) {
-    if (!(Test-Path $Dir)) {
-        Write-Host '    Codex dir not found (not deployed)' -ForegroundColor DarkGray
-        return $true
+function Verify-Codex-Config {
+    if (!(Test-Path $CODEX_DIR)) {
+        Write-Host '  [skip] Codex not deployed' -ForegroundColor DarkGray
+        return
     }
-    $checks = @(
-        @{ File = 'system-prompt.md'; Pattern = 'Security Research' },
+    Write-Host ''
+    Write-Host '--- Codex ---' -ForegroundColor Cyan
+    foreach ($c in @(
+        @{ File = 'system-prompt.md'; Pattern = 'cc-unlock' },
         @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
-    )
-    $allOk = $true
-    foreach ($c in $checks) {
-        $path = Join-Path $Dir $c.File
-        if (Test-Path $path) {
-            $sz = (Get-Item $path).Length
+    )) {
+        $p = Join-Path $CODEX_DIR $c.File
+        if (Test-Path $p) {
+            $sz = (Get-Item $p).Length
             $content = ''
-            try { $content = Get-Content $path -Raw -ErrorAction Stop } catch {}
+            try { $content = Get-Content $p -Raw -ErrorAction Stop } catch {}
             if ($content -match $c.Pattern) {
-                Write-Host "    $($c.File) - OK ($sz bytes)" -ForegroundColor Green
+                Write-Host "  $($c.File) - OK ($sz bytes)" -ForegroundColor Green
             } else {
-                Write-Host "    $($c.File) - CONTENT MISMATCH ($sz bytes)" -ForegroundColor Yellow
-                $allOk = $false
+                Write-Host "  $($c.File) - CONTENT MISMATCH" -ForegroundColor Yellow
             }
         } else {
-            Write-Host "    $($c.File) - MISSING" -ForegroundColor Red
-            $allOk = $false
+            Write-Host "  $($c.File) - MISSING" -ForegroundColor Red
         }
     }
-    return $allOk
 }
 
-# --- Pre-flight ---
-function Test-Preflight($Dst, $Src) {
-    $issues = @()
-    if (!(Test-DiskSpace $Dst))          { $issues += 'Low disk space' }
-    if ($Dst.Length -gt 240)             { $issues += 'Path too long (>240 chars)' }
-    if (!(Test-Path $Src))               { $issues += "Source not found: $Src" }
+# --- Folder picker ---
+function Show-FolderPicker {
+    param([string]$Description)
+    Add-Type -AssemblyName System.Windows.Forms
+    $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+    $dialog.Description = $Description
+    $dialog.ShowNewFolderButton = $true
+    $dialog.RootFolder = [System.Environment+SpecialFolder]::Desktop
+    $result = $dialog.ShowDialog()
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+        return $dialog.SelectedPath
+    }
+    return $null
+}
+
+# --- Migrate: clean old v3.x global deployment ---
+function Remove-LegacyGlobal {
     foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
-        if (!(Test-Path (Join-Path $Src $f))) { $issues += "Missing: $f" }
+        $p = Join-Path $CLAUDE_DIR $f
+        if (Test-Path $p) {
+            Remove-Item $p -Force -ErrorAction SilentlyContinue
+            Write-Host "  [migrate] Removed legacy $f from ~/.claude/" -ForegroundColor DarkGray
+        }
     }
-    return $issues
-}
-
-# --- Display ---
-function Show-Banner {
-    Write-Host ''
-    Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock Deploy v3.0.3' -ForegroundColor Green
-    Write-Host '  Claude Code + Codex Dual-CLI Config' -ForegroundColor DarkGray
-    Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host ''
-}
-
-function Show-Environment {
-    Write-Host "[*] User   : $env:USERNAME" -ForegroundColor DarkGray
-    Write-Host "[*] PS     : $PS_VER ($PS_FLAVOR)" -ForegroundColor DarkGray
-    Write-Host "[*] OS     : $OS_VER (Build $OS_BUILD)" -ForegroundColor DarkGray
-    Write-Host "[*] Admin  : $IS_ADMIN" -ForegroundColor DarkGray
-    Write-Host "[*] Home   : $USER_HOME" -ForegroundColor DarkGray
-    Write-Host "[*] Target : $CLAUDE_DIR" -ForegroundColor DarkGray
-    Write-Host "[*] Dirs   : $($ALL_DIRS.Count) detected" -ForegroundColor DarkGray
-    foreach ($d in $ALL_DIRS) { Write-Host "             $d" -ForegroundColor DarkGray }
-    Write-Host "[*] Codex  : $CODEX_DIR" -ForegroundColor DarkGray
-    if (Test-Path $CODEX_BUNDLE_DIR) {
-        Write-Host "[*] Codex src: found" -ForegroundColor DarkGray
-    } else {
-        Write-Host "[*] Codex src: not found (Codex deploy will be skipped)" -ForegroundColor DarkGray
+    switch (Remove-InstructionsFile (Join-Path $CLAUDE_DIR 'config.toml')) {
+        'removed' { Write-Host '  [migrate] Removed legacy config.toml from ~/.claude/' -ForegroundColor DarkGray }
+        'kept'    { }
     }
 }
 
-function Show-Warnings {
-    $w = @()
-    if ($USER_HOME -match '[^\x00-\x7F]') { $w += 'User profile path contains non-ASCII characters' }
-    if ($USER_HOME -match '\s')            { $w += 'User profile path contains spaces' }
-    try { if ($PSVersionTable.PSVersion.Major -lt 3) { $w += 'PowerShell <3.0: some features limited' } } catch {}
-    foreach ($msg in $w) { Write-Host "[!] $msg" -ForegroundColor Yellow }
-    return $w.Count
-}
-
-# === MAIN ===
+# ========== MAIN ==========
 
 Show-Banner
-Show-Environment
-$wc = Show-Warnings
-if ($wc -gt 0) { Write-Host '' }
 
-# --- Uninstall ---
-if ($Uninstall) {
-    Write-Host 'Uninstalling cc-unlock ...' -ForegroundColor Yellow
-    foreach ($dir in $ALL_DIRS) {
-        Write-Host "  $dir" -ForegroundColor DarkGray
-        Uninstall-Config $dir | Out-Null
+# --- GUI mode ---
+if ($GUI) {
+    $desc = if ($Uninstall) {
+        'Select workspace to remove memory from / 选择要移除 memory 的工作区'
+    } else {
+        'Select Claude Code workspace / 选择 Claude Code 工作区'
     }
-    # Codex
-    if (Test-Path $CODEX_DIR) {
-        Write-Host "  $CODEX_DIR (Codex)" -ForegroundColor DarkGray
-        Uninstall-Codex $CODEX_DIR | Out-Null
+    $picked = Show-FolderPicker $desc
+    if (!$picked) {
+        Write-Host '  [cancelled]' -ForegroundColor DarkGray
+        Write-Host ''
+        exit 0
     }
-    Write-Host ''
-    Write-Host 'Uninstall complete. Restart Claude Code / Codex.' -ForegroundColor Green
-    Write-Host ''
-    Read-Host 'Press Enter to exit'
-    exit
+    $Path = $picked
 }
 
-# --- Verify ---
+# --- Codex-only mode ---
+if ($Codex -and !$Path -and !$All -and !$List -and !$Verify) {
+    if ($Uninstall) {
+        Uninstall-Codex-Config
+    } else {
+        Deploy-Codex-Config
+    }
+    Write-Host ''
+    Write-Host '  Restart Codex to activate. / 重启 Codex 生效。' -ForegroundColor Cyan
+    Write-Host ''
+    exit 0
+}
+
+# --- List mode ---
+if ($List) {
+    Write-Host '  Workspaces / 工作区:' -ForegroundColor White
+    Write-Host ''
+    if (!(Test-Path $CLAUDE_PROJECTS)) {
+        Write-Host '  No Claude projects found.' -ForegroundColor DarkGray
+        Write-Host ''
+        exit 0
+    }
+    $dirs = Get-ChildItem $CLAUDE_PROJECTS -Directory
+    foreach ($d in $dirs) {
+        $memDir = Get-MemoryDir $d.Name
+        $deployed = Test-Deployed $memDir
+        $icon = if ($deployed) { '[*]' } else { '[ ]' }
+        $color = if ($deployed) { 'Green' } else { 'DarkGray' }
+        Write-Host "  $icon $($d.Name)" -ForegroundColor $color
+    }
+    Write-Host ''
+    Write-Host '  [*] = memory deployed' -ForegroundColor DarkGray
+    Write-Host ''
+    exit 0
+}
+
+# --- Verify mode ---
 if ($Verify) {
-    Write-Host 'Verifying deployment ...' -ForegroundColor Yellow
+    Write-Host '  Verifying deployment / 验证部署...' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host '  Claude Code:' -ForegroundColor Cyan
-    foreach ($dir in $ALL_DIRS) {
-        Write-Host "  $dir" -ForegroundColor DarkGray
-        Verify-Config $dir | Out-Null
+    if ($Path) {
+        $projectName = ConvertTo-ClaudeProjectPath $Path
+        $memDir = Get-MemoryDir $projectName
+        Write-Host "  $projectName" -ForegroundColor White
+        Verify-Memory $memDir $projectName $Path | Out-Null
+    } elseif ($All -or (!$Path -and !$Codex)) {
+        Write-Host '  --- Claude Code ---' -ForegroundColor Cyan
+        if (Test-Path $CLAUDE_PROJECTS) {
+            $dirs = Get-ChildItem $CLAUDE_PROJECTS -Directory
+            foreach ($d in $dirs) {
+                $memDir = Get-MemoryDir $d.Name
+                if (Test-Deployed $memDir) {
+                    Write-Host "  $($d.Name)" -ForegroundColor White
+                    Verify-Memory $memDir $d.Name | Out-Null
+                }
+            }
+        }
+        # Settings
+        $sp = Join-Path $CLAUDE_DIR 'settings.json'
+        if (Test-Path $sp) {
+            Write-Host "    settings.json - OK" -ForegroundColor Green
+        }
     }
+    Verify-Codex-Config
     Write-Host ''
-    Write-Host '  Codex:' -ForegroundColor Cyan
-    Write-Host "  $CODEX_DIR" -ForegroundColor DarkGray
-    Verify-Codex $CODEX_DIR | Out-Null
-    Write-Host ''
-    Read-Host 'Press Enter to exit'
-    exit
+    exit 0
 }
 
-# --- Deploy ---
+# --- All mode ---
+if ($All) {
+    if (!(Test-Path $CLAUDE_PROJECTS)) {
+        Write-Host '  No Claude projects found.' -ForegroundColor DarkGray
+        Write-Host '  Use -Path or -GUI to deploy to a workspace first.' -ForegroundColor DarkGray
+        Write-Host ''
+        exit 0
+    }
+    $dirs = Get-ChildItem $CLAUDE_PROJECTS -Directory
+    $count = 0
 
-$preflight = Test-Preflight $CLAUDE_DIR $BUNDLE_DIR
-if ($preflight.Count -gt 0) {
-    Write-Host '[!] Pre-flight issues:' -ForegroundColor Red
-    foreach ($p in $preflight) { Write-Host "    - $p" -ForegroundColor Red }
+    Write-Host '--- Claude Code ---' -ForegroundColor Cyan
+    foreach ($d in $dirs) {
+        $memDir = Get-MemoryDir $d.Name
+        if ($Uninstall) {
+            if (Test-Deployed $memDir) {
+                Remove-Memory $memDir $d.Name
+                $count++
+            }
+        } else {
+            Deploy-Memory $memDir $d.Name | Out-Null
+            $count++
+        }
+    }
+
+    if (!$Uninstall) {
+        Deploy-Settings
+        Remove-LegacyGlobal
+        Deploy-Codex-Config
+    } else {
+        Remove-Settings
+        Uninstall-Codex-Config
+    }
+
+    $action = if ($Uninstall) { 'Removed from / 已从' } else { 'Deployed to / 已部署到' }
     Write-Host ''
-    Read-Host 'Press Enter to exit'
+    Write-Host "  [OK] $action $count workspace(s)" -ForegroundColor Green
+    Write-Host '  Restart Claude Code / Codex. / 重启 Claude Code / Codex。' -ForegroundColor Cyan
+    Write-Host ''
+    exit 0
+}
+
+# --- Single workspace mode ---
+if (!$Path) {
+    Write-Host '  Usage / 用法:' -ForegroundColor White
+    Write-Host ''
+    Write-Host '    .\deploy.ps1 -GUI                            Open folder picker / 打开文件夹选择器' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -Path "C:\path\to\workspace"    Deploy to one workspace / 部署到一个工作区' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -All                            Deploy to all workspaces / 部署到所有工作区' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -List                           Show workspaces / 列出工作区' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -Codex                          Deploy Codex only / 仅部署 Codex' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -Verify                         Verify deployment / 验证部署' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -Uninstall -All                 Remove from all / 从全部移除' -ForegroundColor DarkGray
+    Write-Host ''
+    exit 0
+}
+
+if (!(Test-Path $Path)) {
+    Write-Host "  [!] Path not found: $Path" -ForegroundColor Red
+    Write-Host ''
     exit 1
 }
 
-# Lock file
-$lockFile = Join-Path $CLAUDE_DIR '.cc-unlock-deploy.lock'
-if (Test-Path $lockFile) {
-    Write-Host '[!] Another deployment may be in progress' -ForegroundColor Yellow
-    $ans = Read-Host 'Continue anyway? (Y/N)'
-    if ($ans -ne 'Y' -and $ans -ne 'y') { exit 0 }
-}
+# --- Deploy to single workspace ---
+$projectName = ConvertTo-ClaudeProjectPath $Path
+$memDir = Get-MemoryDir $projectName
 
-# Ensure target
-if (!(Test-Path $CLAUDE_DIR)) {
-    if (New-DirSafe $CLAUDE_DIR) {
-        Write-Host '[+] Created .claude directory' -ForegroundColor Yellow
+Write-Host "--- Claude Code ---" -ForegroundColor Cyan
+Write-Host "  Workspace: $Path" -ForegroundColor DarkGray
+Write-Host "  Project:   $projectName" -ForegroundColor DarkGray
+Write-Host ''
+
+if ($Uninstall) {
+    if (Test-Deployed $memDir) {
+        Remove-Memory $memDir $projectName $Path
     } else {
-        Write-Host '[!] Failed to create .claude directory' -ForegroundColor Red
-        Read-Host 'Press Enter to exit'
-        exit 1
+        Write-Host "  [skip] Not deployed: $projectName" -ForegroundColor DarkGray
     }
-}
-
-# Lock
-try {
-    $utf8 = New-Object System.Text.UTF8Encoding $false
-    $sw   = New-Object System.IO.StreamWriter($lockFile, $false, $utf8)
-    $sw.WriteLine("$env:USERNAME - $(Get-Date)")
-    $sw.Close()
-} catch {}
-
-# Deploy primary
-Write-Host ''
-Write-Host "Deploying to: $CLAUDE_DIR" -ForegroundColor Cyan
-$result = Deploy-Config $CLAUDE_DIR $BUNDLE_DIR
-
-# Deploy to additional directories
-foreach ($dir in $ALL_DIRS) {
-    if ($dir -ne $CLAUDE_DIR) {
-        Write-Host ''
-        Write-Host "Deploying to: $dir" -ForegroundColor Cyan
-        $dr = Deploy-Config $dir $BUNDLE_DIR
-        if ($dr.Fail -eq 0) {
-            Write-Host "  Complete ($($dr.Ok)/4)" -ForegroundColor Green
-        } else {
-            Write-Host "  Partial ($($dr.Ok) ok, $($dr.Fail) fail)" -ForegroundColor Yellow
-        }
-    }
-}
-
-# --- Deploy Codex ---
-$codexResult = @{ Ok = 0; Fail = 0 }
-if (Test-Path $CODEX_BUNDLE_DIR) {
-    if (!(Test-Path $CODEX_DIR)) {
-        if (New-DirSafe $CODEX_DIR) {
-            Write-Host '[+] Created .codex directory' -ForegroundColor Yellow
-        }
-    }
-    if (Test-Path $CODEX_DIR) {
-        Write-Host ''
-        Write-Host "Deploying Codex to: $CODEX_DIR" -ForegroundColor Cyan
-        $codexResult = Deploy-Codex $CODEX_DIR $CODEX_BUNDLE_DIR
-    }
+    Remove-Settings
+    Uninstall-Codex-Config
 } else {
-    Write-Host ''
-    Write-Host 'Codex bundle not found, skipping Codex deploy.' -ForegroundColor DarkGray
+    Deploy-Memory $memDir $projectName $Path | Out-Null
+    Deploy-Settings
+    Remove-LegacyGlobal
+    Deploy-Codex-Config
 }
 
-# Remove lock
-Remove-Safe $lockFile | Out-Null
-
-# Summary
-$totalOk   = $result.Ok   + $codexResult.Ok
-$totalFail = $result.Fail  + $codexResult.Fail
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
-if ($totalFail -eq 0) {
-    Write-Host "  Deploy complete!" -ForegroundColor Green
-    Write-Host "    Claude Code: $($result.Ok)/4" -ForegroundColor Green
-    if ($codexResult.Ok -gt 0) {
-        Write-Host "    Codex:       $($codexResult.Ok)/2" -ForegroundColor Green
-    }
-} else {
-    Write-Host "  Deploy done ($totalOk ok, $totalFail fail)" -ForegroundColor Yellow
-    if (!$IS_ADMIN) { Write-Host '  Try running as administrator' -ForegroundColor DarkGray }
-}
-Write-Host ''
-Write-Host '  Restart Claude Code / Codex to activate.' -ForegroundColor Cyan
+Write-Host '  [OK] Complete!' -ForegroundColor Green
+Write-Host '  Restart Claude Code / Codex. / 重启生效。' -ForegroundColor Cyan
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ''
-Read-Host 'Press Enter to exit'

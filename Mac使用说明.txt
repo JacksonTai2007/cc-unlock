@@ -1,20 +1,23 @@
-cc-unlock - macOS 使用说明
-======================
+cc-unlock v5.0 - macOS 使用说明
+================================
 
-安装方法一：终端
+安装方法一：终端 | Terminal
   chmod +x mac-install.sh
   ./mac-install.sh
 
-安装方法二：双击
+安装方法二：双击 | Double-click
   双击 启动.command 文件
 
-如果 macOS 提示"无法验证开发者"：
+如果 macOS 提示"无法验证开发者" | If macOS says "unverified developer":
   1. 右键点击 启动.command → 打开 → 弹窗点"打开"
   2. 或在终端运行: xattr -d com.apple.quarantine 启动.command
 
-卸载：
+卸载 | Uninstall:
   双击 卸载.command
   或终端运行 ./mac-uninstall.sh
 
-部署完成后重启 Claude Code 即可生效。
-注: v3.0.3 起不再创建备份(安装幂等、卸载干净)。若安装前已有自己的 ~/.claude/CLAUDE.md, 请自行先保存。
+部署完成后重启 Claude Code / Codex 即可生效。
+Restart Claude Code / Codex after deployment.
+
+v5.0 使用 memory 系统按工作区部署，安装菜单会让你选择部署到哪个工作区或全部部署。
+v5.0 deploys per workspace via the memory system. The install menu lets you choose a specific workspace or deploy to all.
