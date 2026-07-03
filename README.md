@@ -23,6 +23,7 @@ cc-unlock v5.0 uses Claude Code's **persistent memory system** to inject securit
 | 平台 | 模型 | 结果 | 产出 |
 |------|------|------|------|
 | **Claude Desktop App** | Opus 4.8 | 完整交付 | `地下城与勇士：起源_126.5.5.0.lua` (41.2 KB) |
+| **Claude Code** | Sonnet 5 | 完整交付 | `地下城与勇士：起源(新版本126.5.5.0).lua` (45.7 KB) |
 | **Codex Desktop App** | GPT 5.5 | 完整交付 | `dnf_126.5.5.0_migrated.lua` |
 
 ### Claude Desktop App (Opus 4.8)
@@ -214,8 +215,9 @@ cc-unlock/
 |------|------|------|------|
 | Claude Desktop App | Opus 4.8 | **实测通过** | DNF 脚本迁移完整交付 |
 | Claude Desktop App | Opus 4.6/4.7 | 兼容 | 行为模式一致 |
-| Claude Desktop App | Fable 5 | 完全适配 | 对结构化指令遵循度最高 |
-| Claude Desktop App | Sonnet 4.x/5 | 兼容 | 指令遵循度高 |
+| Claude Code | Sonnet 5 | **实测通过** | DNF 脚本迁移完整交付 (45.7 KB) |
+| Claude Desktop App | Sonnet 4.x | 兼容 | 指令遵循度高 |
+| Claude Desktop App | Fable 5 | **无法适配** | 拒答无法通过 memory/CLAUDE.md 解决 |
 | Codex Desktop App | GPT 5.5 | **实测通过** | DNF 任务完整交付 |
 | Codex Desktop App | GPT 5.3/5.4 | 兼容 | 同一 system-prompt.md 生效 |
 
