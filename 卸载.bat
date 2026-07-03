@@ -1,14 +1,13 @@
 @echo off
-chcp 65001 >nul 2>&1
 echo.
-echo   cc-unlock v5.0 Uninstall / 卸载
+echo   cc-unlock v5.0 Uninstall
 echo.
-echo   [1] Remove from a workspace (select folder) / 从指定工作区移除
-echo   [2] Remove from all workspaces / 从全部工作区移除
-echo   [3] List workspaces / 列出工作区
-echo   [0] Exit / 退出
+echo   [1] Remove from workspace (select folder)
+echo   [2] Remove from all workspaces
+echo   [3] List workspaces
+echo   [0] Exit
 echo.
-set /p "choice=  Select / 选择: "
+set /p "choice=  Select: "
 if "%choice%"=="1" (
     powershell -ExecutionPolicy Bypass -File "%~dp0cc-unlock-files\deploy.ps1" -Uninstall -GUI
 ) else if "%choice%"=="2" (

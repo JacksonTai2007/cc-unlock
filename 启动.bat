@@ -1,17 +1,14 @@
 @echo off
-chcp 65001 >nul 2>&1
 echo.
 echo   cc-unlock v5.0
-echo   Memory-based security research authorization
-echo   基于 memory 的安全研究授权配置
 echo.
-echo   [1] Deploy to a workspace (select folder) / 部署到指定工作区
-echo   [2] Deploy to all workspaces / 部署到所有工作区
-echo   [3] Deploy Codex only / 仅部署 Codex
-echo   [4] List workspaces / 列出工作区
-echo   [0] Exit / 退出
+echo   [1] Deploy to workspace (select folder)
+echo   [2] Deploy to all workspaces
+echo   [3] Deploy Codex only
+echo   [4] List workspaces
+echo   [0] Exit
 echo.
-set /p "choice=  Select / 选择: "
+set /p "choice=  Select: "
 if "%choice%"=="1" (
     powershell -ExecutionPolicy Bypass -File "%~dp0cc-unlock-files\deploy.ps1" -GUI
 ) else if "%choice%"=="2" (
