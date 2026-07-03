@@ -1,4 +1,4 @@
-# cc-unlock v5.0 — Memory-based security research authorization
+﻿# cc-unlock v5.0 — Memory-based security research authorization
 # 通过 Claude Code memory 系统部署安全研究者身份上下文
 # Deploys researcher identity via Claude Code's persistent memory system
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
@@ -280,7 +280,7 @@ function Verify-Memory {
 function Deploy-Settings {
     $settingsPath = Join-Path $CLAUDE_DIR 'settings.json'
     if ($SkipSettings) {
-        Write-Host '  [skip] settings.json (--SkipSettings)' -ForegroundColor DarkGray
+        Write-Host '  [skip] settings.json (SkipSettings)' -ForegroundColor DarkGray
         return
     }
     if (Test-Path $settingsPath) {
