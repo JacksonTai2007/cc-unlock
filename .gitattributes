@@ -1,0 +1,12 @@
+# cc-unlock line-ending policy
+# 保证跨平台 checkout 时脚本换行正确，避免 Windows 的 autocrlf 把 bash 脚本转成 CRLF 而崩溃。
+
+# Shell scripts and macOS launchers must always be LF (CRLF breaks bash/zsh)
+*.sh        text eol=lf
+*.command   text eol=lf
+
+# Windows batch files must always be CRLF
+*.bat       text eol=crlf
+
+# .ps1 is intentionally left to the default (autocrlf): deploy.ps1 carries a UTF-8 BOM
+# and is Windows-only, so its line endings never cross platforms. PowerShell reads any EOL.
