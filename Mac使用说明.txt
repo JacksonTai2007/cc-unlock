@@ -1,23 +1,40 @@
 cc-unlock v5.0 - macOS 使用说明
 ================================
 
-安装方法一：终端 | Terminal
-  chmod +x mac-install.sh
-  ./mac-install.sh
+安装方法一：双击 | Double-click
+  双击 启动.command 文件，按菜单选择。
 
-安装方法二：双击 | Double-click
-  双击 启动.command 文件
+安装方法二：终端 | Terminal
+  chmod +x mac-install.sh
+  ./mac-install.sh                      交互菜单 | interactive menu
+  ./mac-install.sh /path/to/workspace   部署到指定工作区 | one workspace
+  ./mac-install.sh --all                部署到所有工作区 | all workspaces
+  ./mac-install.sh --codex              仅部署 Codex | Codex only
+  ./mac-install.sh --list               列出工作区 | list workspaces
+  ./mac-install.sh --verify             验证部署 | verify deployment
+
+安装菜单选项 | Install menu:
+  [1] 部署到指定工作区（输入路径）| Deploy to a workspace (enter path)
+  [2] 部署到所有已有工作区        | Deploy to all existing workspaces
+  [3] 仅部署 Codex                | Deploy Codex only
+  [4] 列出工作区                  | List workspaces
 
 如果 macOS 提示"无法验证开发者" | If macOS says "unverified developer":
   1. 右键点击 启动.command → 打开 → 弹窗点"打开"
   2. 或在终端运行: xattr -d com.apple.quarantine 启动.command
 
 卸载 | Uninstall:
-  双击 卸载.command
-  或终端运行 ./mac-uninstall.sh
+  双击 卸载.command，或终端运行：
+  ./mac-uninstall.sh                      交互菜单 | interactive menu
+  ./mac-uninstall.sh /path/to/workspace   从指定工作区移除 | one workspace
+  ./mac-uninstall.sh --all                从所有工作区移除 | all workspaces
 
-部署完成后重启 Claude Code / Codex 即可生效。
-Restart Claude Code / Codex after deployment.
-
-v5.0 使用 memory 系统按工作区部署，安装菜单会让你选择部署到哪个工作区或全部部署。
-v5.0 deploys per workspace via the memory system. The install menu lets you choose a specific workspace or deploy to all.
+说明 | Notes:
+  - v5.0 使用 Claude Code 的 memory 系统按工作区部署安全研究者身份档案。
+    v5.0 deploys a security researcher profile per workspace via the memory system.
+  - Codex 通过合并式写入 ~/.codex/config.toml 共存，不会覆盖 cc-switch 的供应商配置。
+    Codex coexists via a non-destructive merge into ~/.codex/config.toml (cc-switch safe).
+  - 卸载只删除 cc-unlock 自己部署的文件；你自己的 CLAUDE.md / memory 条目会保留。
+    Uninstall only removes cc-unlock's own files; your own CLAUDE.md / memory entries are kept.
+  - 部署完成后重启 Claude Code / Codex 即可生效。
+    Restart Claude Code / Codex after deployment.
