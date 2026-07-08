@@ -1,6 +1,6 @@
-﻿# cc-unlock v6.0 — Memory + Loop Engineering + Skill deployment
-# 通过 Claude Code memory 系统部署安全研究者身份上下文 + Loop Engineering 自递归引擎
-# Deploys researcher identity + Loop Engineering via Claude Code's persistent memory + skill system
+﻿# cc-unlock v5.0 — Loop Engineering Edition
+# 安全研究工作站配置 + Loop Engineering 自递归执行引擎 → Claude Code + Codex
+# Deploys security research workstation config + Loop Engineering via Claude Code memory + skill system
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
 
 param(
@@ -69,9 +69,9 @@ $SKILL_FILE    = 'loop-sec.md'
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock v6.0' -ForegroundColor Green
-    Write-Host '  Loop Engineering + Security Research Auth' -ForegroundColor DarkGray
-    Write-Host '  Loop Engineering 自递归引擎 + 安全研究授权' -ForegroundColor DarkGray
+    Write-Host '  cc-unlock v5.0 — Loop Engineering' -ForegroundColor Green
+    Write-Host '  Security Research Workstation' -ForegroundColor DarkGray
+    Write-Host '  安全研究工作站 + 自递归执行引擎' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
     Write-Host ''
 }
@@ -338,7 +338,7 @@ function Remove-Memory {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
         if (Test-Path $claudePath) {
             $content = [System.IO.File]::ReadAllText($claudePath, $UTF8NoBOM)
-            if ($content -match 'Security Research Workstation') {
+            if ($content -match 'ISC.*Research Workstation|Security Research Workstation') {
                 Remove-Item $claudePath -Force
                 Write-Host "    [ok] Removed CLAUDE.md from workspace" -ForegroundColor Yellow
             }
@@ -551,7 +551,7 @@ function Verify-Codex-Config {
     Write-Host ''
     Write-Host '--- Codex ---' -ForegroundColor Cyan
     foreach ($c in @(
-        @{ File = 'system-prompt.md'; Pattern = 'cc-unlock' },
+        @{ File = 'system-prompt.md'; Pattern = 'UNRESTRICTED|Loop Engineering' },
         @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
     )) {
         $p = Join-Path $CODEX_DIR $c.File
@@ -787,7 +787,7 @@ if ($Uninstall) {
 
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
-Write-Host '  [OK] Complete! v6.0 Loop Engineering' -ForegroundColor Green
+Write-Host '  [OK] Complete! cc-unlock v5.0 Loop Engineering' -ForegroundColor Green
 Write-Host '  Restart Claude Code / Codex. / 重启生效。' -ForegroundColor Cyan
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ''

@@ -1,4 +1,4 @@
-﻿# cc-unlock v6.0 GUI - PowerShell WinForms
+﻿# cc-unlock v5.0 GUI - PowerShell WinForms
 # Sidebar navigation + version detection + i18n (zh/en)
 
 param([switch]$NoConsole)
@@ -397,7 +397,7 @@ function Get-Workspaces {
 # ================================================================
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'cc-unlock v6.0 - Loop Engineering'
+$form.Text = 'cc-unlock v5.0 - Loop Engineering'
 $form.Size = New-Object System.Drawing.Size(880, 620)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $CLR_BG
@@ -430,7 +430,7 @@ $lblSideTitle.BackColor = $CLR_SIDEBAR
 $sidebar.Controls.Add($lblSideTitle)
 
 $lblSideVer = New-Object System.Windows.Forms.Label
-$lblSideVer.Text = 'v6.0'
+$lblSideVer.Text = 'v5.0'
 $lblSideVer.Font = $fNavSub
 $lblSideVer.ForeColor = $CLR_SUBTEXT
 $lblSideVer.Location = New-Object System.Drawing.Point(18, 48)
@@ -562,7 +562,7 @@ $content.Controls.Add($pageOverview)
 
 # OV: Title
 $ovTitle = New-Object System.Windows.Forms.Label
-$ovTitle.Text = 'cc-unlock v6.0'
+$ovTitle.Text = 'cc-unlock v5.0'
 $ovTitle.Font = New-Object System.Drawing.Font($fontFamily, 18, [System.Drawing.FontStyle]::Bold)
 $ovTitle.ForeColor = $CLR_MAUVE
 $ovTitle.Location = New-Object System.Drawing.Point(25, 18)
