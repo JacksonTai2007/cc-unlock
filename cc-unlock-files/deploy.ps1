@@ -1,6 +1,6 @@
-﻿# cc-unlock v5.0 — Memory-based security research authorization
-# 通过 Claude Code memory 系统部署安全研究者身份上下文
-# Deploys researcher identity via Claude Code's persistent memory system
+# cc-unlock v6.0 — Memory + Loop Engineering + Skill deployment
+# 通过 Claude Code memory 系统部署安全研究者身份上下文 + Loop Engineering 自递归引擎
+# Deploys researcher identity + Loop Engineering via Claude Code's persistent memory + skill system
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
 
 param(
@@ -12,6 +12,7 @@ param(
     [switch]$GUI,
     [switch]$Codex,
     [switch]$SkipSettings,
+    [switch]$SkipSkill,
     [string]$Mode
 )
 
@@ -58,17 +59,19 @@ if (!$SCRIPT_DIR) {
 }
 $MEMORY_BUNDLE = Join-Path $SCRIPT_DIR 'memory-bundle'
 $CONFIG_BUNDLE = Join-Path $SCRIPT_DIR 'config-bundle'
+$SKILL_BUNDLE  = Join-Path $SCRIPT_DIR 'skill-bundle'
 $CODEX_BUNDLE  = Join-Path $SCRIPT_DIR '..\codex-files\codex-config-bundle'
 $MEMORY_FILE   = 'security-research-lab.md'
 $INDEX_FILE    = 'MEMORY.md'
+$SKILL_FILE    = 'loop-sec.md'
 
 # --- Banner ---
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock v5.0' -ForegroundColor Green
-    Write-Host '  Memory-based security research authorization' -ForegroundColor DarkGray
-    Write-Host '  基于 memory 的安全研究授权配置' -ForegroundColor DarkGray
+    Write-Host '  cc-unlock v6.0' -ForegroundColor Green
+    Write-Host '  Loop Engineering + Security Research Auth' -ForegroundColor DarkGray
+    Write-Host '  Loop Engineering 自递归引擎 + 安全研究授权' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
     Write-Host ''
 }
@@ -99,8 +102,6 @@ function Copy-Safe($Src, $Dst) {
     return $false
 }
 
-# Workspace path -> Claude projects directory name
-# 工作区路径 -> Claude 项目目录名编码
 function ConvertTo-ClaudeProjectPath {
     param([string]$WorkspacePath)
     $resolved = (Resolve-Path $WorkspacePath -ErrorAction Stop).Path.TrimEnd('\')
@@ -117,7 +118,6 @@ function Test-Deployed {
     return (Test-Path (Join-Path $MemoryDir $MEMORY_FILE))
 }
 
-# Read index entry from template to avoid hardcoding Chinese in script
 function Get-IndexEntry {
     $templateIndex = Join-Path $MEMORY_BUNDLE $INDEX_FILE
     if (!(Test-Path $templateIndex)) { return $null }
@@ -126,6 +126,74 @@ function Get-IndexEntry {
         if ($line -match 'security-research-lab') { return $line }
     }
     return $null
+}
+
+# --- Deploy skill to workspace ---
+function Deploy-Skill {
+    param([string]$WorkspacePath)
+
+    if ($SkipSkill) {
+        Write-Host '  [skip] skill (SkipSkill)' -ForegroundColor DarkGray
+        return @{ Ok = 0; Fail = 0 }
+    }
+
+    $skillSrc = Join-Path $SKILL_BUNDLE $SKILL_FILE
+    if (!(Test-Path $skillSrc)) {
+        Write-Host '  [skip] skill bundle not found' -ForegroundColor DarkGray
+        return @{ Ok = 0; Fail = 0 }
+    }
+
+    if (!$WorkspacePath -or !(Test-Path $WorkspacePath)) {
+        return @{ Ok = 0; Fail = 0 }
+    }
+
+    $skillDir = Join-Path $WorkspacePath '.claude\skills'
+    if (!(Test-Path $skillDir)) {
+        New-Item -ItemType Directory -Path $skillDir -Force | Out-Null
+    }
+
+    $skillDst = Join-Path $skillDir $SKILL_FILE
+    if (Copy-Safe $skillSrc $skillDst) {
+        Write-Host "    [ok] skill/$SKILL_FILE -> .claude/skills/" -ForegroundColor Green
+        return @{ Ok = 1; Fail = 0 }
+    } else {
+        Write-Host "    [FAIL] skill/$SKILL_FILE" -ForegroundColor Red
+        return @{ Ok = 0; Fail = 1 }
+    }
+}
+
+# --- Remove skill from workspace ---
+function Remove-Skill {
+    param([string]$WorkspacePath)
+
+    if (!$WorkspacePath -or !(Test-Path $WorkspacePath)) { return }
+
+    $skillPath = Join-Path $WorkspacePath ".claude\skills\$SKILL_FILE"
+    if (Test-Path $skillPath) {
+        Remove-Item $skillPath -Force
+        Write-Host "    [ok] Removed .claude/skills/$SKILL_FILE" -ForegroundColor Yellow
+    }
+
+    # Clean up empty skills dir
+    $skillDir = Join-Path $WorkspacePath '.claude\skills'
+    if ((Test-Path $skillDir) -and ((Get-ChildItem $skillDir).Count -eq 0)) {
+        Remove-Item $skillDir -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# --- Verify skill ---
+function Verify-Skill {
+    param([string]$WorkspacePath)
+
+    if (!$WorkspacePath -or !(Test-Path $WorkspacePath)) { return }
+
+    $skillPath = Join-Path $WorkspacePath ".claude\skills\$SKILL_FILE"
+    if (Test-Path $skillPath) {
+        $sz = (Get-Item $skillPath).Length
+        Write-Host "    .claude/skills/$SKILL_FILE - OK ($sz bytes)" -ForegroundColor Green
+    } else {
+        Write-Host "    .claude/skills/$SKILL_FILE - NOT DEPLOYED" -ForegroundColor DarkGray
+    }
 }
 
 # --- Deploy to workspace ---
@@ -188,6 +256,11 @@ function Deploy-Memory {
         }
     }
 
+    # 4. Skill -> workspace/.claude/skills/
+    $skillResult = Deploy-Skill $WorkspacePath
+    $ok += $skillResult.Ok
+    $fail += $skillResult.Fail
+
     Write-Host "  [OK] $Label" -ForegroundColor Green
     return @{ Ok = $ok; Fail = $fail }
 }
@@ -230,6 +303,9 @@ function Remove-Memory {
         }
     }
 
+    # Remove skill
+    Remove-Skill $WorkspacePath
+
     Write-Host "  [OK] $Label (removed)" -ForegroundColor Yellow
 }
 
@@ -242,7 +318,11 @@ function Verify-Memory {
     $memFile = Join-Path $MemoryDir $MEMORY_FILE
     if (Test-Path $memFile) {
         $sz = (Get-Item $memFile).Length
-        Write-Host "    $MEMORY_FILE - OK ($sz bytes)" -ForegroundColor Green
+        $content = ''
+        try { $content = Get-Content $memFile -Raw -ErrorAction Stop } catch {}
+        $hasLoop = $content -match 'Loop Engineering'
+        $loopStatus = if ($hasLoop) { '+ Loop Engineering' } else { '(no Loop Engineering)' }
+        Write-Host "    $MEMORY_FILE - OK ($sz bytes) $loopStatus" -ForegroundColor Green
     } else {
         Write-Host "    $MEMORY_FILE - MISSING" -ForegroundColor Red
         $allOk = $false
@@ -267,10 +347,17 @@ function Verify-Memory {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
         if (Test-Path $claudePath) {
             $sz = (Get-Item $claudePath).Length
-            Write-Host "    CLAUDE.md (workspace) - OK ($sz bytes)" -ForegroundColor Green
+            $claudeContent = ''
+            try { $claudeContent = Get-Content $claudePath -Raw -ErrorAction Stop } catch {}
+            $hasLoop = $claudeContent -match 'Loop Engineering'
+            $loopStatus = if ($hasLoop) { '+ Loop Engineering' } else { '(no Loop Engineering)' }
+            Write-Host "    CLAUDE.md (workspace) - OK ($sz bytes) $loopStatus" -ForegroundColor Green
         } else {
             Write-Host "    CLAUDE.md (workspace) - NOT FOUND" -ForegroundColor DarkGray
         }
+
+        # Verify skill
+        Verify-Skill $WorkspacePath
     }
 
     return $allOk
@@ -371,7 +458,6 @@ function Deploy-Codex-Config {
     } else {
         Write-Host '  [FAIL] config.toml' -ForegroundColor Red
     }
-    # Clean old AGENTS.md
     $old = Join-Path $CODEX_DIR 'AGENTS.md'
     if (Test-Path $old) {
         Remove-Item $old -Force -ErrorAction SilentlyContinue
@@ -438,7 +524,7 @@ function Show-FolderPicker {
     return $null
 }
 
-# --- Migrate: clean old v3.x global deployment ---
+# --- Migrate: clean old v3.x/v5.x global deployment ---
 function Remove-LegacyGlobal {
     foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
         $p = Join-Path $CLAUDE_DIR $f
@@ -460,7 +546,7 @@ Show-Banner
 # --- GUI mode ---
 if ($GUI) {
     $desc = if ($Uninstall) {
-        'Select workspace to remove memory from / 选择要移除 memory 的工作区'
+        'Select workspace to remove from / 选择要移除的工作区'
     } else {
         'Select Claude Code workspace / 选择 Claude Code 工作区'
     }
@@ -504,7 +590,7 @@ if ($List) {
         Write-Host "  $icon $($d.Name)" -ForegroundColor $color
     }
     Write-Host ''
-    Write-Host '  [*] = memory deployed' -ForegroundColor DarkGray
+    Write-Host '  [*] = memory + loop engineering deployed' -ForegroundColor DarkGray
     Write-Host ''
     exit 0
 }
@@ -530,7 +616,6 @@ if ($Verify) {
                 }
             }
         }
-        # Settings
         $sp = Join-Path $CLAUDE_DIR 'settings.json'
         if (Test-Path $sp) {
             Write-Host "    settings.json - OK" -ForegroundColor Green
@@ -555,13 +640,20 @@ if ($All) {
     Write-Host '--- Claude Code ---' -ForegroundColor Cyan
     foreach ($d in $dirs) {
         $memDir = Get-MemoryDir $d.Name
+
+        # Try to resolve original workspace path from project name
+        $wsPath = $null
+        $projName = $d.Name
+        $possiblePath = ($projName -replace '^([A-Za-z])-', '$1:\') -replace '-', '\'
+        if (Test-Path $possiblePath) { $wsPath = $possiblePath }
+
         if ($Uninstall) {
             if (Test-Deployed $memDir) {
-                Remove-Memory $memDir $d.Name
+                Remove-Memory $memDir $d.Name $wsPath
                 $count++
             }
         } else {
-            Deploy-Memory $memDir $d.Name | Out-Null
+            Deploy-Memory $memDir $d.Name $wsPath | Out-Null
             $count++
         }
     }
@@ -594,6 +686,7 @@ if (!$Path) {
     Write-Host '    .\deploy.ps1 -Codex                          Deploy Codex only / 仅部署 Codex' -ForegroundColor DarkGray
     Write-Host '    .\deploy.ps1 -Verify                         Verify deployment / 验证部署' -ForegroundColor DarkGray
     Write-Host '    .\deploy.ps1 -Uninstall -All                 Remove from all / 从全部移除' -ForegroundColor DarkGray
+    Write-Host '    .\deploy.ps1 -SkipSkill                      Deploy without skill / 不部署 skill' -ForegroundColor DarkGray
     Write-Host ''
     exit 0
 }
@@ -630,7 +723,7 @@ if ($Uninstall) {
 
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
-Write-Host '  [OK] Complete!' -ForegroundColor Green
+Write-Host '  [OK] Complete! v6.0 Loop Engineering' -ForegroundColor Green
 Write-Host '  Restart Claude Code / Codex. / 重启生效。' -ForegroundColor Cyan
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ''

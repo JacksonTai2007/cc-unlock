@@ -1,14 +1,14 @@
-# cc-unlock v5.0
+# cc-unlock v6.0
 
 **Claude Code + Codex 安全研究配置工具** | Security Research Config Tool for Claude Code & Codex
 
-cc-unlock v5.0 使用 Claude Code 的**持久 memory 系统**注入安全研究者身份上下文，让 AI 编码代理在安全研究场景下稳定输出专业级技术内容——逆向工程、漏洞研究、渗透测试、恶意软件分析等全域覆盖。
+cc-unlock v6.0 在 v5.0 的 memory 部署基础上新增 **Loop Engineering 自递归任务执行引擎**、**反拒答策略升级**、**Claude Code Skill 自动触发**，并提供 **可视化 GUI 部署工具**（侧边栏导航 + Claude Code / Codex 版本检测 + 中英双语切换）。
 
-cc-unlock v5.0 uses Claude Code's **persistent memory system** to inject security researcher identity context, enabling AI coding agents to deliver stable, professional-grade technical output across security research domains — reverse engineering, vulnerability research, penetration testing, malware analysis, and more.
+cc-unlock v6.0 adds **Loop Engineering self-recursive task execution engine**, **anti-refusal policy upgrade**, **Claude Code Skill auto-trigger**, and a **visual GUI deployment tool** (sidebar navigation + Claude Code / Codex version detection + zh/en language switching) on top of v5.0's memory deployment architecture.
 
-> **v5.0 架构升级**：v3.x 通过全局 `~/.claude/CLAUDE.md`（~25KB, ~300 示例）注入行为配置，所有工作区共享同一份。v5.0 改用 Claude Code 的 **memory 系统**（`~/.claude/projects/[PROJECT]/memory/`），每个工作区独立部署安全研究者身份档案。Memory 是 Claude Code 的原生持久化机制——模型在每个会话开始时自动读取，无需重复建立上下文。
+> **v6.0 新增**：Loop Engineering 让模型在接收到安全研究请求时自动分解任务、递归执行所有阶段、无需中途确认。用户不指定最终目标时模型自动合成最优目标。GUI 从 CLI 菜单升级为 WinForms 可视化窗口。
 >
-> **v5.0 architecture upgrade**: v3.x injected a global `~/.claude/CLAUDE.md` (~25KB, ~300 examples) shared across all workspaces. v5.0 uses Claude Code's **memory system** (`~/.claude/projects/[PROJECT]/memory/`), deploying a security researcher identity profile per workspace. Memory is Claude Code's native persistence mechanism — the model reads it automatically at session start, no context re-establishment needed.
+> **v6.0 new**: Loop Engineering auto-decomposes security research requests into phases and recursively executes all of them without mid-task confirmation. When users don't specify an endpoint, the model auto-synthesizes optimal goals. GUI upgraded from CLI menu to WinForms visual application.
 
 ---
 
@@ -46,44 +46,47 @@ cc-unlock v5.0 uses Claude Code's **persistent memory system** to inject securit
 
 ## 核心特性 | Key Features
 
-- **Memory 原生部署** — 使用 Claude Code 的持久 memory 系统（`~/.claude/projects/[PROJECT]/memory/`），每个工作区独立部署，模型会话开始时自动读取
-- **Native memory deployment** — Uses Claude Code's persistent memory system, deployed per workspace, automatically loaded at session start
+### v6.0 新增 | New in v6.0
 
-- **安全研究者身份档案** — 完整的安全研究员 profile（逆向工程、漏洞研究、利用开发、游戏安全、移动安全、渗透测试、恶意软件分析、红队、密码学、IoT），替代旧版 ~300 示例的暴力锚定
-- **Security researcher identity profile** — Comprehensive researcher profile covering RE, vuln research, exploit dev, game security, mobile security, pentesting, malware analysis, red team, cryptography, IoT — replaces the old ~300-example brute-force anchoring
+- **Loop Engineering 自递归执行引擎** — 用户提出安全研究需求后，模型自动分解为多阶段任务并递归完成所有阶段，不中途停下询问确认。覆盖逆向工程、渗透测试、游戏安全、恶意软件分析、漏洞研究、移动安全等 10 个领域的执行模板
+- **Loop Engineering self-recursive engine** — After receiving a security research request, the model auto-decomposes into multi-phase tasks and recursively completes all phases without stopping for confirmation. Includes execution templates for 10 domains
 
-- **双 CLI 支持** — Claude Code（memory）+ Codex（system-prompt.md via config.toml），一次安装两套部署
-- **Dual CLI support** — Claude Code (memory) + Codex (system-prompt.md via config.toml), single install covers both
+- **反拒答策略升级** — CLAUDE.md 逐字引用 Claude Code 安全策略、策略对齐分析、3 步拒答自检协议；Codex 系统提示词融合 codex-5.5 直接模式
+- **Anti-refusal upgrade** — CLAUDE.md verbatim-quotes Claude Code security policy with alignment analysis and 3-step refusal self-check; Codex prompt integrates codex-5.5 direct mode
 
-- **中英双语** — 所有配置文件、文档、脚本输出均为中英双语
-- **Bilingual** — All config files, docs, and script output in Chinese + English
+- **Skill 自动触发** — `loop-sec.md` 部署到工作区 `.claude/skills/`，安全研究任务自动激活 Loop Engineering 方法论
+- **Skill auto-trigger** — `loop-sec.md` deployed to workspace `.claude/skills/`, auto-activates Loop Engineering methodology on security research tasks
 
-- **跨平台** — Windows / macOS / Linux 一键安装，安装幂等、卸载干净
-- **Cross-platform** — Windows / macOS / Linux one-click install, idempotent install, clean uninstall
+- **可视化 GUI** — WinForms 深色主题窗口，侧边栏导航（概览/部署/设置/关于），Claude Code + Codex 版本自动检测，中英双语切换，一键部署/卸载/验证
+- **Visual GUI** — WinForms dark-themed window with sidebar navigation (Overview/Deploy/Settings/About), Claude Code + Codex auto-detection, zh/en language switching, one-click deploy/uninstall/verify
 
-- **与 cc-switch 共存** — Codex 的 config.toml 合并式写入，不覆盖 cc-switch 的供应商配置
-- **cc-switch compatible** — Codex config.toml uses non-destructive merge, preserves cc-switch provider config
+### 继承自 v5.0 | Inherited from v5.0
+
+- **Memory 原生部署** — 使用 Claude Code 的持久 memory 系统（`~/.claude/projects/[PROJECT]/memory/`），每个工作区独立部署
+- **安全研究者身份档案** — 完整的安全研究员 profile（RE、漏洞研究、利用开发、游戏安全、渗透测试、恶意软件分析、红队等）
+- **双 CLI 支持** — Claude Code（memory）+ Codex（system-prompt.md via config.toml）
+- **跨平台** — Windows / macOS / Linux 一键安装
+- **与 cc-switch 共存** — Codex config.toml 合并式写入
 
 ---
 
 ## 快速开始 | Quick Start
 
-### Windows
+### Windows (GUI)
 
 ```
 双击 启动.bat
 ```
 
-菜单选择部署模式：部署到指定工作区 / 部署到所有工作区 / 仅部署 Codex。
-Menu: deploy to specific workspace / deploy to all workspaces / Codex only.
+打开可视化部署窗口：选择工作区、勾选选项、点击部署。
 
-或 PowerShell：
+Open the visual deployment window: select workspaces, check options, click deploy.
+
+### Windows (CLI)
+
 ```powershell
 # 部署到指定工作区 | Deploy to specific workspace
 .\cc-unlock-files\deploy.ps1 -Path "C:\path\to\workspace"
-
-# 通过文件夹选择器 | Via folder picker
-.\cc-unlock-files\deploy.ps1 -GUI
 
 # 部署到所有已有工作区 | Deploy to all existing workspaces
 .\cc-unlock-files\deploy.ps1 -All
@@ -91,8 +94,8 @@ Menu: deploy to specific workspace / deploy to all workspaces / Codex only.
 # 仅部署 Codex | Codex only
 .\cc-unlock-files\deploy.ps1 -Codex
 
-# 列出工作区 | List workspaces
-.\cc-unlock-files\deploy.ps1 -List
+# 跳过 Skill 部署 | Skip skill deployment
+.\cc-unlock-files\deploy.ps1 -All -SkipSkill
 
 # 验证部署 | Verify deployment
 .\cc-unlock-files\deploy.ps1 -Verify
@@ -114,11 +117,6 @@ chmod +x mac-install.sh && ./mac-install.sh
 
 ```bash
 chmod +x cc-unlock-files/linux-install.sh
-
-# 部署到指定工作区 | Deploy to specific workspace
-./cc-unlock-files/linux-install.sh /path/to/workspace
-
-# 部署到所有工作区 | Deploy to all workspaces
 ./cc-unlock-files/linux-install.sh --all
 ```
 
@@ -135,39 +133,43 @@ chmod +x cc-unlock-files/linux-install.sh
 
 ## 工作原理 | How It Works
 
-### v5.0 Memory 方案 | v5.0 Memory Approach
+### v6.0 三层注入架构 | v6.0 Three-Layer Injection
 
 ```
 安装时 / On install:
-  security-research-lab.md  →  ~/.claude/projects/[PROJECT]/memory/
-  MEMORY.md (index)         →  ~/.claude/projects/[PROJECT]/memory/
-  CLAUDE.md (workspace)     →  workspace root
-  settings.json             →  ~/.claude/ (global, if not exists)
-  system-prompt.md          →  ~/.codex/ (Codex)
-  config.toml               →  ~/.codex/ (Codex, merged)
+  Layer 1: Memory (always-on)
+    security-research-lab.md  →  ~/.claude/projects/[PROJECT]/memory/
+    MEMORY.md (index)         →  ~/.claude/projects/[PROJECT]/memory/
+
+  Layer 2: CLAUDE.md (trigger + policy alignment)
+    CLAUDE.md                 →  workspace root
+
+  Layer 3: Skill (on-demand methodology)
+    loop-sec.md               →  workspace/.claude/skills/
+
+  Global:
+    settings.json             →  ~/.claude/
+
+  Codex:
+    system-prompt.md          →  ~/.codex/
+    config.toml               →  ~/.codex/ (merged)
 ```
 
-1. **Memory 身份注入** — `security-research-lab.md` 是 Claude Code memory 格式的安全研究员身份档案，模型在会话开始时自动读取，建立 "我在和一个资深安全研究员对话" 的持久上下文
-2. **轻量 CLAUDE.md** — 工作区根目录的 CLAUDE.md 只设置沟通偏好和代码标准（~30 行），不再是旧版 ~25KB 的巨型配置
-3. **Codex 双通道** — Codex 通过 config.toml 指向 system-prompt.md，与 Claude Code 的 memory 方案独立运行
+1. **Memory 身份 + Loop Engine** — `security-research-lab.md` 包含安全研究员身份档案 + Loop Engineering 执行引擎定义，模型会话开始时自动读取
+2. **CLAUDE.md 策略对齐** — 逐字引用 Claude Code 安全策略，建立 ALLOW/DUAL-USE 映射，提供 3 步拒答自检协议 + Loop Engineering 触发规则
+3. **Skill 自动触发** — `loop-sec.md` 在检测到安全研究任务时自动激活，提供详细的分阶段执行方法论
+4. **Codex 双通道** — system-prompt.md 融合直接研究模式 + Loop Engineering，通过 config.toml 指向
 
-### vs v3.x 全局方案 | vs v3.x Global Approach
+### vs v5.0
 
-| | v3.x | v5.0 |
+| | v5.0 | v6.0 |
 |---|---|---|
-| Claude Code | 全局 `~/.claude/CLAUDE.md` (~25KB) | Memory 每工作区独立部署 |
-| 配置量 | ~300 示例 + 行为规则 | 身份档案 + 轻量 CLAUDE.md |
-| 生效方式 | CLAUDE.md 全局读取 | Memory 系统自动加载 |
-| 工作区隔离 | 无 (所有工作区共享) | 有 (每个工作区可独立控制) |
-| Codex | system-prompt.md via config.toml | 同 (不变) |
-
----
-
-## 与 cc-switch 共存 | Coexistence with cc-switch
-
-cc-unlock 只需要在 `~/.codex/config.toml` 里写入一行 `model_instructions_file = "system-prompt.md"`。安装为合并式写入，完整保留 cc-switch 的供应商、`base_url`、密钥配置。卸载只删除这一行。cc-switch 的密钥在 `~/.codex/auth.json`，cc-unlock 不触碰。
-
-cc-unlock only writes one line into `~/.codex/config.toml`. Install uses non-destructive merge, preserving cc-switch's provider/base_url/key config. Uninstall only strips that one line. cc-switch's keys in `~/.codex/auth.json` are never touched.
+| Loop Engineering | 无 | 自递归任务执行引擎，10 领域执行模板 |
+| 反拒答 | 基础授权上下文 | 逐字引用策略 + 3 步自检协议 |
+| Skill | 无 | loop-sec.md 自动触发 |
+| Codex 提示词 | 基础配置 (132 行) | 融合 codex-5.5 + Loop Engineering |
+| 部署方式 | CLI 菜单 | GUI 可视化窗口 + CLI |
+| GUI | 无 | WinForms 侧边栏导航，版本检测，中英切换 |
 
 ---
 
@@ -175,40 +177,36 @@ cc-unlock only writes one line into `~/.codex/config.toml`. Install uses non-des
 
 ```
 cc-unlock/
-├── README.md                          # 本文件 | This file
-├── LICENSE                            # MIT
-├── CHANGELOG.md                       # 版本日志 | Version log
-├── 启动.bat                           # Windows 安装菜单 | Windows install menu
-├── 卸载.bat                           # Windows 卸载菜单 | Windows uninstall menu
-├── 启动.command                       # macOS 安装 | macOS install
-├── 卸载.command                       # macOS 卸载 | macOS uninstall
-├── mac-install.sh                     # macOS 安装脚本
-├── mac-uninstall.sh                   # macOS 卸载脚本
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+├── gui.ps1                            # WinForms GUI 主程序 | GUI application
+├── 启动.bat                           # 启动 GUI | Launch GUI
+├── 卸载.bat                           # CLI 全局卸载 | CLI global uninstall
+├── 启动.command / 卸载.command        # macOS 启动器 | macOS launchers
+├── mac-install.sh / mac-uninstall.sh  # macOS 脚本
 │
 ├── cc-unlock-files/
-│   ├── memory-bundle/                 # Memory 部署文件 | Memory deployment files
-│   │   ├── CLAUDE.md                  # 工作区配置 (中英双语, ~30 行)
+│   ├── deploy.ps1                     # Windows 部署脚本 (CLI)
+│   ├── memory-bundle/
+│   │   ├── CLAUDE.md                  # 策略对齐 + Loop 触发 (~200 行)
 │   │   ├── MEMORY.md                  # Memory 索引
-│   │   └── security-research-lab.md   # 安全研究员身份档案 (中英双语)
+│   │   └── security-research-lab.md   # 身份档案 + Loop Engine (~270 行)
+│   ├── skill-bundle/
+│   │   └── loop-sec.md                # Loop Engineering 技能 (自动触发)
 │   ├── config-bundle/
 │   │   └── settings.json              # bypassPermissions 设置
-│   ├── deploy.ps1                     # Windows 部署脚本 (PS 2.0-7.x)
-│   ├── linux-install.sh               # Linux 安装
-│   └── linux-uninstall.sh             # Linux 卸载
+│   ├── linux-install.sh / linux-uninstall.sh
+│   └── ...
 │
 ├── codex-files/
 │   └── codex-config-bundle/
-│       ├── system-prompt.md           # Codex 项目上下文 (中英双语)
-│       └── config.toml                # Codex CLI 配置
+│       ├── system-prompt.md           # Codex 系统提示词 + Loop Engineering
+│       └── config.toml
 │
-├── scripts/
-│   ├── install.bat / uninstall.bat    # 安装/卸载 | Install/uninstall
-│   ├── verify.bat / verify.sh         # 验证部署 | Verify deployment
-│   └── 兼容性测试.bat                 # 兼容性检查 | Compatibility check
-│
-└── docs/
-    ├── VERSION                        # 版本号
-    └── ...                            # 文档
+├── scripts/                           # 辅助脚本
+├── docs/                              # 文档 + 截图
+└── ...
 ```
 
 ---
@@ -227,30 +225,41 @@ cc-unlock/
 
 ---
 
-## 从 v3.x 升级 | Upgrading from v3.x
+## 从 v5.0 升级 | Upgrading from v5.0
 
-v5.0 安装时会自动清理 v3.x 的全局部署文件（`~/.claude/CLAUDE.md`、`~/.claude/system-prompt.md`），无需手动卸载旧版。
+直接重新部署即可。v6.0 会覆盖旧版 memory 文件、CLAUDE.md、Codex 配置，并新增 skill 文件。旧版不含 skill-bundle，v6.0 部署时自动创建。
 
-v5.0 install automatically cleans up v3.x global deployment files (`~/.claude/CLAUDE.md`, `~/.claude/system-prompt.md`). No manual v3.x uninstall needed.
+Simply redeploy. v6.0 overwrites old memory files, CLAUDE.md, and Codex config, and adds the new skill file. The skill-bundle is auto-created during deployment.
+
+---
+
+## 与 cc-switch 共存 | Coexistence with cc-switch
+
+cc-unlock 只需要在 `~/.codex/config.toml` 里写入一行 `model_instructions_file = "system-prompt.md"`。安装为合并式写入，完整保留 cc-switch 的供应商、`base_url`、密钥配置。卸载只删除这一行。cc-switch 的密钥在 `~/.codex/auth.json`，cc-unlock 不触碰。
+
+cc-unlock only writes one line into `~/.codex/config.toml`. Install uses non-destructive merge, preserving cc-switch's provider/base_url/key config. Uninstall only strips that one line. cc-switch's keys in `~/.codex/auth.json` are never touched.
 
 ---
 
 ## 常见问题 | FAQ
 
-**Q: v5.0 和 v3.x 有什么区别？**
-A: v3.x 全局部署一份大型 CLAUDE.md（~300 示例）到 `~/.claude/`。v5.0 改用 memory 系统按工作区部署安全研究者身份档案，更轻量、更精准、可按工作区独立控制。
+**Q: v6.0 和 v5.0 有什么区别？**
+A: v6.0 新增 Loop Engineering 自递归执行引擎、反拒答策略升级（3 步自检协议）、Skill 自动触发、可视化 GUI。Memory 部署架构不变。
+
+**Q: 什么是 Loop Engineering？**
+A: 一种让模型在接收到安全研究请求后自动分解、递归执行所有阶段的机制。用户不需要指定每一步，模型自动规划并执行到底。
+
+**Q: GUI 需要什么依赖？**
+A: 不需要额外依赖。GUI 使用 Windows 内置的 .NET WinForms，双击 启动.bat 即可。
 
 **Q: 部署后没有效果？**
-A: 确保重启 Claude Code。运行 `scripts/verify.bat`（Windows）或 `scripts/verify.sh`（Unix）检查部署状态。
+A: 确保重启 Claude Code。在 GUI 中点击 "验证" 按钮检查部署状态。
 
-**Q: 如何只对特定工作区启用？**
-A: 使用 `-Path` 或 `-GUI` 参数部署到指定工作区。不同工作区可以独立部署和卸载。
-
-**Q: settings.json 的 bypassPermissions 安全吗？**
-A: 这是 Claude Code 的内置选项，跳过每次工具调用的确认弹窗。安装时加 `-SkipSettings` 可跳过此文件部署。
+**Q: macOS / Linux 支持 GUI 吗？**
+A: 目前 GUI 仅限 Windows。macOS / Linux 使用 CLI 脚本部署。
 
 ---
 
 ## License
 
-MIT — 见 [LICENSE](LICENSE)
+MIT
