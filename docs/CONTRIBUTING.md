@@ -17,10 +17,10 @@ Thanks for your interest in cc-unlock! Here's how to contribute.
 
 ### 改进身份档案 | Improve Identity Profile
 
-v5.0 使用 `cc-unlock-files/memory-bundle/security-research-lab.md` 作为安全研究员身份档案。如果你发现某个研究领域缺失或描述不准确：
+v5.0 使用 `cc-unlock-files/memory-bundle/engineer-profile.md` 作为安全研究员身份档案。如果你发现某个研究领域缺失或描述不准确：
 
 1. Fork 本仓库
-2. 修改 `cc-unlock-files/memory-bundle/security-research-lab.md`
+2. 修改 `cc-unlock-files/memory-bundle/engineer-profile.md`
 3. 确保修改保持 Claude Code memory frontmatter 格式
 4. 保持中英双语
 5. 提交 PR 并说明修改理由
