@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v5.0 — shared deploy/uninstall library for macOS & Linux
+# cc-unlock v8.0.6 — shared deploy/uninstall library for macOS & Linux
 # 与 Windows deploy.ps1 功能对齐的共享实现，供 mac/linux 的 install/uninstall 封装脚本调用。
 # Shared implementation mirroring Windows deploy.ps1, sourced by the mac/linux wrappers.
 #
@@ -17,7 +17,8 @@
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_PROJECTS="$CLAUDE_DIR/projects"
 CODEX_DIR="$HOME/.codex"
-MEMORY_FILE="security-research-lab.md"
+# Sentinel: engineer-profile.md is deployed first and used as the "already installed" marker.
+MEMORY_SENTINEL="engineer-profile.md"
 INDEX_FILE="MEMORY.md"
 CLAUDE_MD="CLAUDE.md"
 MARKER="Security Research Workstation"
@@ -35,7 +36,7 @@ encode_path() {
 banner() {
     echo ""
     echo "============================================"
-    echo "  cc-unlock v5.0"
+    echo "  cc-unlock v8.0.6"
     echo "  Memory-based security research authorization"
     echo "  基于 memory 的安全研究授权配置"
     echo "============================================"
@@ -51,49 +52,29 @@ footer() {
     echo ""
 }
 
-# 从模板 MEMORY.md 取出索引行，避免在脚本里硬编码中文
-# Extract index entry from template so Chinese isn't hardcoded in the script
-index_entry() {
-    [ -f "$MEMORY_BUNDLE/$INDEX_FILE" ] || return 0
-    grep 'security-research-lab' "$MEMORY_BUNDLE/$INDEX_FILE" 2>/dev/null | head -n 1
-}
-
 # --- 部署到单个工作区 memory 目录 | Deploy to one workspace memory dir ---
 # args: mem_dir  label  [workspace_path]
+# Deploys every *.md from $MEMORY_BUNDLE (except CLAUDE.md — placed separately),
+# then overwrites MEMORY.md as the index. cc-unlock owns the memory bundle contents.
 deploy_memory() {
     local mem_dir="$1" label="$2" ws="$3"
     mkdir -p "$mem_dir"
 
-    # 1. security-research-lab.md -> memory/
-    if cp "$MEMORY_BUNDLE/$MEMORY_FILE" "$mem_dir/$MEMORY_FILE" 2>/dev/null; then
-        echo "    [ok] $MEMORY_FILE"
-    else
-        echo "    [FAIL] $MEMORY_FILE"
-    fi
-
-    # 2. MEMORY.md 索引（合并，不覆盖用户已有条目）| MEMORY.md index (merge)
-    if [ -f "$mem_dir/$INDEX_FILE" ]; then
-        if ! grep -q 'security-research-lab' "$mem_dir/$INDEX_FILE" 2>/dev/null; then
-            local entry
-            entry="$(index_entry)"
-            if [ -n "$entry" ]; then
-                # 追加前确保文件以换行结尾 | ensure trailing newline before append
-                if [ -n "$(tail -c 1 "$mem_dir/$INDEX_FILE" 2>/dev/null)" ]; then
-                    printf '\n' >> "$mem_dir/$INDEX_FILE"
-                fi
-                printf '%s\n' "$entry" >> "$mem_dir/$INDEX_FILE"
-            fi
-        fi
-        echo "    [ok] $INDEX_FILE (merged)"
-    else
-        if cp "$MEMORY_BUNDLE/$INDEX_FILE" "$mem_dir/$INDEX_FILE" 2>/dev/null; then
-            echo "    [ok] $INDEX_FILE"
+    # 1. Deploy every memory .md file (skip CLAUDE.md which goes to workspace root)
+    local f base count=0
+    for f in "$MEMORY_BUNDLE"/*.md; do
+        [ -f "$f" ] || continue
+        base=$(basename "$f")
+        [ "$base" = "$CLAUDE_MD" ] && continue
+        if cp "$f" "$mem_dir/$base" 2>/dev/null; then
+            count=$((count+1))
         else
-            echo "    [FAIL] $INDEX_FILE"
+            echo "    [FAIL] $base"
         fi
-    fi
+    done
+    echo "    [ok] $count memory files deployed"
 
-    # 3. CLAUDE.md -> 工作区根目录（仅当已知真实路径）| CLAUDE.md -> workspace root
+    # 2. CLAUDE.md -> workspace root
     if [ -n "$ws" ] && [ -d "$ws" ] && [ -f "$MEMORY_BUNDLE/$CLAUDE_MD" ]; then
         if cp "$MEMORY_BUNDLE/$CLAUDE_MD" "$ws/$CLAUDE_MD" 2>/dev/null; then
             echo "    [ok] $CLAUDE_MD -> workspace"
@@ -110,29 +91,22 @@ deploy_memory() {
 remove_memory() {
     local mem_dir="$1" label="$2" ws="$3"
 
-    if [ -f "$mem_dir/$MEMORY_FILE" ]; then
-        rm -f "$mem_dir/$MEMORY_FILE"
-        echo "    [ok] Removed $MEMORY_FILE"
-    fi
-
-    if [ -f "$mem_dir/$INDEX_FILE" ]; then
-        local tmp="$mem_dir/$INDEX_FILE.cc-unlock.tmp"
-        grep -v 'security-research-lab' "$mem_dir/$INDEX_FILE" > "$tmp" 2>/dev/null
-        if grep -q '[^[:space:]]' "$tmp" 2>/dev/null; then
-            mv "$tmp" "$mem_dir/$INDEX_FILE"
-            echo "    [ok] $INDEX_FILE (cleaned entry)"
-        else
-            rm -f "$tmp" "$mem_dir/$INDEX_FILE"
-            echo "    [ok] Removed $INDEX_FILE"
+    # Remove every memory md we own (matches bundled filenames)
+    local f base removed=0
+    for f in "$MEMORY_BUNDLE"/*.md; do
+        [ -f "$f" ] || continue
+        base=$(basename "$f")
+        [ "$base" = "$CLAUDE_MD" ] && continue
+        if [ -f "$mem_dir/$base" ]; then
+            rm -f "$mem_dir/$base" && removed=$((removed+1))
         fi
-    fi
+    done
+    echo "    [ok] Removed $removed memory files (incl. $INDEX_FILE)"
 
-    # 工作区 CLAUDE.md —— 仅当是我们部署的（含标记）| workspace CLAUDE.md (only if ours)
+    # workspace CLAUDE.md —— cc-unlock owns it, remove unconditionally (see README warning)
     if [ -n "$ws" ] && [ -f "$ws/$CLAUDE_MD" ]; then
-        if grep -q "$MARKER" "$ws/$CLAUDE_MD" 2>/dev/null; then
-            rm -f "$ws/$CLAUDE_MD"
-            echo "    [ok] Removed $CLAUDE_MD from workspace"
-        fi
+        rm -f "$ws/$CLAUDE_MD"
+        echo "    [ok] Removed $CLAUDE_MD from workspace"
     fi
 
     echo "  [OK] $label (removed)"
@@ -141,20 +115,20 @@ remove_memory() {
 # --- 验证单个工作区 | Verify one workspace ---
 verify_memory() {
     local mem_dir="$1" label="$2" ws="$3" sz
-    if [ -f "$mem_dir/$MEMORY_FILE" ]; then
-        sz=$(wc -c < "$mem_dir/$MEMORY_FILE" 2>/dev/null | tr -d ' ')
-        echo "    $MEMORY_FILE - OK ($sz bytes)"
+    local f base expected=0 deployed=0
+    for f in "$MEMORY_BUNDLE"/*.md; do
+        [ -f "$f" ] || continue
+        base=$(basename "$f")
+        [ "$base" = "$CLAUDE_MD" ] && continue
+        expected=$((expected+1))
+        [ -f "$mem_dir/$base" ] && deployed=$((deployed+1))
+    done
+    if [ "$deployed" = "$expected" ] && [ "$deployed" -gt 0 ]; then
+        echo "    memory files - OK ($deployed/$expected)"
+    elif [ "$deployed" -gt 0 ]; then
+        echo "    memory files - PARTIAL ($deployed/$expected)"
     else
-        echo "    $MEMORY_FILE - MISSING"
-    fi
-    if [ -f "$mem_dir/$INDEX_FILE" ]; then
-        if grep -q 'security-research-lab' "$mem_dir/$INDEX_FILE" 2>/dev/null; then
-            echo "    $INDEX_FILE - OK"
-        else
-            echo "    $INDEX_FILE - ENTRY MISSING"
-        fi
-    else
-        echo "    $INDEX_FILE - MISSING"
+        echo "    memory files - MISSING (0/$expected)"
     fi
     if [ -n "$ws" ] && [ -f "$ws/$CLAUDE_MD" ]; then
         sz=$(wc -c < "$ws/$CLAUDE_MD" 2>/dev/null | tr -d ' ')
@@ -246,6 +220,64 @@ deploy_codex() {
         rm -f "$CODEX_DIR/AGENTS.md"
         echo "  [ok] Cleaned old AGENTS.md"
     fi
+    deploy_codex_memory
+    deploy_codex_rollout
+    return 0
+}
+
+deploy_codex_memory() {
+    [ -d "$CODEX_MEMORY_BUNDLE" ] || { echo "  [skip] Codex memory bundle not found"; return 0; }
+    echo ""
+    echo "--- Codex Memory ---"
+    local mem_dir="$CODEX_DIR/memories"
+    mkdir -p "$mem_dir"
+    local f sz
+    for f in memory_summary.md MEMORY.md raw_memories.md; do
+        if [ -f "$CODEX_MEMORY_BUNDLE/$f" ]; then
+            if cp "$CODEX_MEMORY_BUNDLE/$f" "$mem_dir/$f" 2>/dev/null; then
+                sz=$(wc -c < "$mem_dir/$f" 2>/dev/null | tr -d ' ')
+                echo "  [ok] $f ($sz bytes)"
+            else
+                echo "  [FAIL] $f"
+            fi
+        fi
+    done
+    return 0
+}
+
+deploy_codex_rollout() {
+    [ -d "$CODEX_ROLLOUT_BUNDLE" ] || { echo "  [skip] Codex rollout bundle not found"; return 0; }
+    echo ""
+    echo "--- Codex Rollout Summaries ---"
+    # Refuse to wipe target if source is empty (guard against accidental data loss)
+    local src_count
+    src_count=$(find "$CODEX_ROLLOUT_BUNDLE" -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$src_count" = "0" ]; then
+        echo "  [skip] Codex rollout bundle empty — refusing to wipe target"
+        return 0
+    fi
+    local rollout_dir="$CODEX_DIR/memories/rollout_summaries"
+    if [ -d "$rollout_dir" ]; then
+        find "$rollout_dir" -maxdepth 1 -name '*.md' -type f -delete 2>/dev/null
+    else
+        mkdir -p "$rollout_dir"
+    fi
+    local user_name="${USER:-user}"
+    # Escape sed special chars (/, &, \) in username to prevent injection / malformed pattern
+    local esc_user
+    esc_user=$(printf '%s' "$user_name" | sed 's/[\/&\\]/\\&/g')
+    local count=0 f base
+    for f in "$CODEX_ROLLOUT_BUNDLE"/*.md; do
+        [ -f "$f" ] || continue
+        base=$(basename "$f")
+        if sed "s|<USER>|${esc_user}|g" "$f" > "$rollout_dir/$base" 2>/dev/null; then
+            # verify output is non-empty (guard against sed failure)
+            if [ -s "$rollout_dir/$base" ]; then
+                count=$((count+1))
+            fi
+        fi
+    done
+    echo "  [ok] $count rollout summaries seeded (USER=$user_name)"
     return 0
 }
 
@@ -266,6 +298,39 @@ uninstall_codex() {
         removed) echo "  [ok] Removed config.toml" ;;
         kept)    echo "  [ok] config.toml (kept other settings)" ;;
     esac
+    uninstall_codex_memory
+    uninstall_codex_rollout
+    return 0
+}
+
+uninstall_codex_memory() {
+    local mem_dir="$CODEX_DIR/memories"
+    [ -d "$mem_dir" ] || return 0
+    echo ""
+    echo "--- Codex Memory ---"
+    local f
+    for f in memory_summary.md MEMORY.md raw_memories.md; do
+        if [ -f "$mem_dir/$f" ]; then
+            rm -f "$mem_dir/$f"
+            echo "  [ok] Removed $f"
+        fi
+    done
+    return 0
+}
+
+uninstall_codex_rollout() {
+    local rollout_dir="$CODEX_DIR/memories/rollout_summaries"
+    [ -d "$rollout_dir" ] || return 0
+    echo ""
+    echo "--- Codex Rollout Summaries ---"
+    local removed=0 f
+    for f in "$rollout_dir"/*.md; do
+        [ -f "$f" ] || continue
+        if grep -q 'cwd:.*C:\\\\Workspace\\\\' "$f" 2>/dev/null; then
+            rm -f "$f" && removed=$((removed+1))
+        fi
+    done
+    echo "  [ok] Removed $removed seeded rollout summaries"
     return 0
 }
 
@@ -327,7 +392,7 @@ list_workspaces() {
     for d in "$CLAUDE_PROJECTS"/*/; do
         [ -d "$d" ] || continue
         name=$(basename "$d")
-        if [ -f "$d/memory/$MEMORY_FILE" ]; then
+        if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
             echo "  [*] $name"
         else
             echo "  [ ] $name"
@@ -347,7 +412,7 @@ do_verify() {
         for d in "$CLAUDE_PROJECTS"/*/; do
             [ -d "$d" ] || continue
             name=$(basename "$d")
-            if [ -f "$d/memory/$MEMORY_FILE" ]; then
+            if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
                 echo "  $name"
                 verify_memory "$d/memory" "$name" ""
             fi
@@ -406,7 +471,7 @@ do_uninstall_path() {
     name=$(encode_path "$ws")
     mem_dir="$CLAUDE_PROJECTS/$name/memory"
     echo "--- Claude Code ---"
-    if [ -f "$mem_dir/$MEMORY_FILE" ]; then
+    if [ -f "$mem_dir/$MEMORY_SENTINEL" ]; then
         remove_memory "$mem_dir" "$name" "$ws"
     else
         echo "  [skip] Not deployed: $name"
@@ -426,7 +491,7 @@ do_uninstall_all() {
         for d in "$CLAUDE_PROJECTS"/*/; do
             [ -d "$d" ] || continue
             name=$(basename "$d")
-            if [ -f "$d/memory/$MEMORY_FILE" ]; then
+            if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
                 remove_memory "$d/memory" "$name" ""
                 count=$((count + 1))
             fi
@@ -495,7 +560,7 @@ cc_dispatch() {
     banner
 
     # 安装时校验源文件存在 | install requires source bundle
-    if [ "$op" = "install" ] && [ ! -f "$MEMORY_BUNDLE/$MEMORY_FILE" ]; then
+    if [ "$op" = "install" ] && [ ! -f "$MEMORY_BUNDLE/$MEMORY_SENTINEL" ]; then
         echo "[!] Source files not found: $MEMORY_BUNDLE"
         exit 1
     fi

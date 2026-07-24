@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v5.0 — Linux uninstall
+# cc-unlock v8.0.6 — Linux uninstall
 #
 # 用法 | Usage:
 #   ./linux-uninstall.sh                      交互菜单 | interactive menu
@@ -11,7 +11,10 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MEMORY_BUNDLE="$SCRIPT_DIR/memory-bundle"
 CONFIG_BUNDLE="$SCRIPT_DIR/config-bundle"
+SKILL_BUNDLE="$SCRIPT_DIR/skill-bundle"
 CODEX_BUNDLE="$SCRIPT_DIR/../codex-files/codex-config-bundle"
+CODEX_MEMORY_BUNDLE="$SCRIPT_DIR/../codex-files/codex-memory-bundle"
+CODEX_ROLLOUT_BUNDLE="$SCRIPT_DIR/../codex-files/codex-rollout-bundle/rollout_summaries"
 
 . "$SCRIPT_DIR/lib-deploy.sh"
 

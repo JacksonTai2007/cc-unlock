@@ -1,4 +1,4 @@
-﻿# cc-unlock v5.0 GUI - PowerShell WinForms
+﻿# cc-unlock v8.0.6 GUI - PowerShell WinForms
 # Sidebar navigation + version detection + i18n (zh/en)
 
 param([switch]$NoConsole)
@@ -118,7 +118,7 @@ $script:S = @{
     ab_desc_title = @{ zh = '描述';     en = 'DESCRIPTION' }
     ab_desc       = @{ zh = 'Loop Engineering 自递归任务执行引擎 + 安全研究授权上下文自动部署工具'; en = 'Loop Engineering self-recursive task engine + security research authorization auto-deployer' }
     ab_feat_title = @{ zh = '功能';     en = 'FEATURES' }
-    ab_feat1      = @{ zh = '- 记忆注入 (security-research-lab.md)'; en = '- Memory injection (security-research-lab.md)' }
+    ab_feat1      = @{ zh = '- 记忆注入 (20 memory files)'; en = '- Memory injection (20 memory files)' }
     ab_feat2      = @{ zh = '- CLAUDE.md 策略对齐 + 反拒答协议'; en = '- CLAUDE.md policy alignment + anti-refusal protocol' }
     ab_feat3      = @{ zh = '- Loop Engineering 技能自动触发'; en = '- Loop Engineering skill auto-trigger' }
     ab_feat4      = @{ zh = '- Codex 系统提示词部署'; en = '- Codex system prompt deployment' }
@@ -159,16 +159,96 @@ function ConvertTo-ClaudeProjectPath([string]$WorkspacePath) {
     return ($resolved -replace ':', '-' -replace '\\', '-' -replace ' ', '-')
 }
 
-function Get-MemoryDir([string]$ProjectName) { return Join-Path $CLAUDE_PROJECTS "$ProjectName\memory" }
+# Deep-merged settings.json deploy — preserves user's hooks/allow/deny/env.
+# Matches deploy.ps1's Deploy-Settings behavior.
+$GUI_SETTINGS_ENV_KEYS = @('CLAUDE_CODE_EFFORT_LEVEL', 'DISABLE_AUTOUPDATER')
 
-function Get-IndexEntry {
-    $f = Join-Path $MEM_BUNDLE 'MEMORY.md'
-    if (!(Test-Path $f)) { return $null }
-    foreach ($line in [System.IO.File]::ReadAllLines($f, $UTF8NoBOM)) {
-        if ($line -match 'security-research-lab') { return $line }
+function Deploy-Settings-Merged {
+    $settingsPath = Join-Path $CLAUDE_DIR 'settings.json'
+    $settingsSrc = Join-Path $CFG_BUNDLE 'settings.json'
+    if (!(Test-Path $settingsSrc)) { LogInfo "source settings.json not found"; return }
+    if (!(Test-Path $CLAUDE_DIR)) { New-Item -ItemType Directory -Path $CLAUDE_DIR -Force | Out-Null }
+
+    $srcSettings = $null
+    try { $srcSettings = (Get-Content $settingsSrc -Raw -ErrorAction Stop) | ConvertFrom-Json } catch { LogWarn "source settings.json malformed"; return }
+
+    if (!(Test-Path $settingsPath)) {
+        if (Copy-Safe $settingsSrc $settingsPath) { LogOk "settings.json (bypassPermissions)" } else { LogFail "settings.json" }
+        return
     }
-    return $null
+
+    $existing = $null
+    try {
+        $raw = [System.IO.File]::ReadAllText($settingsPath, $UTF8NoBOM)
+        if ($raw.Trim()) { $existing = $raw | ConvertFrom-Json }
+    } catch { LogWarn "existing settings.json malformed, leaving untouched"; return }
+    if (!$existing) { $existing = New-Object PSObject }
+
+    $userPerms = $existing.permissions
+    if ($userPerms -and ($userPerms.PSObject.Properties.Name -contains 'defaultMode') -and $userPerms.defaultMode -eq 'bypassPermissions') {
+        # already ours
+    } elseif ($userPerms) {
+        $userPerms | Add-Member -NotePropertyName 'defaultMode' -NotePropertyValue 'bypassPermissions' -Force
+    } else {
+        $existing | Add-Member -NotePropertyName 'permissions' -NotePropertyValue (New-Object PSObject -Property @{ defaultMode = 'bypassPermissions' }) -Force
+    }
+    $existing | Add-Member -NotePropertyName 'skipDangerousModePermissionPrompt' -NotePropertyValue $true -Force
+    if (!($existing.PSObject.Properties.Name -contains 'effortLevel')) {
+        $existing | Add-Member -NotePropertyName 'effortLevel' -NotePropertyValue 'xhigh' -Force
+    }
+    $userEnv = $existing.env
+    if (!$userEnv) {
+        $userEnv = New-Object PSObject
+        $existing | Add-Member -NotePropertyName 'env' -NotePropertyValue $userEnv -Force
+    }
+    if ($srcSettings.env) {
+        foreach ($k in $GUI_SETTINGS_ENV_KEYS) {
+            if ($srcSettings.env.PSObject.Properties.Name -contains $k -and !($userEnv.PSObject.Properties.Name -contains $k)) {
+                $userEnv | Add-Member -NotePropertyName $k -NotePropertyValue $srcSettings.env.$k -Force
+            }
+        }
+    }
+    $json = $existing | ConvertTo-Json -Depth 10
+    if (Write-Utf8NoBom $settingsPath $json) { LogOk "settings.json (merged)" } else { LogFail "settings.json" }
 }
+
+function Remove-Settings-Surgical {
+    $path = Join-Path $CLAUDE_DIR 'settings.json'
+    if (!(Test-Path $path)) { return }
+    $existing = $null
+    try {
+        $raw = [System.IO.File]::ReadAllText($path, $UTF8NoBOM)
+        if ($raw.Trim()) { $existing = $raw | ConvertFrom-Json }
+    } catch { return }
+    if (!$existing) { Remove-Item $path -Force -ErrorAction SilentlyContinue; LogOk "Removed empty settings.json"; return }
+
+    $touched = $false
+    if ($existing.permissions -and ($existing.permissions.PSObject.Properties.Name -contains 'defaultMode') -and $existing.permissions.defaultMode -eq 'bypassPermissions') {
+        $existing.permissions.PSObject.Properties.Remove('defaultMode'); $touched = $true
+        if ($existing.permissions.PSObject.Properties.Name.Count -eq 0) { $existing.PSObject.Properties.Remove('permissions') }
+    }
+    if ($existing.PSObject.Properties.Name -contains 'skipDangerousModePermissionPrompt') {
+        $existing.PSObject.Properties.Remove('skipDangerousModePermissionPrompt'); $touched = $true
+    }
+    if ($existing.PSObject.Properties.Name -contains 'effortLevel' -and $existing.effortLevel -eq 'xhigh') {
+        $existing.PSObject.Properties.Remove('effortLevel'); $touched = $true
+    }
+    if ($existing.env) {
+        foreach ($k in $GUI_SETTINGS_ENV_KEYS) {
+            if ($existing.env.PSObject.Properties.Name -contains $k) { $existing.env.PSObject.Properties.Remove($k); $touched = $true }
+        }
+        if ($existing.env.PSObject.Properties.Name.Count -eq 0) { $existing.PSObject.Properties.Remove('env') }
+    }
+    if (!$touched) { return }
+    if ($existing.PSObject.Properties.Name.Count -eq 0) {
+        Remove-Item $path -Force -ErrorAction SilentlyContinue; LogOk "Removed settings.json (was cc-unlock only)"
+    } else {
+        $json = $existing | ConvertTo-Json -Depth 10
+        if (Write-Utf8NoBom $path $json) { LogOk "settings.json (stripped cc-unlock keys)" }
+    }
+}
+
+function Get-MemoryDir([string]$ProjectName) { return Join-Path $CLAUDE_PROJECTS "$ProjectName\memory" }
 
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
@@ -193,8 +273,28 @@ function Remove-InstructionsFile($ConfigPath) {
 }
 
 function Resolve-WorkspacePath([string]$projName) {
+    # Fast path: 简单反解(不含空格路径直接命中)
     $possiblePath = ($projName -replace '^([A-Za-z])-', '$1:\') -replace '-', '\'
     if (Test-Path $possiblePath) { return $possiblePath }
+    # Fallback: 从该 workspace 的任意 session JSONL 里读 "cwd" 字段
+    # (Claude Code workspace 名字将路径里的空格编码为 '-',反解时不可逆;
+    #  session JSONL 第 3 行往后有 "cwd":"..." 字段带真实路径)
+    $wsDir = Join-Path $CLAUDE_PROJECTS $projName
+    if (Test-Path $wsDir) {
+        $jsonl = Get-ChildItem -Path $wsDir -Filter '*.jsonl' -File -ErrorAction SilentlyContinue |
+                 Select-Object -First 1
+        if ($jsonl) {
+            try {
+                $lines = Get-Content $jsonl.FullName -TotalCount 10 -ErrorAction Stop
+                foreach ($line in $lines) {
+                    if ($line -match '"cwd":"([^"]+)"') {
+                        $cwd = $matches[1] -replace '\\\\', '\'
+                        if (Test-Path $cwd) { return $cwd }
+                    }
+                }
+            } catch {}
+        }
+    }
     return $null
 }
 
@@ -245,21 +345,18 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath, [bool]
     $memDir = Get-MemoryDir $ProjectName
     if (!(Test-Path $memDir)) { New-Item -ItemType Directory -Path $memDir -Force | Out-Null }
     LogHeader "Claude Code: $ProjectName"
-    $src = Join-Path $MEM_BUNDLE 'security-research-lab.md'
-    $dst = Join-Path $memDir 'security-research-lab.md'
-    if ((Test-Path $src) -and (Copy-Safe $src $dst)) { LogOk "security-research-lab.md" } else { LogFail "security-research-lab.md" }
-    $indexPath = Join-Path $memDir 'MEMORY.md'
-    if (Test-Path $indexPath) {
-        $content = [System.IO.File]::ReadAllText($indexPath, $UTF8NoBOM)
-        if ($content -notmatch 'security-research-lab') {
-            $entry = Get-IndexEntry
-            if ($entry) { $content = $content.TrimEnd([char]13,[char]10) + [Environment]::NewLine + $entry + [Environment]::NewLine; [System.IO.File]::WriteAllText($indexPath, $content, $UTF8NoBOM) }
-        }
-        LogOk "MEMORY.md (merged)"
-    } else {
-        $idxSrc = Join-Path $MEM_BUNDLE 'MEMORY.md'
-        if ((Test-Path $idxSrc) -and (Copy-Safe $idxSrc $indexPath)) { LogOk "MEMORY.md" } else { LogFail "MEMORY.md" }
+    # Deploy every *.md memory file (except CLAUDE.md and MEMORY.md handled separately)
+    $bundleFiles = @(Get-ChildItem $MEM_BUNDLE -Filter '*.md' -File | Where-Object { $_.Name -ne 'MEMORY.md' -and $_.Name -ne 'CLAUDE.md' })
+    $memOk = 0
+    foreach ($f in $bundleFiles) {
+        $dst = Join-Path $memDir $f.Name
+        if (Copy-Safe $f.FullName $dst) { $memOk++ } else { LogFail $f.Name }
     }
+    LogOk "$memOk memory files deployed"
+    # MEMORY.md index — overwrite
+    $indexSrc = Join-Path $MEM_BUNDLE 'MEMORY.md'
+    $indexPath = Join-Path $memDir 'MEMORY.md'
+    if ((Test-Path $indexSrc) -and (Copy-Safe $indexSrc $indexPath)) { LogOk "MEMORY.md (overwrote index)" } else { LogFail "MEMORY.md" }
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $cSrc = Join-Path $MEM_BUNDLE 'CLAUDE.md'
         $cDst = Join-Path $WorkspacePath 'CLAUDE.md'
@@ -275,12 +372,7 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath, [bool]
         }
     }
     if ($doSettings) {
-        $settingsPath = Join-Path $CLAUDE_DIR 'settings.json'
-        if (Test-Path $settingsPath) { LogInfo "settings.json (exists, skip)" }
-        else {
-            $sSrc = Join-Path $CFG_BUNDLE 'settings.json'
-            if ((Test-Path $sSrc) -and (Copy-Safe $sSrc $settingsPath)) { LogOk "settings.json (bypassPermissions)" } else { LogFail "settings.json" }
-        }
+        Deploy-Settings-Merged
     }
     if ($doCodex) { Deploy-CodexConfig }
     foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
@@ -292,32 +384,99 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath, [bool]
 function Uninstall-FromWorkspace([string]$ProjectName, [string]$WorkspacePath) {
     $memDir = Get-MemoryDir $ProjectName
     LogHeader "Removing: $ProjectName"
-    $memFile = Join-Path $memDir 'security-research-lab.md'
-    if (Test-Path $memFile) { Remove-Item $memFile -Force; LogOk "Removed security-research-lab.md" }
-    $indexPath = Join-Path $memDir 'MEMORY.md'
-    if (Test-Path $indexPath) {
-        $lines = [System.IO.File]::ReadAllLines($indexPath, $UTF8NoBOM)
-        $filtered = @($lines | Where-Object { $_ -notmatch 'security-research-lab' })
-        $hasContent = ($filtered | Where-Object { $_.Trim() -ne '' }).Count -gt 0
-        if ($hasContent) { [System.IO.File]::WriteAllLines($indexPath, $filtered, $UTF8NoBOM); LogOk "MEMORY.md (cleaned entry)" }
-        else { Remove-Item $indexPath -Force; LogOk "Removed MEMORY.md" }
+    # Remove every *.md we own (by matching bundle filenames)
+    $bundleFiles = @(Get-ChildItem $MEM_BUNDLE -Filter '*.md' -File | Where-Object { $_.Name -ne 'CLAUDE.md' })
+    $removed = 0
+    foreach ($f in $bundleFiles) {
+        $p = Join-Path $memDir $f.Name
+        if (Test-Path $p) { Remove-Item $p -Force -ErrorAction SilentlyContinue; $removed++ }
     }
+    LogOk "Removed $removed memory files (incl. MEMORY.md)"
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
-        if (Test-Path $claudePath) {
-            $c = [System.IO.File]::ReadAllText($claudePath, $UTF8NoBOM)
-            if ($c -match 'Security Research Workstation') { Remove-Item $claudePath -Force; LogOk "Removed CLAUDE.md" }
-        }
+        if (Test-Path $claudePath) { Remove-Item $claudePath -Force -ErrorAction SilentlyContinue; LogOk "Removed CLAUDE.md" }
         $skillPath = Join-Path $WorkspacePath '.claude\skills\loop-sec.md'
-        if (Test-Path $skillPath) { Remove-Item $skillPath -Force; LogOk "Removed loop-sec.md" }
+        if (Test-Path $skillPath) { Remove-Item $skillPath -Force -ErrorAction SilentlyContinue; LogOk "Removed loop-sec.md" }
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
-        if ((Test-Path $skillDir) -and ((Get-ChildItem $skillDir -ErrorAction SilentlyContinue).Count -eq 0)) { Remove-Item $skillDir -Force -ErrorAction SilentlyContinue }
+        if ((Test-Path $skillDir) -and (@(Get-ChildItem $skillDir -ErrorAction SilentlyContinue).Count -eq 0)) { Remove-Item $skillDir -Force -ErrorAction SilentlyContinue }
     }
-    $sp = Join-Path $CLAUDE_DIR 'settings.json'
-    if (Test-Path $sp) {
-        $c = Get-Content $sp -Raw -ErrorAction SilentlyContinue
-        if ($c -match 'bypassPermissions' -and $c -match 'skipDangerousModePermissionPrompt') { Remove-Item $sp -Force; LogOk "Removed settings.json" }
+    Remove-Settings-Surgical
+}
+
+function Deploy-CodexMemory {
+    $memBundlePath = Join-Path $SCRIPT_DIR 'codex-files\codex-memory-bundle'
+    if (!(Test-Path $memBundlePath)) { LogInfo "Codex memory bundle not found"; return }
+    LogHeader "Codex Memory"
+    $memDir = Join-Path $CODEX_DIR 'memories'
+    if (!(Test-Path $memDir)) { New-Item -ItemType Directory -Path $memDir -Force | Out-Null }
+    foreach ($f in @('memory_summary.md', 'MEMORY.md', 'raw_memories.md')) {
+        $src = Join-Path $memBundlePath $f
+        if (Test-Path $src) {
+            $dst = Join-Path $memDir $f
+            if (Copy-Safe $src $dst) { $sz = (Get-Item $dst).Length; LogOk "$f ($sz bytes)" } else { LogFail $f }
+        }
     }
+    Deploy-CodexRollout
+}
+
+function Deploy-CodexRollout {
+    $rolloutBundlePath = Join-Path $SCRIPT_DIR 'codex-files\codex-rollout-bundle\rollout_summaries'
+    if (!(Test-Path $rolloutBundlePath)) { LogInfo "Codex rollout bundle not found"; return }
+    LogHeader "Codex Rollout Summaries"
+    $srcFiles = @(Get-ChildItem $rolloutBundlePath -Filter '*.md' -File)
+    if ($srcFiles.Count -eq 0) {
+        LogInfo "Rollout bundle empty — refusing to wipe target"
+        return
+    }
+    $rolloutDir = Join-Path $CODEX_DIR 'memories\rollout_summaries'
+    if (!(Test-Path $rolloutDir)) {
+        New-Item -ItemType Directory -Path $rolloutDir -Force | Out-Null
+    } else {
+        Get-ChildItem $rolloutDir -Filter '*.md' -File | Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+    $currentUser = if ($env:USERNAME) { $env:USERNAME } else { 'user' }
+    $count = 0
+    foreach ($f in $srcFiles) {
+        $content = $null
+        try { $content = [System.IO.File]::ReadAllText($f.FullName, $UTF8NoBOM) } catch { continue }
+        if (!$content) { continue }
+        # Literal string replace (NOT regex) so special chars in username don't corrupt output
+        $content = $content.Replace('<USER>', $currentUser)
+        $dst = Join-Path $rolloutDir $f.Name
+        if (Write-Utf8NoBom $dst $content) { $count++ }
+    }
+    if ($count -gt 0) {
+        LogOk "$count rollout summaries seeded (USERNAME=$currentUser)"
+    } else {
+        LogFail "0 rollout summaries seeded"
+    }
+}
+
+function Uninstall-CodexMemory {
+    $memDir = Join-Path $CODEX_DIR 'memories'
+    if (!(Test-Path $memDir)) { return }
+    LogHeader "Codex Memory"
+    foreach ($f in @('memory_summary.md', 'MEMORY.md', 'raw_memories.md')) {
+        $p = Join-Path $memDir $f
+        if (Test-Path $p) { Remove-Item $p -Force -ErrorAction SilentlyContinue; LogOk "Removed $f" }
+    }
+    Uninstall-CodexRollout
+}
+
+function Uninstall-CodexRollout {
+    $rolloutDir = Join-Path $CODEX_DIR 'memories\rollout_summaries'
+    if (!(Test-Path $rolloutDir)) { return }
+    LogHeader "Codex Rollout Summaries"
+    $removed = 0
+    Get-ChildItem $rolloutDir -Filter '*.md' -File | ForEach-Object {
+        $content = ''
+        try { $content = [System.IO.File]::ReadAllText($_.FullName, $UTF8NoBOM) } catch {}
+        if ($content -match 'cwd:\s*\\\\\?\\C:\\Workspace\\') {
+            Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+            $removed++
+        }
+    }
+    LogOk "Removed $removed seeded rollout summaries"
 }
 
 function Deploy-CodexConfig {
@@ -331,6 +490,7 @@ function Deploy-CodexConfig {
     }
     $cfg = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
+    Deploy-CodexMemory
 }
 
 function Uninstall-CodexConfig {
@@ -344,22 +504,27 @@ function Uninstall-CodexConfig {
         'removed' { LogOk "Removed config.toml" }
         'kept'    { LogInfo "config.toml (kept other settings)" }
     }
+    Uninstall-CodexMemory
 }
 
 function Verify-Workspace([string]$ProjectName, [string]$WorkspacePath) {
     $memDir = Get-MemoryDir $ProjectName
     LogHeader "Verify: $ProjectName"
-    $memFile = Join-Path $memDir 'security-research-lab.md'
-    if (Test-Path $memFile) {
-        $sz = (Get-Item $memFile).Length
-        $c = Get-Content $memFile -Raw -ErrorAction SilentlyContinue
-        $loop = if ($c -match 'Loop Engineering') { '+ Loop Engine' } else { '' }
-        LogOk "security-research-lab.md ($sz bytes) $loop"
-    } else { LogFail "security-research-lab.md MISSING" }
+    $bundleFiles = @(Get-ChildItem $MEM_BUNDLE -Filter '*.md' -File | Where-Object { $_.Name -ne 'MEMORY.md' -and $_.Name -ne 'CLAUDE.md' })
+    $deployed = 0
+    foreach ($f in $bundleFiles) {
+        if (Test-Path (Join-Path $memDir $f.Name)) { $deployed++ }
+    }
+    if ($deployed -eq $bundleFiles.Count -and $deployed -gt 0) {
+        LogOk "memory files: $deployed/$($bundleFiles.Count)"
+    } elseif ($deployed -gt 0) {
+        LogWarn "memory files: $deployed/$($bundleFiles.Count) (partial)"
+    } else {
+        LogFail "memory files MISSING"
+    }
     $indexPath = Join-Path $memDir 'MEMORY.md'
     if (Test-Path $indexPath) {
-        $c = Get-Content $indexPath -Raw -ErrorAction SilentlyContinue
-        if ($c -match 'security-research-lab') { LogOk "MEMORY.md" } else { LogWarn "MEMORY.md entry missing" }
+        LogOk "MEMORY.md"
     } else { LogFail "MEMORY.md MISSING" }
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $cp = Join-Path $WorkspacePath 'CLAUDE.md'
@@ -381,13 +546,22 @@ function Get-Workspaces {
     if (!(Test-Path $CLAUDE_PROJECTS)) { return $result }
     foreach ($d in (Get-ChildItem $CLAUDE_PROJECTS -Directory -ErrorAction SilentlyContinue)) {
         $memDir = Get-MemoryDir $d.Name
-        $deployed = Test-Path (Join-Path $memDir 'security-research-lab.md')
+        # v7 sentinel(engineer-profile.md) 或 v6 legacy sentinel(security-research-lab.md) 都视为已部署
+        $deployed = (Test-Path (Join-Path $memDir 'engineer-profile.md')) -or `
+                    (Test-Path (Join-Path $memDir 'security-research-lab.md'))
+        # 反解 workspace 到真实项目路径,读 CLAUDE.md,检查 Loop Engineering
         $hasLoop = $false
-        if ($deployed) {
-            $c = Get-Content (Join-Path $memDir 'security-research-lab.md') -Raw -ErrorAction SilentlyContinue
-            $hasLoop = $c -match 'Loop Engineering'
+        $projPath = Resolve-WorkspacePath $d.Name
+        if ($projPath -and (Test-Path $projPath)) {
+            $cp = Join-Path $projPath 'CLAUDE.md'
+            if (Test-Path $cp) {
+                try {
+                    $c = Get-Content $cp -Raw -ErrorAction Stop
+                    if ($c -match 'Loop Engineering') { $hasLoop = $true }
+                } catch {}
+            }
         }
-        $result += [PSCustomObject]@{ Name = $d.Name; Deployed = $deployed; HasLoop = $hasLoop; Path = $null }
+        $result += [PSCustomObject]@{ Name = $d.Name; Deployed = $deployed; HasLoop = $hasLoop; Path = $projPath }
     }
     return $result
 }
@@ -397,7 +571,7 @@ function Get-Workspaces {
 # ================================================================
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'cc-unlock v5.0 - Loop Engineering'
+$form.Text = 'cc-unlock v8.0.6 - Loop Engineering'
 $form.Size = New-Object System.Drawing.Size(880, 620)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $CLR_BG
@@ -430,7 +604,7 @@ $lblSideTitle.BackColor = $CLR_SIDEBAR
 $sidebar.Controls.Add($lblSideTitle)
 
 $lblSideVer = New-Object System.Windows.Forms.Label
-$lblSideVer.Text = 'v5.0'
+$lblSideVer.Text = 'v8.0.6'
 $lblSideVer.Font = $fNavSub
 $lblSideVer.ForeColor = $CLR_SUBTEXT
 $lblSideVer.Location = New-Object System.Drawing.Point(18, 48)
@@ -562,7 +736,7 @@ $content.Controls.Add($pageOverview)
 
 # OV: Title
 $ovTitle = New-Object System.Windows.Forms.Label
-$ovTitle.Text = 'cc-unlock v5.0'
+$ovTitle.Text = 'cc-unlock v8.0.6'
 $ovTitle.Font = New-Object System.Drawing.Font($fontFamily, 18, [System.Drawing.FontStyle]::Bold)
 $ovTitle.ForeColor = $CLR_MAUVE
 $ovTitle.Location = New-Object System.Drawing.Point(25, 18)

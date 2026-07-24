@@ -1,15 +1,15 @@
 #!/bin/bash
-# cc-unlock v5.0 — Verify deployment
+# cc-unlock v8.0.6 — Verify deployment
 set -e
 
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_PROJECTS="$CLAUDE_DIR/projects"
 CODEX_DIR="$HOME/.codex"
-MEMORY_FILE="security-research-lab.md"
+MEMORY_FILE="engineer-profile.md"
 
 echo ""
 echo "============================================"
-echo "  cc-unlock v5.0 - Verify Deployment"
+echo "  cc-unlock v8.0.6 - Verify Deployment"
 echo "============================================"
 echo ""
 

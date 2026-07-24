@@ -2,7 +2,7 @@
 chcp 65001 >nul 2>&1
 echo.
 echo ============================================
-echo   cc-unlock v5.0 - Compatibility Test / 兼容性测试
+echo   cc-unlock v8.0.6 - Compatibility Test / 兼容性测试
 echo ============================================
 echo.
 
@@ -39,7 +39,7 @@ if "%FOUND%"=="0" echo   No Claude Code directories found
 echo.
 echo [4/5] Memory bundle check / 源文件检查...
 set "BUNDLE=%~dp0..\cc-unlock-files\memory-bundle"
-for %%f in (security-research-lab.md MEMORY.md CLAUDE.md) do (
+for %%f in (engineer-profile.md MEMORY.md CLAUDE.md) do (
     if exist "%BUNDLE%\%%f" (
         for %%A in ("%BUNDLE%\%%f") do echo   OK: %%f (%%~zA bytes)
     ) else (
