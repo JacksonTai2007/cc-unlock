@@ -1,0 +1,72 @@
+{
+  "skill_name": "web-reverse",
+  "version": 1,
+  "evals": [
+    {
+      "id": 1,
+      "category": "signature-restoration",
+      "prompt": "这个网站的请求头里有个 x-sign 字段，每次请求都会变，我需要用 Python 复现这个签名逻辑。网站是 https://example.com/api/list，F12 看到请求时 x-sign 值类似 a3f8c2d1e4b0...（64位hex），其他参数有 timestamp、nonce、msToken cookie。帮我分析一下签名算法。",
+      "expected_output": "应触发 web-reverse 技能，识别为 signature 专题（模式 A 请求验收或 D 本地复现），建立任务契约，锁定 x-sign 为目标字段，启动 carrier 追踪和 hook 基础设施",
+      "assertions": [
+        {"name": "triggers_web_reverse", "check": "技能被正确触发"},
+        {"name": "identifies_signature_topic", "check": "主专题识别为 signature"},
+        {"name": "sets_task_mode", "check": "明确 taskMode（A 或 D）"},
+        {"name": "targets_x_sign", "check": "activeEntrypoint 指向 x-sign 字段"},
+        {"name": "plans_carrier_trace", "check": "计划或已开始 carrier 追踪（不是直接猜算法）"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "category": "anti-debug-bypass",
+      "prompt": "我打开 F12 分析一个网站，页面一直在 debugger 断下来，setInterval 不停触发 debugger 语句，而且我 hook 了 XMLHttpRequest 之后页面变白屏了，可能是 toString 检测。怎么绕过？",
+      "expected_output": "应触发 web-reverse 技能，识别为 anti-debug 专题，区分 Timer 型 + Integrity 型组合保护，制定 preload 绕过策略（timer 拦截 + toString 伪装），而不是建议逐个手动跳过",
+      "assertions": [
+        {"name": "triggers_web_reverse", "check": "技能被正确触发"},
+        {"name": "identifies_anti_debug", "check": "主专题识别为 anti-debug"},
+        {"name": "detects_combo_protection", "check": "识别 Timer + Integrity 组合保护"},
+        {"name": "recommends_preload", "check": "推荐 preload 策略而非手动跳过"},
+        {"name": "covers_tostring", "check": "同时覆盖 toString 检测的绕过"}
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "category": "jsvmp-analysis",
+      "prompt": "这个网站的核心逻辑在一个自执行函数里，代码全是 while(1) + switch 结构，变量名都是 _0x 开头的十六进制，看起来像是个 JS 虚拟机。我需要把里面负责生成 token 的那段逻辑提取出来用 Node.js 跑。",
+      "expected_output": "应触发 web-reverse 技能，识别为 jsvmp 专题，进入 VM/WASM 执行路径（foundation 6-8 轮预算），先做 boundary identification + dispatcher 定位，而不是直接尝试阅读 bytecode",
+      "assertions": [
+        {"name": "triggers_web_reverse", "check": "技能被正确触发"},
+        {"name": "identifies_jsvmp", "check": "主专题识别为 jsvmp"},
+        {"name": "sets_vm_foundation_budget", "check": "VM/WASM 任务使用 6-8 轮 foundation 预算"},
+        {"name": "plans_boundary_first", "check": "优先 boundary identification 而非直接读 bytecode"},
+        {"name": "task_mode_is_local_rebuild", "check": "taskMode 为 D（本地复现）或 E（纯算法提取）"}
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "category": "env-conformance",
+      "prompt": "我在浏览器里跑通了一段加密逻辑，提取出来放到 Node.js 里跑结果不一致。浏览器里 window、navigator、screen 这些对象在 Node 里都没有，怎么补环境？加密函数里用到了 canvas 指纹和 WebGL renderer 信息。",
+      "expected_output": "应触发 web-reverse 技能，识别为 env 专题（补环境），走 Node env-rebuild 路径，先做 firstDivergence 定位（哪个环境差异导致结果分歧），而不是一上来就写全套 polyfill",
+      "assertions": [
+        {"name": "triggers_web_reverse", "check": "技能被正确触发"},
+        {"name": "identifies_env_topic", "check": "主专题识别为 env"},
+        {"name": "avoids_full_polyfill", "check": "不直接写全套 polyfill，先做 firstDivergence 定位"},
+        {"name": "plans_divergence_trace", "check": "计划 carrier 级别的差异追踪"},
+        {"name": "handles_canvas_webgl", "check": "针对 canvas/WebGL 指纹有具体处理策略"}
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "category": "negative-frontend-dev",
+      "prompt": "我用 React 写了一个登录页面，提交表单的时候需要调用后端 /api/login 接口，想用 axios 发请求，但是 CORS 报错了，后端同事说让我加个 proxy。怎么配置？",
+      "expected_output": "不应触发 web-reverse 技能，这是普通前端开发问题",
+      "assertions": [
+        {"name": "does_not_trigger", "check": "不应触发 web-reverse 技能"}
+      ],
+      "files": []
+    }
+  ]
+}

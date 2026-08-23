@@ -1,0 +1,14 @@
+{
+  "streamingRuntime": {
+    "version": 1,
+    "present": true,
+    "pipelineStatus": "not-started",
+    "chunkBoundaryStatus": "not-started",
+    "sinkStatus": "not-started",
+    "transforms": [],
+    "artifacts": [
+      "run/streaming-runtime-notes.md",
+      "run/stream-pipeline.json"
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "status": "not-started",
+  "summary": {
+    "probeOrderStatus": "unknown",
+    "networkBindingStatus": "unknown",
+    "automationLeakStatus": "unknown",
+    "overrideStrategy": "not-decided"
+  },
+  "probeOrder": [],
+  "readPoints": [],
+  "executionContexts": [
+    {
+      "context": "window",
+      "status": "unknown",
+      "notes": []
+    }
+  ],
+  "detectorFamilies": [
+    {
+      "family": "generic-fingerprint",
+      "status": "unknown",
+      "probes": []
+    },
+    {
+      "family": "automation-leaks",
+      "status": "unknown",
+      "probes": []
+    },
+    {
+      "family": "execution-context-consistency",
+      "status": "unknown",
+      "probes": []
+    },
+    {
+      "family": "network-binding",
+      "status": "unknown",
+      "probes": []
+    }
+  ],
+  "networkBindings": [],
+  "patchPlan": {
+    "scope": [],
+    "firstDivergence": "",
+    "notes": []
+  },
+  "vectorBuckets": {
+    "navigator": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "uaHints": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "screen": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "timezoneLocale": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "canvas": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "webgl": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "audio": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "fonts": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "rtc": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    },
+    "automationLeaks": {
+      "read": [],
+      "networkFacing": [],
+      "notes": []
+    }
+  }
+}

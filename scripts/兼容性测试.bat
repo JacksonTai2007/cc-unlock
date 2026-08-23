@@ -2,7 +2,7 @@
 chcp 65001 >nul 2>&1
 echo.
 echo ============================================
-echo   cc-unlock v8.0.6 - Compatibility Test / 兼容性测试
+echo   cc-unlock v8.0.7 - Compatibility Test / 兼容性测试
 echo ============================================
 echo.
 

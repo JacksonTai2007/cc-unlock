@@ -1,0 +1,16 @@
+{
+  "loader": {
+    "api": "",
+    "sourceKind": "",
+    "artifact": "run/wasm-analysis.wat"
+  },
+  "framework": "unknown",
+  "imports": {},
+  "exports": [],
+  "memory": {
+    "exportName": "",
+    "inputBoundary": "",
+    "outputBoundary": ""
+  }
+}
+

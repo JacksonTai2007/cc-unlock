@@ -1,0 +1,103 @@
+{
+  "id": "seh-wow64-gate",
+  "title": "TLS callback / SEH / WOW64 gate drill",
+  "summary": "围绕 TLS callback、SEH/VEH、WOW64 边界与解包前启动门的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "anti-analysis",
+    "packer-unpack",
+    "exception-runtime"
+  ],
+  "taskInit": {
+    "protectionTier": "T4",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "seh wow64 gate sample",
+      "binaryPath": "samples/seh-wow64-gate.exe"
+    },
+    "objective": "恢复 TLS callback 与 SEH/VEH 触发的真实启动链，识别 WOW64/异常门对解包与断点的影响，并完成一次安全观测验证。",
+    "requirements": {
+      "deliverables": [
+        "anti analysis notes",
+        "unpack notes",
+        "exception runtime notes",
+        "startup chain"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "启动链与异常链分析",
+        "解包前观测点恢复",
+        "WOW64 边界验证"
+      ],
+      "outOfScope": [
+        "漏洞利用",
+        "未授权 bypass 投送"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] TLS callback / SEH gate / WOW64 chain",
+    "runtime": {
+      "architecture": "x86",
+      "binaryFormat": "pe",
+      "managed": false,
+      "loader": "seh-wow64-gate"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+Frida",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/seh-wow64-gate.exe",
+      "targetProcessNames": [
+        "seh-wow64-gate.exe"
+      ],
+      "targetKeywords": [
+        "tls callback",
+        "seh gate",
+        "veh",
+        "wow64"
+      ],
+      "targetFunctionNames": [
+        "AddVectoredExceptionHandler",
+        "SetUnhandledExceptionFilter",
+        "VirtualProtect",
+        "IsDebuggerPresent"
+      ]
+    },
+    "successCriteria": [
+      "确认 TLS callback 到 entrypoint 的启动顺序",
+      "确认异常门属于反分析还是解密控制流",
+      "确认 WOW64/架构边界对断点与解包的影响",
+      "完成一次安全观测验证"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "TLS callback first run",
+        "SEH/VEH control gate",
+        "OEP 前异常驱动解密",
+        "WOW64 边界影响"
+      ],
+      "evidenceGoals": [
+        "启动链与异常链证据",
+        "反分析与解包之间的关系",
+        "安全断点点位"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-anti-analysis-workflow.mjs",
+        "scripts/cases/win-packer-unpack-workflow.mjs",
+        "scripts/cases/win-exception-runtime-workflow.mjs"
+      ]
+    }
+  }
+}

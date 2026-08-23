@@ -1,0 +1,26 @@
+{
+  "envConformance": {
+    "version": 1,
+    "present": true,
+    "driftSurface": "unknown",
+    "evidenceSource": "unknown",
+    "presenceClassificationStatus": "not-started",
+    "presentSymbols": [],
+    "absentSymbols": [],
+    "pendingSymbols": [],
+    "minimalPatchUnit": "unknown",
+    "patchStatus": "not-started",
+    "descriptorStatus": "not-started",
+    "schedulerStatus": "not-started",
+    "typedArrayStatus": "not-started",
+    "cryptoStatus": "not-started",
+    "storageStatus": "not-started",
+    "fingerprintStatus": "not-started",
+    "artifacts": [
+      "run/env-conformance-template.js",
+      "run/env-conformance-notes.md",
+      "run/env-drift-matrix.md",
+      "run/browser-env-snapshot.json"
+    ]
+  }
+}

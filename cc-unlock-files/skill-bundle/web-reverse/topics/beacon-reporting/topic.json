@@ -1,0 +1,132 @@
+{
+  "key": "beacon-reporting",
+  "label": "Beacon / reporting / hidden telemetry",
+  "maturity": "closed-loop",
+  "routeTrack": "beacon-reporting",
+  "signals": [
+    "sendBeacon",
+    "report-to",
+    "ReportingObserver",
+    "visibilitychange",
+    "pagehide"
+  ],
+  "protocol": "references/beacon-reporting-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/beacon-reporting.json",
+  "taskInit": {
+    "aliases": [
+      "sendbeacon",
+      "reporting"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "behavior-telemetry",
+          "instrumentation-hooking"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "beaconReporting.present",
+    "versionPath": "beaconReporting.version",
+    "artifactsPath": "beaconReporting.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "beaconReporting.channels"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "beaconReporting.present",
+    "requiredArtifacts": [
+      "run/beacon-log.jsonl",
+      "run/reporting-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "beaconReporting.present=true but lifecycleStatus is still not-started",
+        "path": "beaconReporting.lifecycleStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "beaconReporting.present=true but channels is still empty",
+        "path": "beaconReporting.channels",
+        "minLength": 1
+      },
+      {
+        "message": "beaconReporting.present=true but beacon artifacts are still placeholders",
+        "touchedAny": [
+          "run/beacon-log.jsonl",
+          "run/reporting-map.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "beaconReporting.present=true but reporting / fallback status is still unknown",
+        "checks": [
+          {
+            "path": "beaconReporting.reportingStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "beaconReporting.fallbackStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-beacon-reporting-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/beacon-log.jsonl",
+    "artifacts/tasks/_TEMPLATE/run/reporting-map.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "sendBeacon",
+    "run/beacon-log.jsonl",
+    "run/reporting-map.md"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/beacon-reporting",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

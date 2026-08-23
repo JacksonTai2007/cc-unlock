@@ -1,0 +1,55 @@
+{
+  "generatedAt": "",
+  "status": "not-started",
+  "provider": "",
+  "mode": "auto",
+  "searchRounds": 0,
+  "triggerSignals": [],
+  "sourceTypesPreferred": [
+    "official-docs",
+    "github",
+    "issue",
+    "public-analysis"
+  ],
+  "sourceTypesUsed": [],
+  "confidence": 0,
+  "lastDecisionSummary": "",
+  "lastAppliedAt": "",
+  "policy": {
+    "policyPath": "",
+    "policyVersion": "",
+    "lastEvaluatedAt": "",
+    "mode": "auto",
+    "decision": "not-evaluated",
+    "reasons": [],
+    "searchabilityScore": 0,
+    "metrics": {}
+  },
+  "queries": [],
+  "queryStats": [],
+  "featureBundle": {
+    "hosts": [],
+    "urlPathHints": [],
+    "keywords": [],
+    "functionNames": [],
+    "routeTracks": [],
+    "topicHints": []
+  },
+  "results": [],
+  "resultDigest": [],
+  "adoptedFindings": [],
+  "rejectedFindings": [],
+  "openQuestions": [],
+  "candidateEntrypoints": [],
+  "probeDrafts": [],
+  "reconciliation": {
+    "generatedAt": "",
+    "summary": {
+      "merge": 0,
+      "review": 0,
+      "reject": 0
+    },
+    "suggestions": []
+  },
+  "notes": []
+}

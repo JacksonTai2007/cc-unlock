@@ -1,0 +1,14 @@
+{
+  "generatedAt": "",
+  "scannedRoot": "",
+  "summary": {
+    "looksLikeWebShell": false,
+    "confidence": "low",
+    "probableRuntimes": [],
+    "probableFrontend": [],
+    "probablePackagers": []
+  },
+  "entryHints": [],
+  "recommendedNextSteps": [],
+  "matches": []
+}

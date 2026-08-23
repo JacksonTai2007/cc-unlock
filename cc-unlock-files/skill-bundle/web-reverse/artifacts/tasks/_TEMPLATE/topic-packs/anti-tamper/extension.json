@@ -1,0 +1,14 @@
+{
+  "antiTamper": {
+    "version": 1,
+    "present": true,
+    "integrityStatus": "not-started",
+    "sinkProtectionStatus": "not-started",
+    "hookResistanceStatus": "not-started",
+    "surfaces": [],
+    "artifacts": [
+      "run/anti-tamper-notes.md",
+      "run/integrity-surface.json"
+    ]
+  }
+}

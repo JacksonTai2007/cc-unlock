@@ -1,0 +1,85 @@
+{
+  "key": "art-runtime",
+  "label": "ART runtime / OAT / VDEX / inline / deopt",
+  "maturity": "closed-loop",
+  "routeTrack": "art-runtime",
+  "signals": [
+    "oat",
+    "vdex",
+    "odex",
+    "inline",
+    "deopt",
+    "zygote"
+  ],
+  "protocol": "references/art-runtime-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/art-runtime.json",
+  "taskInit": {
+    "aliases": [
+      "art",
+      "deopt"
+    ],
+    "baseProtectionTier": "A4"
+  },
+  "taskSemantics": {
+    "presentPath": "artRuntime.present",
+    "artifactsPath": "artRuntime.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "artRuntime.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "artRuntime.present",
+    "requiredArtifacts": [
+      "run/art-runtime-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "artRuntime.present=true but status is still not-started",
+        "path": "artRuntime.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "artRuntime.present=true but keyFindings is still empty",
+        "path": "artRuntime.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "artRuntime.present=true but art-runtime notes are still placeholders",
+        "touchedAny": [
+          "run/art-runtime-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-art-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/art-runtime-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "ART Runtime",
+    "run/art-runtime-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/art-runtime"
+}

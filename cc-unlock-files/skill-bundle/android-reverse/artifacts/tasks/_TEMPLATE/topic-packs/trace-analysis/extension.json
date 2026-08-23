@@ -1,0 +1,11 @@
+{
+  "trace-analysis": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifact": "run/trace-analysis-notes.md"
+  }
+}

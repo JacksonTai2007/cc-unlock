@@ -1,0 +1,14 @@
+{
+  "webrtcDatachannel": {
+    "version": 1,
+    "present": true,
+    "signalingStatus": "not-started",
+    "iceStatus": "not-started",
+    "protocolStatus": "not-started",
+    "channelLabels": [],
+    "artifacts": [
+      "run/signaling-map.md",
+      "run/channel-frames.jsonl"
+    ]
+  }
+}

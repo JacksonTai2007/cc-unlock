@@ -1,0 +1,16 @@
+{
+  "antiDebug": {
+    "version": 1,
+    "present": true,
+    "triggerStage": "unknown",
+    "injectionStrategy": "unknown",
+    "patterns": [],
+    "bypassStatus": "not-started",
+    "unresolved": [],
+    "artifacts": [
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js",
+      "run/anti-debug-snippets.js"
+    ]
+  }
+}

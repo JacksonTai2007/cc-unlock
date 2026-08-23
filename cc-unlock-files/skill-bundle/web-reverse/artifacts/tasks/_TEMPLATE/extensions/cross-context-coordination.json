@@ -1,0 +1,14 @@
+{
+  "crossContextCoordination": {
+    "version": 1,
+    "present": true,
+    "coordinationStatus": "not-started",
+    "channelStatus": "not-started",
+    "timingStatus": "not-started",
+    "contexts": [],
+    "artifacts": [
+      "run/context-map.md",
+      "run/message-graph.json"
+    ]
+  }
+}

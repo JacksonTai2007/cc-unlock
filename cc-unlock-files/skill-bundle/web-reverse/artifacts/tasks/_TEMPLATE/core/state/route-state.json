@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 2,
+  "updatedAt": "2026-03-25T13:26:40.567Z",
+  "taskId": "replace-me",
+  "phase": "Observe",
+  "syncStatus": "restored-from-route-state",
+  "activeTracks": [
+    "A"
+  ],
+  "activeEntrypoints": [
+    "EP-001"
+  ],
+  "vmTriage": {
+    "triageResult": "not-applicable",
+    "blackboxApi": "",
+    "rationale": "",
+    "notes": [],
+    "updatedAt": ""
+  },
+  "execution": {
+    "status": "ready-to-continue",
+    "autoAdvanceEligible": true,
+    "pauseCategory": "none",
+    "pauseReason": "",
+    "nextEntrypointId": "EP-001",
+    "nextPhase": "Observe",
+    "nextExecutableAction": "执行 EP-001 的最小 probe：做一次最小观测，确认当前主阻塞更像 signer、session、env、vm 还是协议编排问题。",
+    "summary": "恢复或初始化完成后不能停在状态汇报；当前应直接执行 EP-001 的最小 probe。",
+    "updatedAt": "2026-03-25T13:26:40.567Z"
+  },
+  "tracks": [
+    {
+      "id": "a",
+      "title": "A",
+      "target": "",
+      "inputs": "",
+      "output": "",
+      "priority": "",
+      "checkpoints": [],
+      "status": "PENDING",
+      "nextStep": "A1",
+      "updatedAt": ""
+    },
+    {
+      "id": "b",
+      "title": "B",
+      "target": "",
+      "inputs": "",
+      "output": "",
+      "priority": "",
+      "checkpoints": [],
+      "status": "PENDING",
+      "nextStep": "B1",
+      "updatedAt": ""
+    }
+  ],
+  "entrypoints": [
+    {
+      "id": "EP-001",
+      "title": "先做最小成本分诊",
+      "hypothesis": "先用一个最便宜的观察性探针判断当前主阻塞更像 signer、session、env、vm 还是协议编排问题。",
+      "boundTopics": [],
+      "targetTrack": "A",
+      "rationale": "复合场景先做中性分诊，避免一开始就把某个 topic 误当成唯一主线。",
+      "cost": "low",
+      "expectedGain": "high",
+      "probe": "做一次最小观测：hook / input-boundary diff / request initiator trace 三选一，先确认下一刀切在哪条链路。",
+      "successCriteria": "能明确缩窄主阻塞点，或激活下一条更高价值的切入点。",
+      "failureCriteria": "没有带来新的可执行分歧，且不能支持下一步判断。",
+      "status": "CANDIDATE",
+      "resultSummary": "",
+      "evidenceRefs": [],
+      "nextOnSuccess": "扩展该切入点并绑定更具体的 topic。",
+      "nextOnFailure": "切到下一个候选切入点。",
+      "updatedAt": ""
+    }
+  ],
+  "retrospectives": [],
+  "clues": [
+    {
+      "id": "CLUE-001",
+      "sourceTrack": "",
+      "sourceEntrypoint": "",
+      "discoveredAt": "",
+      "content": "",
+      "verification": "",
+      "impact": "",
+      "action": "",
+      "confidence": ""
+    }
+  ]
+}

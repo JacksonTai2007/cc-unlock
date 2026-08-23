@@ -1,0 +1,22 @@
+{
+  "dexLoader": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "shellFamily": "",
+    "unpackStrategy": "",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "shellEvidenceRefs": [],
+    "elfUnpackEvidenceRefs": [],
+    "innerElfRefs": [],
+    "dexValidationRefs": [],
+    "artifacts": [
+      "run/class-loader-trace.js",
+      "run/dex-loader-dump-notes.md",
+      "run/bangcle-libdexhelper-evidence.md"
+    ]
+  }
+}
+

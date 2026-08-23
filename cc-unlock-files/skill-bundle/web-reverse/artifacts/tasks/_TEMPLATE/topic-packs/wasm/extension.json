@@ -1,0 +1,20 @@
+{
+  "runtime": {
+    "wasmPresent": true
+  },
+  "wasmAnalysis": {
+    "version": 1,
+    "present": true,
+    "loaderStatus": "not-started",
+    "framework": "unknown",
+    "hookStatus": "not-started",
+    "memoryStatus": "not-started",
+    "artifacts": [
+      "run/wasm-analysis.wat",
+      "run/wasm-runtime-hook-template.js",
+      "run/wasm-imports-exports.json",
+      "run/wasm-notes.md"
+    ]
+  }
+}
+

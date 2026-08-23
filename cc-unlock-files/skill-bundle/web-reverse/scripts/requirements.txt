@@ -1,0 +1,15 @@
+# Python 依赖（按需安装，并非每个脚本都要全部）
+#   pip install -r scripts/requirements.txt
+#
+# 各脚本实际依赖：
+#   verify/verify-offline.py -> requests（或 httpx / curl_cffi，任选其一，见脚本内 TODO）
+#   verify/verify-algo.py    -> 仅标准库
+#   captcha/track_gen.py     -> 仅标准库
+#   captcha/slide_gap.py     -> ddddocr（推荐）或 opencv-python（回退，二选一即可）
+#   captcha/geetest_w.py     -> pycryptodome
+
+requests          # verify-offline.py 发真实请求（也可换 httpx / curl_cffi）
+pycryptodome      # geetest_w.py 的 AES/RSA
+ddddocr           # slide_gap.py 缺口识别（首选）
+opencv-python     # slide_gap.py 回退方案（无 ddddocr 时）；--full 差分法也需要
+numpy             # slide_gap.py --full 差分法

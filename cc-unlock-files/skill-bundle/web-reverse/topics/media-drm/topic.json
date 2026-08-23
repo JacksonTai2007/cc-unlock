@@ -1,0 +1,211 @@
+{
+  "key": "media-drm",
+  "label": "Media DRM / EME / license flow",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "media-drm",
+  "signals": [
+    "MediaSource",
+    "encrypted event",
+    "requestMediaKeySystemAccess",
+    "license",
+    "m3u8",
+    "mpd",
+    "video frame",
+    "decrypt",
+    "clearkey",
+    "SourceBuffer",
+    "key session"
+  ],
+  "protocol": "references/media-drm-playbook.md",
+  "secondaryProtocol": "references/video-frame-decryption-playbook.md",
+  "extendedProtocols": [
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/media-drm.json",
+  "taskInit": {
+    "aliases": [
+      "drm",
+      "eme"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "session",
+          "beacon-reporting"
+        ],
+        "tier": "T4"
+      },
+      {
+        "withTopics": [
+          "jsvmp"
+        ],
+        "tier": "T7"
+      },
+      {
+        "withTopics": [
+          "wasm"
+        ],
+        "tier": "T6"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "mediaDrm.present",
+    "versionPath": "mediaDrm.version",
+    "artifactsPath": "mediaDrm.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "mediaDrm.licenseEndpoints"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "mediaDrm.present",
+    "requiredArtifacts": [
+      "run/license-flow.md",
+      "run/token-inputs.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "mediaDrm.present=true but drmStatus is still not-started",
+        "path": "mediaDrm.drmStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "mediaDrm.present=true but licenseEndpoints is still empty",
+        "path": "mediaDrm.licenseEndpoints",
+        "minLength": 1
+      },
+      {
+        "message": "mediaDrm.present=true but DRM artifacts are still placeholders",
+        "touchedAny": [
+          "run/license-flow.md",
+          "run/token-inputs.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "mediaDrm.present=true but token / player status is still unknown",
+        "checks": [
+          {
+            "path": "mediaDrm.tokenStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "mediaDrm.playerStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-media-drm-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/license-flow.md",
+    "artifacts/tasks/_TEMPLATE/run/token-inputs.json",
+    "artifacts/tasks/_TEMPLATE/run/frame-decryption-chain.md",
+    "artifacts/tasks/_TEMPLATE/run/key-session-timeline.json",
+    "artifacts/tasks/_TEMPLATE/run/verify-decryption.mjs"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "requestMediaKeySystemAccess",
+    "run/license-flow.md",
+    "run/token-inputs.json",
+    "run/frame-decryption-chain.md",
+    "run/key-session-timeline.json",
+    "run/verify-decryption.mjs",
+    "run/wasm-imports-exports.json",
+    "run/vm-trace.jsonl",
+    "clear-frame",
+    "keyStatus",
+    "keystatuseschange",
+    "appendBuffer"
+  ],
+  "synthetic": {
+    "id": "synthetic-media-drm",
+    "extensions": [
+      "--media-drm"
+    ],
+    "taskSeed": [
+      {
+        "path": "mediaDrm.present",
+        "value": true
+      },
+      {
+        "path": "mediaDrm.drmStatus",
+        "value": "eme-ready"
+      },
+      {
+        "path": "mediaDrm.licenseEndpoints",
+        "value": [
+          "https://license.example.com/widevine"
+        ]
+      },
+      {
+        "path": "mediaDrm.tokenStatus",
+        "value": "acquired"
+      },
+      {
+        "path": "mediaDrm.playerStatus",
+        "value": "ready"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/license-flow.md",
+        "text": "# License Flow\n\n- EME: Widevine\n- Key System: com.widevine.alpha\n- License Endpoint: https://license.example.com/widevine\n"
+      },
+      {
+        "path": "run/token-inputs.json",
+        "json": {
+          "licenseUrl": "https://license.example.com/widevine",
+          "tokenType": "clearkey",
+          "keyId": "abc123"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/media-drm"
+}

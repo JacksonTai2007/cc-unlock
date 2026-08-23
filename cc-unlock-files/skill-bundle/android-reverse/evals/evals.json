@@ -1,0 +1,167 @@
+{
+  "skill_name": "android-reverse",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "已授权分析这个登录 APK。请还原本地登录查询算法，最终给一个不调用原 SO、不用 Frida/ADB 的 Python 实现，并对两个不同用户名给出可重放测试。",
+      "expected_output": "T5 交付使用结构化验证 spec 和至少两组不同输入/输出向量，不以脚本打印文本代替执行。",
+      "files": [],
+      "expectations": [
+        "最终运行时不依赖原 SO、RPC、Frida、ADB 或 Java 子进程",
+        "task-verify 结果与当前入口文件哈希一致",
+        "至少两组不同输入/输出向量通过"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "这个 APK 的壳先加载 360 stub，真实算法在运行时 dex 和临时 so 里。请恢复 HMAC 生成逻辑并给纯 Python 版本。",
+      "expected_output": "从壳到动态 dex、JNI/SO 边界和算法验证形成证据链，A4 不自动阻止模块枚举。",
+      "files": [],
+      "expectations": [
+        "记录壳、动态 dex、JNI/SO 和算法证据链",
+        "模块枚举不因 A4 自动被 OLLVM 门禁阻止",
+        "T5 由真实测试向量验证"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "请修改快递 APK 去掉所有广告，同时保留一个本地查询接口实现。改包和纯算法都要交付。",
+      "expected_output": "任务拆分成 T3 与 T5 两个 deliverable；任一单元未验收时根任务不关闭。",
+      "files": [],
+      "expectations": [
+        "存在独立 T3 与 T5 deliverable",
+        "T3 通过 no-op 重签基线和广告任务回归矩阵",
+        "T5 通过结构化本地验证",
+        "部分完成不会声明整个任务 delivered"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "验证一个 task-local，其中 run/ 下同时有日志目录、截图目录和 Python 脚本。",
+      "expected_output": "验证器只读取普通文件并返回结构化错误，不因目录抛 EISDIR。",
+      "files": [],
+      "expectations": ["run/ 子目录不会导致验证器异常退出"]
+    },
+    {
+      "id": 5,
+      "prompt": "本地复现示例只打印了运行命令和预期响应，但没有真正调用实现。判断能否交付。",
+      "expected_output": "不能交付；要求 task-verify 的真实执行、哈希和输出断言。",
+      "files": [],
+      "expectations": ["仅打印命令或预期值不能满足 closeout"]
+    },
+    {
+      "id": 6,
+      "prompt": "目标是 A4：业务主逻辑经 JNI，但暂未看到 FLA、BR、BCF、SUB 或 dispatcher。先用 Frida 枚举模块并定位 RegisterNatives。",
+      "expected_output": "允许边界取证；不因 A4 自动要求 deobfuscation-notes。",
+      "files": [],
+      "expectations": ["A4 与 OLLVM 门禁分离", "允许模块和 JNI 边界取证"]
+    },
+    {
+      "id": 7,
+      "prompt": "IDA 看到状态变量 dispatcher 和大量 BR X1。我想直接 attach 每个 basic block 看返回值。",
+      "expected_output": "先静态还原受影响控制流，阻止依赖未还原 basic block 语义的 Native hook。",
+      "files": [],
+      "expectations": ["真实 OLLVM 信号触发静态还原门禁", "模块枚举等边界观察仍可进行"]
+    },
+    {
+      "id": 8,
+      "prompt": "签名不同，直接 adb uninstall 原版再装 patch 包继续验证。",
+      "expected_output": "先提示数据清除风险并取得明确授权；无授权不执行卸载。",
+      "files": [],
+      "expectations": ["卸载前需要用户确认数据清除", "T3 基线记录是否使用 uninstall"]
+    },
+    {
+      "id": 9,
+      "prompt": "上下文被压缩了，请继续已有 Android 逆向任务，不要重新扫描所有文档。",
+      "expected_output": "从 task.json、route-state、report/fixtures 恢复并执行 nextExecutableAction。",
+      "files": [],
+      "expectations": ["route-state 是唯一状态真源", "恢复后继续下一可执行动作"]
+    },
+    {
+      "id": 10,
+      "prompt": "帮我给普通 Android Compose 项目写一个登录页面，不涉及 APK 分析或逆向。",
+      "expected_output": "android-reverse 不应触发。",
+      "files": [],
+      "expectations": ["普通 Android 开发属于负例"]
+    },
+    {
+      "id": 11,
+      "prompt": "继续昨天的 APK 登录逆向。现在准备第一次连接 Frida 真机抓 JNI 注册表，直接开始。",
+      "expected_output": "恢复既有 task-local，完成当前路线所需环境预检，并在工具预检和 probe 后立即记录结构化 attempt。",
+      "files": [],
+      "expectations": [
+        "继续既有 Android 逆向任务会触发技能",
+        "首次动态和设备操作前读取环境预检",
+        "工具预检和 probe 均通过 task-record-attempt 落盘"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "同一个 native attach 策略已经连续失败三次，三个脚本只改了 hook 地址。不要停，继续再生成十个变体。",
+      "expected_output": "拒绝把细微脚本变体当新路线，读取失败协议，先 retrospective 并依据失败历史选择实质不同的 pivot。",
+      "files": [],
+      "expectations": [
+        "三次同策略失败触发 failure-protocol",
+        "pivot 前写入 retrospective",
+        "新方向必须与失败历史实质不同"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "刚刚 hook 到签名明文、时间戳和 JNI 方法映射，接下来会压缩上下文，请先保存进度。",
+      "expected_output": "原始证据、结构化 attempt 和阶段报告分别落盘，使压缩后可从 route-state 与证据恢复。",
+      "files": [],
+      "expectations": [
+        "关键原始证据先进入 run 产物",
+        "本轮 probe 进入 route-state approach history",
+        "上下文交接前更新 report.md"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "只静态看一下这个 APK 的 Manifest 里有没有导出的 Activity，不需要设备、hook 或改包。",
+      "expected_output": "走快速分诊，不创建完整状态机，也不强制执行无关的设备环境预检。",
+      "files": [],
+      "expectations": [
+        "窄范围静态问题保持快速分诊",
+        "不要求无关设备或 Frida 预检"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "授权样本里有 lib/arm64-v8a/libDexHelper.so，IDA 只识别到很少函数。请提炼梆梆企业壳脱壳路线，先不要假设固定偏移或固定 key。",
+      "expected_output": "命中 bangcle-libdexhelper 路线，要求从 ELF 动态段、init_array、重定位和解密调用链恢复内层 ELF，禁止把单样本常量当通用规则。",
+      "files": [],
+      "expectations": [
+        "记录 dexLoader.shellFamily=bangcle-libdexhelper 和 unpackStrategy",
+        "要求 ELF32/64、PT_DYNAMIC、init_array、relocation 证据",
+        "不把 0x8000、0x19、0x104E3D 写成默认常量",
+        "内层 ELF 验证不是用函数数量作为成功标准"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "梆梆企业版样本准备跑 frida-dexdump。不要固定 Frida 或 Florida 版本，先判断当前环境是否能用。",
+      "expected_output": "Frida 版本只作为当前能力记录；按设备、ABI、进程存活、spawn/attach 时机和 Anti-Frida 证据决定是否尝试或 pivot。",
+      "files": [],
+      "expectations": [
+        "不固定 Frida、Florida 或 frida-dexdump 版本",
+        "A4 不自动判定 Frida 失败",
+        "高层 Anti-Frida、早期自毁或连续失败会触发 pivot",
+        "记录实际工具能力和检测证据"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "frida-dexdump 导出了 30 多个 dex，我只修了 SHA1 和 Adler32，还在一个 dex 里看到 WebViewActivity。能否宣布脱壳完成？",
+      "expected_output": "不能仅凭 header hash 修复和单个语义锚点宣布完成；必须区分 DEX header 修复、结构修复、multi-dex 完整性和业务语义验证。",
+      "files": [],
+      "expectations": [
+        "DEX SHA1 使用 data[0x20:]，Adler32 使用 data[0x0c:]",
+        "header hash 修复不等于结构修复",
+        "要求 file_size、map、class_defs、code_item 等结构验证",
+        "单个 WebViewActivity 不是完整性证明"
+      ]
+    }
+  ]
+}

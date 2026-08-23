@@ -1,0 +1,80 @@
+{
+  "key": "vmp-analysis",
+  "label": "VMP / VM interpreter / opcode restoration",
+  "maturity": "guided",
+  "routeTrack": "vmp-analysis",
+  "signals": [
+    "vmp",
+    "vm interpreter",
+    "handler table",
+    "opcode mapping",
+    "bytecode restoration",
+    "dispatcher",
+    "virtual machine protection",
+    "dexprotector",
+    "liapp"
+  ],
+  "protocol": "references/vmp-analysis-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/vmp-analysis.json",
+  "taskInit": {
+    "aliases": [
+      "vmp",
+      "vm"
+    ],
+    "baseProtectionTier": "A5"
+  },
+  "taskSemantics": {
+    "presentPath": "vmp.present",
+    "artifactsPath": "vmp.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "vmp.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "vmp.present",
+    "requiredArtifacts": [
+      "run/vmp-analysis-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "vmp.present=true but status is still not-started",
+        "path": "vmp.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vmp.present=true but keyFindings is still empty",
+        "path": "vmp.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "vmp.present=true but vmp-analysis-notes is still placeholder",
+        "touchedAny": [
+          "run/vmp-analysis-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-vmp-analysis-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/vmp-analysis/run/vmp-analysis-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "VMP Analysis",
+    "run/vmp-analysis-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/vmp-analysis"
+}

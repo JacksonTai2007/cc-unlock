@@ -1,0 +1,15 @@
+{
+  "antiAnalysis": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/anti-analysis-notes.md",
+      "run/anti-analysis-hook.js",
+      "run/anti-analysis-bypass-report.md"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "mediaDrm": {
+    "version": 1,
+    "present": true,
+    "mode": "license-analysis",
+    "drmStatus": "not-started",
+    "tokenStatus": "not-started",
+    "playerStatus": "not-started",
+    "licenseEndpoints": [],
+    "keySystem": "unknown",
+    "encryptionScheme": "unknown",
+    "cdmCommunicationStatus": "not-started",
+    "sourceBufferBoundaryStatus": "not-started",
+    "clearFrameBoundaryStatus": "not-started",
+    "decryptionChainStatus": "not-started",
+    "artifacts": [
+      "run/license-flow.md",
+      "run/token-inputs.json",
+      "run/frame-decryption-chain.md",
+      "run/key-session-timeline.json"
+    ]
+  }
+}

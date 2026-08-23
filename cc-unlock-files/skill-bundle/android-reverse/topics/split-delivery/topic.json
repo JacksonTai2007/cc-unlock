@@ -1,0 +1,89 @@
+{
+  "key": "split-delivery",
+  "label": "Split delivery / APKS / AAB",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "split-delivery",
+  "signals": [
+    "apks",
+    "aab",
+    "split apk",
+    "dynamic feature",
+    "asset pack"
+  ],
+  "protocol": "references/split-delivery-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/split-delivery.json",
+  "taskInit": {
+    "aliases": [
+      "split"
+    ],
+    "baseProtectionTier": "A2"
+  },
+  "taskSemantics": {
+    "presentPath": "splitDelivery.present",
+    "versionPath": "splitDelivery.version",
+    "artifactsPath": "splitDelivery.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "splitDelivery.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "splitDelivery.present",
+    "requiredArtifacts": [
+      "run/split-delivery-notes.md",
+      "run/split-layout.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "splitDelivery.present=true but status is still not-started",
+        "path": "splitDelivery.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "splitDelivery.present=true but keyFindings is still empty",
+        "path": "splitDelivery.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "splitDelivery.present=true but split-delivery artifacts are still placeholders",
+        "touchedAny": [
+          "run/split-delivery-notes.md",
+          "run/split-layout.json"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-split-delivery-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/split-delivery-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/split-layout.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "split",
+    "run/split-delivery-notes.md",
+    "run/split-layout.json"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/split-delivery"
+}
+

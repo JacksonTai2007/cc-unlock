@@ -1,0 +1,86 @@
+{
+  "taskId": "replace-me",
+  "phase": "Observe",
+  "protectionTier": "T0",
+  "runtime": {
+    "platform": "windows",
+    "architecture": "unknown",
+    "binaryFormat": "pe",
+    "subsystem": "unknown",
+    "loader": "unknown",
+    "wow64": "unknown",
+    "managed": false,
+    "kernelMode": false
+  },
+  "debugSession": {
+    "mode": "none",
+    "debugger": "",
+    "attached": false,
+    "spawnStrategy": "",
+    "privilegeLevel": "unknown",
+    "isolatedHost": false,
+    "relaunchRequired": false
+  },
+  "accessRequirements": {
+    "interactiveUnlockRequired": false,
+    "adminRequired": false,
+    "driverSigningBypassRequired": false
+  },
+  "routeState": {
+    "mode": "task-local",
+    "syncStatus": "not-started",
+    "statePath": "state/route-state.json",
+    "planPath": "state/route-plan.md",
+    "cluesPath": "state/clues.md",
+    "progressPath": "state/progress.md",
+    "activeTracks": [],
+    "activeEntrypoints": [],
+    "executionStatus": "not-evaluated",
+    "nextEntrypointId": "",
+    "nextExecutableAction": "",
+    "pauseCategory": "none",
+    "pauseReason": "",
+    "lastAdvancedAt": ""
+  },
+  "taskPacks": {
+    "mode": "core-only",
+    "selectedTopics": [],
+    "selectedExtensions": []
+  },
+  "targetContext": {
+    "targetActionDescription": "replace-with-real-trigger-action",
+    "targetBinaryPath": "",
+    "targetProcessNames": [],
+    "targetModuleNames": [],
+    "targetServiceNames": [],
+    "targetDriverNames": [],
+    "targetNetworkIndicators": [],
+    "targetNamedObjects": [],
+    "targetKeywords": [],
+    "targetFunctionNames": []
+  },
+  "validation": {
+    "status": "not-started",
+    "lastVerifiedAt": "",
+    "notes": []
+  },
+  "firstDivergence": {
+    "status": "not-recorded",
+    "location": "",
+    "notes": []
+  },
+  "successCriteria": [],
+  "objective": "",
+  "deliverableTier": "",
+  "completionCriteria": [],
+  "disallowedFallbacks": [],
+  "userRejectedApproaches": [],
+  "deliveryRequirements": {
+    "localReproductionRequested": false,
+    "protocolReplayExampleRequired": false
+  },
+  "boundaries": {
+    "activeTriggerAllowed": false,
+    "forbiddenActions": []
+  }
+}

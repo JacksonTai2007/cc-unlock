@@ -1,0 +1,22 @@
+# Bangcle libDexHelper Evidence
+
+- outer so:
+- sha256:
+- abi:
+- shell fingerprints:
+- acquisition source:
+- ELF class/endian:
+- PT_DYNAMIC source:
+- init_array candidates:
+- relocation evidence:
+- decrypt entry/call chain:
+- key/material derivation:
+- payload range:
+- inner ELF path/hash:
+- inner ELF validation:
+- runtime dump tool/capability:
+- dumped dex count:
+- DEX header validation:
+- DEX structural validation:
+- semantic anchors:
+- unresolved risks:

@@ -1,0 +1,157 @@
+{
+  "key": "anti-debug",
+  "label": "Anti-debug",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "anti-debug",
+  "signals": [
+    "debugger",
+    "DevTools",
+    "preload",
+    "runtime"
+  ],
+  "protocol": "references/anti-debug-playbook.md",
+  "extendedProtocols": [
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/anti-debug.json",
+  "taskInit": {
+    "aliases": [],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "antiDebug.present",
+    "versionPath": "antiDebug.version",
+    "artifactsPath": "antiDebug.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "antiDebug.patterns",
+      "antiDebug.unresolved"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "antiDebug.present",
+    "requiredArtifacts": [
+      "run/anti-debug-snippets.js",
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js"
+    ],
+    "requirementsAny": [
+      {
+        "message": "antiDebug.present=true but no trigger pattern or triggerStage is recorded",
+        "checks": [
+          {
+            "path": "antiDebug.patterns",
+            "minLength": 1
+          },
+          {
+            "path": "antiDebug.triggerStage",
+            "disallow": [
+              "unknown",
+              ""
+            ]
+          }
+        ]
+      },
+      {
+        "message": "antiDebug.present=true but no injection strategy or anti-debug script artifact was recorded",
+        "checks": [
+          {
+            "path": "antiDebug.injectionStrategy",
+            "disallow": [
+              "unknown",
+              ""
+            ]
+          },
+          {
+            "touchedAny": [
+              "run/anti-debug-snippets.js",
+              "run/anti-debug-preload.js",
+              "run/anti-debug-runtime.js"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-anti-debug-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/anti-debug-preload.js",
+    "artifacts/tasks/_TEMPLATE/run/anti-debug-runtime.js",
+    "artifacts/tasks/_TEMPLATE/run/anti-debug-snippets.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "anti-debug",
+    "run/anti-debug-preload.js",
+    "run/anti-debug-runtime.js"
+  ],
+  "synthetic": {
+    "id": "synthetic-anti-debug",
+    "extensions": [
+      "--anti-debug"
+    ],
+    "taskSeed": [
+      {
+        "path": "antiDebug.patterns",
+        "value": [
+          "debugger"
+        ]
+      },
+      {
+        "path": "antiDebug.triggerStage",
+        "value": "before-action"
+      },
+      {
+        "path": "antiDebug.injectionStrategy",
+        "value": "preload"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/anti-debug-preload.js",
+        "text": "window.__antiDebugPreload = true;\n"
+      },
+      {
+        "path": "run/anti-debug-runtime.js",
+        "text": "window.__antiDebugRuntime = true;\n"
+      },
+      {
+        "path": "run/anti-debug-snippets.js",
+        "text": "debugger;\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/anti-debug"
+}

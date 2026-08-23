@@ -1,0 +1,246 @@
+{
+  "key": "protocol",
+  "label": "Protocol / replay",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "protocol",
+  "signals": [
+    "websocket",
+    "sse",
+    "webtransport",
+    "datagram",
+    "stream",
+    "schema",
+    "replay"
+  ],
+  "protocol": "references/protocol-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/protocol.json",
+  "taskInit": {
+    "aliases": [],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "protocol.present",
+    "versionPath": "protocol.version",
+    "artifactsPath": "protocol.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "protocol.channelKinds",
+      "protocol.sampleKinds"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "protocol.present",
+    "requiredArtifacts": [
+      "run/protocol-notes.md",
+      "run/websocket-frame-notes.md",
+      "run/protocol-inspector-template.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "protocol.present=true but protocol artifacts are still placeholders",
+        "touchedAny": [
+          "run/protocol-notes.md",
+          "run/websocket-frame-notes.md",
+          "run/protocol-inspector-template.js"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "protocol.present=true but transport/schemaStatus is still unknown",
+        "checks": [
+          {
+            "path": "protocol.transport",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "protocol.schemaStatus",
+            "disallow": [
+              "not-started"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "protocol.present=true but channelKinds / streamModelStatus is still unknown",
+        "checks": [
+          {
+            "path": "protocol.channelKinds",
+            "minLength": 1
+          },
+          {
+            "path": "protocol.streamModelStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ],
+    "phaseGuards": [
+      {
+        "minPhase": "Patch",
+        "requirementsAny": [
+          {
+            "message": "phase={phase} and protocol.present=true but sampleKinds / streamModelStatus is still not recorded",
+            "checks": [
+              {
+                "path": "protocol.sampleKinds",
+                "minLength": 1
+              },
+              {
+                "path": "protocol.streamModelStatus",
+                "disallow": [
+                  "unknown",
+                  "not-started"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-protocol-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/web-replay.js",
+    "artifacts/tasks/_TEMPLATE/run/protocol-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/websocket-frame-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/protocol-inspector-template.js",
+    "artifacts/tasks/_TEMPLATE/replay/actions.json",
+    "artifacts/tasks/_TEMPLATE/replay/README.md",
+    "artifacts/tasks/_TEMPLATE/replay/request-template.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "schema",
+    "WebSocket",
+    "WebTransport",
+    "run/web-replay.js"
+  ],
+  "synthetic": {
+    "id": "synthetic-protocol",
+    "extensions": [
+      "--protocol",
+      "--streaming-runtime"
+    ],
+    "taskSeed": [
+      {
+        "path": "protocol.transport",
+        "value": "webtransport"
+      },
+      {
+        "path": "protocol.schemaStatus",
+        "value": "captured"
+      },
+      {
+        "path": "protocol.channelKinds",
+        "value": [
+          "datagram",
+          "bidirectional-stream"
+        ]
+      },
+      {
+        "path": "protocol.streamModelStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "protocol.sampleKinds",
+        "value": [
+          "session-open",
+          "datagram",
+          "bidirectional-stream"
+        ]
+      },
+      {
+        "path": "streamingRuntime.pipelineStatus",
+        "value": "captured"
+      },
+      {
+        "path": "streamingRuntime.chunkBoundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "streamingRuntime.sinkStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "streamingRuntime.transforms",
+        "value": [
+          "WebTransportReceiveStream",
+          "TransformStream"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/web-replay.js",
+        "text": "export function replayDatagram() { return true; }\n"
+      },
+      {
+        "path": "run/protocol-notes.md",
+        "text": "# protocol\n\n- transport: webtransport\n- channels: datagram, bidirectional-stream\n"
+      },
+      {
+        "path": "run/websocket-frame-notes.md",
+        "text": "# transport samples\n\n- datagram: mapped\n- bidirectional stream: mapped\n"
+      },
+      {
+        "path": "run/protocol-inspector-template.js",
+        "text": "export const schema = ['channel', 'payload'];\n"
+      },
+      {
+        "path": "run/streaming-runtime-notes.md",
+        "text": "# streaming runtime notes\n\n- WebTransportReceiveStream -> TransformStream -> sink\n"
+      },
+      {
+        "path": "run/stream-pipeline.json",
+        "json": {
+          "source": "WebTransportReceiveStream",
+          "transforms": [
+            "TransformStream"
+          ],
+          "sink": "protocol decoder"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/protocol",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

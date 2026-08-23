@@ -1,0 +1,79 @@
+{
+  "key": "unidbg-simulation",
+  "label": "Unidbg / Unicorn / QBDI / angr simulation",
+  "maturity": "guided",
+  "routeTrack": "unidbg-simulation",
+  "signals": [
+    "unidbg",
+    "unicorn",
+    "qbdi",
+    "angr",
+    "emulation",
+    "simulation",
+    "environment patching",
+    "jni patch"
+  ],
+  "protocol": "references/unidbg-simulation-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/unidbg-simulation.json",
+  "taskInit": {
+    "aliases": [
+      "unidbg",
+      "emu"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "unidbg.present",
+    "artifactsPath": "unidbg.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "unidbg.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "unidbg.present",
+    "requiredArtifacts": [
+      "run/unidbg-simulation-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "unidbg.present=true but status is still not-started",
+        "path": "unidbg.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "unidbg.present=true but keyFindings is still empty",
+        "path": "unidbg.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "unidbg.present=true but unidbg-simulation-notes is still placeholder",
+        "touchedAny": [
+          "run/unidbg-simulation-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-unidbg-simulation-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/unidbg-simulation/run/unidbg-simulation-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Unidbg Simulation",
+    "run/unidbg-simulation-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/unidbg-simulation"
+}

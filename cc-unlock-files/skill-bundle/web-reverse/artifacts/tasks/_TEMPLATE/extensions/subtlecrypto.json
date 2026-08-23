@@ -1,0 +1,15 @@
+{
+  "subtleCrypto": {
+    "version": 1,
+    "present": true,
+    "keySource": "unknown",
+    "keyLifecycleStatus": "not-started",
+    "operationStatus": "not-started",
+    "bridgeStatus": "not-started",
+    "operations": [],
+    "artifacts": [
+      "run/subtlecrypto-notes.md",
+      "run/subtlecrypto-keyflow.json"
+    ]
+  }
+}

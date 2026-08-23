@@ -1,0 +1,104 @@
+{
+  "key": "stealth-hook",
+  "label": "Stealth Hook (Kernel-assisted zero-trace hooking via HWBP+PTE+DBI+GhostMem)",
+  "maturity": "guided",
+  "routeTrack": "stealth-hook",
+  "signals": [
+    "stealth hook",
+    "无痕 hook",
+    "kernel hook",
+    "hwbp",
+    "hardware breakpoint",
+    "硬件断点",
+    "pte hook",
+    "page table hook",
+    "uxn",
+    "dbi",
+    "dynamic binary instrumentation",
+    "指令重编译",
+    "ghost memory",
+    "幽灵内存",
+    "vma-less",
+    "maps hide",
+    "ptrace spoof",
+    "kpm",
+    "kernelpatch",
+    "apatch",
+    "xiaojianbang",
+    "lsplant stealth",
+    "artmethod stealth",
+    "anti-cheat bypass",
+    "crc bypass",
+    "text crc",
+    "反作弊",
+    "frida detected",
+    "frida 不上",
+    "ptrace detected",
+    "a6 hook",
+    "a7 hook",
+    "高对抗 hook"
+  ],
+  "protocol": "references/stealth-hook-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/stealth-hook.json",
+  "taskInit": {
+    "aliases": [
+      "stealth",
+      "shook"
+    ],
+    "baseProtectionTier": "A6"
+  },
+  "taskSemantics": {
+    "presentPath": "stealthHook.present",
+    "artifactsPath": "stealthHook.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "stealthHook.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "stealthHook.present",
+    "requiredArtifacts": [
+      "run/stealth-hook-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "stealthHook.present=true but status is still not-started",
+        "path": "stealthHook.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "stealthHook.present=true but keyFindings is still empty",
+        "path": "stealthHook.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "stealthHook.present=true but stealth-hook-notes is still placeholder",
+        "touchedAny": [
+          "run/stealth-hook-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-stealth-hook-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/stealth-hook/run/stealth-hook-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Stealth Hook",
+    "run/stealth-hook-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/stealth-hook"
+}

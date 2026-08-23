@@ -1,0 +1,12 @@
+{
+  "sourceMap": {
+    "version": 1,
+    "present": true,
+    "mapStatus": "not-started",
+    "artifact": "run/source-map-notes.md",
+    "artifacts": [
+      "run/source-map-notes.md",
+      "run/source-map-recover-template.js"
+    ]
+  }
+}

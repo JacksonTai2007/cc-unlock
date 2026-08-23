@@ -1,0 +1,11 @@
+{
+  "device-fingerprint": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifact": "run/device-fingerprint-notes.md"
+  }
+}

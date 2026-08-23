@@ -1,0 +1,11 @@
+{
+  "kernel-assisted-re": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifact": "run/kernel-assisted-re-notes.md"
+  }
+}

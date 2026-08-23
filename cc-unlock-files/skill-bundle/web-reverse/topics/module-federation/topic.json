@@ -1,0 +1,183 @@
+{
+  "key": "module-federation",
+  "label": "Module federation / remote runtime",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "module-federation",
+  "signals": [
+    "remoteEntry.js",
+    "__webpack_init_sharing__",
+    "container.get",
+    "share scope",
+    "remote module"
+  ],
+  "protocol": "references/module-federation-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/module-federation.json",
+  "taskInit": {
+    "aliases": [
+      "modulefederation",
+      "remote-entry"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "bundle-loader"
+        ],
+        "tier": "T3"
+      },
+      {
+        "withTopics": [
+          "frame",
+          "session"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "moduleFederation.present",
+    "versionPath": "moduleFederation.version",
+    "artifactsPath": "moduleFederation.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "moduleFederation.remoteModules"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "moduleFederation.present",
+    "requiredArtifacts": [
+      "run/module-federation-notes.md",
+      "run/remote-entry-map.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "moduleFederation.present=true but remoteEntryStatus is still not-started",
+        "path": "moduleFederation.remoteEntryStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "moduleFederation.present=true but remoteModules is still empty",
+        "path": "moduleFederation.remoteModules",
+        "minLength": 1
+      },
+      {
+        "message": "moduleFederation.present=true but module federation artifacts are still placeholders",
+        "touchedAny": [
+          "run/module-federation-notes.md",
+          "run/remote-entry-map.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "moduleFederation.present=true but share scope / runtime is still unknown",
+        "checks": [
+          {
+            "path": "moduleFederation.shareScopeStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "moduleFederation.runtimeStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-module-federation-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/module-federation-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/remote-entry-map.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "remoteEntry",
+    "share scope",
+    "run/module-federation-notes.md",
+    "run/remote-entry-map.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-module-federation",
+    "extensions": [
+      "--module-federation"
+    ],
+    "taskSeed": [
+      {
+        "path": "moduleFederation.remoteEntryStatus",
+        "value": "captured"
+      },
+      {
+        "path": "moduleFederation.shareScopeStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "moduleFederation.runtimeStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "moduleFederation.remoteModules",
+        "value": [
+          "checkout/signer"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/module-federation-notes.md",
+        "text": "# module federation notes\n\n- remoteEntry: checkoutRemote\n- remote module: checkout/signer\n"
+      },
+      {
+        "path": "run/remote-entry-map.json",
+        "json": {
+          "remoteEntry": "checkoutRemote",
+          "shareScope": "default",
+          "remoteModules": [
+            "checkout/signer"
+          ]
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/module-federation",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

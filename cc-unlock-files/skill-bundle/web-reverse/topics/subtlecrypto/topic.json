@@ -1,0 +1,185 @@
+{
+  "key": "subtlecrypto",
+  "label": "SubtleCrypto / key lifecycle",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "subtlecrypto",
+  "signals": [
+    "crypto.subtle",
+    "importKey",
+    "deriveKey",
+    "sign",
+    "digest"
+  ],
+  "protocol": "references/subtlecrypto-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/subtlecrypto.json",
+  "taskInit": {
+    "aliases": [
+      "webcrypto",
+      "subtle-crypto"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "protocol"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "env",
+          "dynamic-code"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "subtleCrypto.present",
+    "versionPath": "subtleCrypto.version",
+    "artifactsPath": "subtleCrypto.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "subtleCrypto.operations"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "subtleCrypto.present",
+    "requiredArtifacts": [
+      "run/subtlecrypto-notes.md",
+      "run/subtlecrypto-keyflow.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "subtleCrypto.present=true but operationStatus is still not-started",
+        "path": "subtleCrypto.operationStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "subtleCrypto.present=true but subtleCrypto.operations is still empty",
+        "path": "subtleCrypto.operations",
+        "minLength": 1
+      },
+      {
+        "message": "subtleCrypto.present=true but subtlecrypto artifacts are still placeholders",
+        "touchedAny": [
+          "run/subtlecrypto-notes.md",
+          "run/subtlecrypto-keyflow.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "subtleCrypto.present=true but key lifecycle or bridge is still unknown",
+        "checks": [
+          {
+            "path": "subtleCrypto.keyLifecycleStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "subtleCrypto.bridgeStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-subtlecrypto-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/subtlecrypto-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/subtlecrypto-keyflow.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "crypto.subtle",
+    "importKey",
+    "run/subtlecrypto-notes.md",
+    "run/subtlecrypto-keyflow.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-subtlecrypto",
+    "extensions": [
+      "--subtlecrypto"
+    ],
+    "taskSeed": [
+      {
+        "path": "subtleCrypto.keyLifecycleStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "subtleCrypto.operationStatus",
+        "value": "captured"
+      },
+      {
+        "path": "subtleCrypto.bridgeStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "subtleCrypto.operations",
+        "value": [
+          "sign",
+          "digest"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/subtlecrypto-notes.md",
+        "text": "# subtlecrypto notes\n\n- importKey -> sign -> x-signature\n"
+      },
+      {
+        "path": "run/subtlecrypto-keyflow.json",
+        "json": {
+          "keySource": "session seed",
+          "operations": [
+            "sign",
+            "digest"
+          ],
+          "outputCarrier": "x-signature"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/subtlecrypto",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

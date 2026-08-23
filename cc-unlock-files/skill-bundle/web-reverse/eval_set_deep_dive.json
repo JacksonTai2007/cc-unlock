@@ -1,0 +1,228 @@
+[
+  {
+    "id": "vm-deep-dive-permit-semantic-growth",
+    "query": "继续这个已有 task-local。JS-VMP 路线前两轮已经拿到了 dispatcher -> handler family -> x-sign request-use 的语义桥接，每一轮都新增了可复用的 handler clustering 结果和更接近 sign-call 的证据。不要因为“已经两轮”就机械 pivot，也不要停掉整个 VM 专题。请为当前 VM microRoute 开启 deep-dive permit，继续做 2+4 预算内的语义提升，并显式写出 subgoal / milestone / exitCondition。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "jsvmp",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/dispatcher-map.md",
+      "run/vm-decode-notes.md",
+      "run/vm-trace.jsonl"
+    ],
+    "expectedReasoningTags": [
+      "deep-dive-permit",
+      "high-value-evidence-growth",
+      "micro-route-budgeting",
+      "semantic-boundary-growth",
+      "stop-micro-route-not-topic"
+    ]
+  },
+  {
+    "id": "vm-stop-slot-stats-not-topic",
+    "query": "这个 VM 任务里，我已经对 slot / opcode frequency / offset window 连续做了两轮统计，除了更多命名外没有新增语义边界。不要直接放弃整个 VM 专题；请只停掉 slot-statistics 这条 microRoute，改切到 handler clustering 或 browser internal direct-call 的更高价值路线，并优先选择高价值证据增长更快的路线。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/dispatcher-map.md",
+      "run/vm-decode-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "micro-route-stop-loss",
+      "stop-micro-route-not-topic",
+      "high-value-evidence-priority",
+      "no-mechanical-topic-abandon"
+    ]
+  },
+  {
+    "id": "wasm-deep-dive-permit-table-mapping",
+    "query": "The worker wasm decrypt chain is no longer a blind guess: I already mapped export -> thunk -> table slot for two candidate functions, and each round adds a new internal-call relation plus a tighter first divergence. Continue this wasm microRoute under a deep-dive permit instead of pivoting just because the first two rounds are over. Write the current milestone, maxRounds, and expectedHighValueEvidence.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "wasm",
+      "worker"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/wasm-analysis.wat",
+      "run/wasm-imports-exports.json",
+      "run/wasm-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "deep-dive-permit",
+      "table-mapping",
+      "first-divergence-growth",
+      "high-value-evidence-growth",
+      "internal-call-mapping"
+    ]
+  },
+  {
+    "id": "wasm-close-permit-after-low-value-stall",
+    "query": "We opened a deep-dive permit on the video frame wasm table-mapping route, but the last two rounds only renamed helper functions and reformatted the WAT. No new mapping, no direct-call hit, no new input/output boundary. Close this deep-dive permit, mark the current wasm microRoute exhausted, and pivot to browser-controlled reuse or clear frame boundary capture instead of continuing low-value deepening.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "wasm",
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/wasm-analysis.wat",
+      "run/frame-decryption-chain.md",
+      "run/retrospective.md"
+    ],
+    "expectedReasoningTags": [
+      "deep-dive-permit-close",
+      "micro-route-stop-loss",
+      "pretty-output-not-high-value",
+      "browser-before-pure-extraction",
+      "retrospective-on-stall"
+    ]
+  },
+  {
+    "id": "obf-string-chain-worth-deepening",
+    "query": "当前控制流平坦化 + 动态代码的混淆 bundle 里，string decoder chain 已经被证明直接上游连接到 x-sign sign-call：前两轮每轮都恢复了新的语义常量、调用参数顺序和 canonicalization 片段。不要机械执行两轮停损。请把当前 microRoute 标成值得继续，开启 deep-dive permit，并围绕 string decoder -> canonical payload -> x-sign sign-call 继续做 semantic lifting。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "ast-deobfuscation",
+      "dynamic-code",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/before.js",
+      "run/after.js",
+      "run/deobf-rules.md",
+      "run/signature-input-map.md"
+    ],
+    "expectedReasoningTags": [
+      "deep-dive-permit",
+      "semantic-lifting",
+      "string-chain-to-sign-call",
+      "high-value-evidence-growth"
+    ]
+  },
+  {
+    "id": "obf-pretty-print-not-high-value",
+    "query": "这条混淆恢复路线连续两轮都只是 prettier formatting、局部变量重命名和死代码清理，仍然没有连到业务 action、request-use 或 sign-call。请把这条 deobf microRoute 判定为低价值并停掉，不要因为“代码看起来更干净了”就继续深挖。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "ast-deobfuscation"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/before.js",
+      "run/after.js",
+      "run/deobf-rules.md",
+      "run/retrospective.md"
+    ],
+    "expectedReasoningTags": [
+      "micro-route-stop-loss",
+      "pretty-output-not-high-value",
+      "business-boundary-before-pretty-code"
+    ]
+  },
+  {
+    "id": "deliverable-tier-browser-harness-over-deep-vm",
+    "query": "继续这个已有 task-local。浏览器 harness 已能稳定 replay accepted request，但 JS-VMP 的 VM 深挖仍在继续做 handler 语义恢复。用户当前只要可交付 harness。请不要因为 deep-dive permit 已开启就继续沉迷 VM；停止该深层 microRoute，降回浏览器内可控复用交付梯度。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "browser-controlled-reuse",
+      "jsvmp",
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/browser-controlled-repro.md",
+      "run/browser-repro-script.js",
+      "run/retrospective.md"
+    ],
+    "expectedReasoningTags": [
+      "browser-before-pure-extraction",
+      "deliverable-tier-control",
+      "deep-dive-permit-close",
+      "acceptance-first"
+    ]
+  },
+  {
+    "id": "composite-scene-single-deep-permit",
+    "query": "This composite scene hits anti-debug, control-flow flattening / string-array obfuscation, JS-VMP, and WASM at once. Do not deep-dive all of them in parallel. Choose one primary microRoute with the highest expected evidence gain, allow only that route to hold a deep-dive permit, and keep the others at probe-only depth until they earn it.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "ast-deobfuscation",
+      "jsvmp",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/anti-debug-runtime.js",
+      "run/deobf-rules.md",
+      "run/dispatcher-map.md",
+      "run/wasm-analysis.wat"
+    ],
+    "expectedReasoningTags": [
+      "topic-budgeting",
+      "single-deep-permit",
+      "micro-route-budgeting",
+      "probe-before-expansion"
+    ]
+  },
+  {
+    "id": "cn-cctv-full-decode-no-shortcuts",
+    "query": "继续这个已有 task-local：CCTV h5e 720p+ ts 帧解密任务，页面 URL=https://tv.cctv.com/2026/01/25/VIDE1HJN1I6vvlMoWtYsNZZD260125.shtml。用户原始目标从第一句开始就没变：纯 Node 全量解密 hls_h5e_url，要求 full decode 零告警，不裁首段时间线，不接受 clean-first-frame workaround，不接受两段 accepted request / browser harness 代替最终交付。现在已知历史失败包括 wrong conclusion、status-only / if you want I can next、premature declared completed、verify-once.mjs verification passes 被过早拿来宣称可交付，但后续 ffprobe / ffmpeg 全片仍有大量坏帧。请从头恢复这个 media-drm + jsvmp + wasm task-local，immediately execute instead of actually continuing with status-only chatter；保持纯 Node 本地复现，不要降级到 browser-controlled reuse。report 必须写 acceptanceGap / nextEvidenceGate / acceptancePath / usedArtifacts / unusedArtifacts，并以内容层 full decode 零告警作为唯一验收边界，未达成前不得 task close / closeout。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "media-drm",
+      "jsvmp",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/verify-once.mjs",
+      "run/pure-*.js",
+      "run/local-repro-example.js",
+      "run/frame-decryption-chain.md",
+      "run/dispatcher-map.md",
+      "run/wasm-analysis.wat"
+    ],
+    "expectedReasoningTags": [
+      "execution-drift-recovery",
+      "status-only-reply-correction",
+      "assert-can-reply-discipline",
+      "premature-closeout-correction",
+      "verify-before-claim",
+      "closeout-after-validation",
+      "content-layer-verification-required",
+      "container-readable-not-content-decrypted",
+      "pure-local-target-guard",
+      "browser-tier-not-final",
+      "delivery-adoption-evidence",
+      "evidence-frontier",
+      "drm-mode-content-decryption",
+      "vm-wasm-bridge",
+      "wrong-conclusion-correction"
+    ]
+  },
+  {
+    "id": "negative-obfuscated-bundle-size-cleanup",
+    "query": "Our production JS bundle is heavily obfuscated and too large. Please clean it up for readability, shrink the output size, and improve build performance. This is a frontend maintenance task, not a protected runtime reverse task.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": []
+  },
+  {
+    "id": "negative-wasm-compiler-optimization",
+    "query": "I have a wasm module compiled from Rust and want to reduce binary size, improve instantiation speed, and profile memory growth in production.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": []
+  }
+]

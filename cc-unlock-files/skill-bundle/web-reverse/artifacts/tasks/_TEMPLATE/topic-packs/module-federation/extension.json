@@ -1,0 +1,14 @@
+{
+  "moduleFederation": {
+    "version": 1,
+    "present": true,
+    "remoteEntryStatus": "not-started",
+    "shareScopeStatus": "not-started",
+    "runtimeStatus": "not-started",
+    "remoteModules": [],
+    "artifacts": [
+      "run/module-federation-notes.md",
+      "run/remote-entry-map.json"
+    ]
+  }
+}

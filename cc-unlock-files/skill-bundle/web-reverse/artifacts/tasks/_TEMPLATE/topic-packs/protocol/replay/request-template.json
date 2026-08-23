@@ -1,0 +1,10 @@
+{
+  "method": "POST",
+  "url": "https://masked.example/api/path",
+  "headers": {},
+  "body": {},
+  "expected": {
+    "status": 200
+  }
+}
+

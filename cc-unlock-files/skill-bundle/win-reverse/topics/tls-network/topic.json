@@ -1,0 +1,99 @@
+{
+  "key": "tls-network",
+  "label": "TLS / network / protocol",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "tls-network",
+  "signals": [
+    "winhttp",
+    "wininet",
+    "schannel",
+    "openssl",
+    "socket",
+    "tls"
+  ],
+  "protocol": "references/tls-network-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/tls-network.json",
+  "taskInit": {
+    "aliases": [
+      "network"
+    ],
+    "baseProtectionTier": "T0"
+  },
+  "taskSemantics": {
+    "presentPath": "tlsNetwork.present",
+    "versionPath": "tlsNetwork.version",
+    "artifactsPath": "tlsNetwork.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "tlsNetwork.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "tlsNetwork.present",
+    "requiredArtifacts": [
+      "run/tls-network-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "tlsNetwork.present=true but status is still not-started",
+        "path": "tlsNetwork.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "tlsNetwork.present=true but keyFindings is still empty",
+        "path": "tlsNetwork.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "tlsNetwork.present=true but notes are still placeholders",
+        "touchedAny": [
+          "run/tls-network-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "tlsNetwork requires either a hook script or a protocol analysis report",
+        "checks": [
+          { "touchedAny": ["run/tls-hook-template.js"] },
+          { "touchedAny": ["run/tls-protocol-report.md"] }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-tls-network-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/tls-network-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/tls-hook-template.js",
+    "artifacts/tasks/_TEMPLATE/run/tls-protocol-report.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "TLS",
+    "网络栈",
+    "run/tls-network-notes.md",
+    "run/tls-hook-template.js",
+    "run/tls-protocol-report.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/tls-network"
+}

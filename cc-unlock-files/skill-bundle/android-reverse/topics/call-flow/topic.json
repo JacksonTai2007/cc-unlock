@@ -1,0 +1,85 @@
+{
+  "key": "call-flow",
+  "label": "Call flow / Activity / ViewModel / Repository tracing",
+  "maturity": "closed-loop",
+  "routeTrack": "call-flow",
+  "signals": [
+    "activity",
+    "fragment",
+    "viewmodel",
+    "repository",
+    "onclick",
+    "observer"
+  ],
+  "protocol": "references/call-flow-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/call-flow.json",
+  "taskInit": {
+    "aliases": [
+      "flow",
+      "viewmodel"
+    ],
+    "baseProtectionTier": "A1"
+  },
+  "taskSemantics": {
+    "presentPath": "callFlow.present",
+    "artifactsPath": "callFlow.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "callFlow.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "callFlow.present",
+    "requiredArtifacts": [
+      "run/call-chain.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "callFlow.present=true but status is still not-started",
+        "path": "callFlow.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "callFlow.present=true but keyFindings is still empty",
+        "path": "callFlow.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "callFlow.present=true but call-chain is still placeholder",
+        "touchedAny": [
+          "run/call-chain.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-call-flow-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/call-chain.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "调用链",
+    "run/call-chain.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/call-flow"
+}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "taskId": "replace-me",
+  "generatedAt": "",
+  "facts": {
+    "effectiveProbes": [],
+    "ineffectiveProbes": [],
+    "pivotReasons": [],
+    "acceptanceSymptoms": [],
+    "evidenceKeywords": [],
+    "keyEvidenceChain": [],
+    "boundaryConclusions": []
+  },
+  "observations": []
+}

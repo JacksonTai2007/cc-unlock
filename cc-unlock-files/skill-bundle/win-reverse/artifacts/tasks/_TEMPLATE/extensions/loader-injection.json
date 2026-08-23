@@ -1,0 +1,18 @@
+{
+  "loaderInjection": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "techniques": [],
+    "remoteModules": [],
+    "artifacts": [
+      "run/loader-injection-notes.md",
+      "run/remote-map.md",
+      "run/loader-hook-template.js",
+      "run/loader-technique-report.md"
+    ]
+  }
+}

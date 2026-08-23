@@ -1,0 +1,281 @@
+{
+  "key": "framework-runtime",
+  "label": "Framework runtime / SSR-CSR boundary",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "framework-runtime",
+  "signals": [
+    "Next.js",
+    "Nuxt",
+    "Remix",
+    "Vite",
+    "SvelteKit",
+    "Astro",
+    "__NEXT_DATA__",
+    "hydration",
+    "import.meta",
+    "modulepreload",
+    "island"
+  ],
+  "protocol": "references/framework-runtime-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/framework-runtime.json",
+  "taskInit": {
+    "aliases": [
+      "frameworkruntime",
+      "ssr-csr-boundary"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "bundle-loader",
+          "source-map"
+        ],
+        "tier": "T3"
+      },
+      {
+        "withTopics": [
+          "session"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "frameworkRuntime.present",
+    "versionPath": "frameworkRuntime.version",
+    "artifactsPath": "frameworkRuntime.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "frameworkRuntime.payloadArtifacts"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "frameworkRuntime.present",
+    "requiredArtifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-payload-map.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "frameworkRuntime.present=true but boundaryStatus is still not-started",
+        "path": "frameworkRuntime.boundaryStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "frameworkRuntime.present=true but payloadArtifacts is missing concrete payload or loader evidence",
+        "path": "frameworkRuntime.payloadArtifacts",
+        "minLength": 2
+      },
+      {
+        "message": "frameworkRuntime.present=true but framework runtime artifacts are still placeholders",
+        "touchedAny": [
+          "run/framework-runtime-notes.md",
+          "run/framework-payload-map.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "frameworkRuntime.present=true but runtime kind / hydration is still unknown",
+        "checks": [
+          {
+            "path": "frameworkRuntime.runtimeKind",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "frameworkRuntime.hydrationStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "frameworkRuntime.present=true but loader family / payload mode is still unknown",
+        "checks": [
+          {
+            "path": "frameworkRuntime.loaderFamily",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "frameworkRuntime.payloadMode",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ],
+    "phaseGuards": [
+      {
+        "minPhase": "Patch",
+        "requirementsAll": [
+          {
+            "message": "phase={phase} and frameworkRuntime.present=true but modulePreloadStatus is still unknown",
+            "path": "frameworkRuntime.modulePreloadStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ],
+        "requirementsAny": [
+          {
+            "message": "phase={phase} and frameworkRuntime.present=true but islandBoundaryStatus / payloadMode is still not recorded",
+            "checks": [
+              {
+                "path": "frameworkRuntime.islandBoundaryStatus",
+                "disallow": [
+                  "unknown",
+                  "not-started"
+                ]
+              },
+              {
+                "path": "frameworkRuntime.payloadMode",
+                "disallow": [
+                  "unknown",
+                  "not-started"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-framework-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/framework-runtime-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/framework-payload-map.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "hydration",
+    "__NEXT_DATA__",
+    "modulepreload",
+    "run/framework-runtime-notes.md",
+    "run/framework-payload-map.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-framework-runtime",
+    "extensions": [
+      "--framework-runtime",
+      "--bundle-loader"
+    ],
+    "taskSeed": [
+      {
+        "path": "frameworkRuntime.runtimeKind",
+        "value": "vite"
+      },
+      {
+        "path": "frameworkRuntime.boundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "frameworkRuntime.hydrationStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "frameworkRuntime.loaderFamily",
+        "value": "native-esm"
+      },
+      {
+        "path": "frameworkRuntime.payloadMode",
+        "value": "islands"
+      },
+      {
+        "path": "frameworkRuntime.modulePreloadStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "frameworkRuntime.islandBoundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "frameworkRuntime.payloadArtifacts",
+        "value": [
+          "html shell",
+          "modulepreload graph",
+          "island props"
+        ]
+      },
+      {
+        "path": "bundleLoader.loaderType",
+        "value": "vite-modulepreload"
+      },
+      {
+        "path": "bundleLoader.mappingStatus",
+        "value": "mapped"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/framework-runtime-notes.md",
+        "text": "# framework runtime notes\n\n- runtime: vite\n- payload: island props\n- modulepreload: mapped\n"
+      },
+      {
+        "path": "run/framework-payload-map.json",
+        "json": {
+          "runtimeKind": "vite",
+          "payloadMode": "islands",
+          "loaderFamily": "native-esm",
+          "carriers": [
+            "html shell",
+            "modulepreload graph",
+            "island props"
+          ]
+        }
+      },
+      {
+        "path": "run/chunk-loader-notes.md",
+        "text": "# chunk loader notes\n\n- loader: vite-modulepreload\n- boundary: framework runtime before business modules\n"
+      },
+      {
+        "path": "run/preload-orchestrator.js",
+        "text": "export const preloadOrder = ['entry', 'modulepreload', 'island'];\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/framework-runtime",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

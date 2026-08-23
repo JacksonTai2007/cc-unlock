@@ -1,0 +1,115 @@
+{
+  "id": "anti-tamper-fortress",
+  "title": "混合架构文件保护堡垒 drill",
+  "summary": "模拟 Electron + native addon 混合架构应用，C++ 层实现多层文件保护（PEB 检测、内存 CRC 校验、硬件断点清空、VEH 异常门），需要完整枚举检测面并逐层绕过。",
+  "difficulty": "advanced",
+  "topics": [
+    "protection-bypass",
+    "anti-analysis",
+    "exception-runtime",
+    "loader-injection"
+  ],
+  "taskInit": {
+    "protectionTier": "T4",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "Electron + native addon 混合架构应用（app.asar + protection.dll）",
+      "binaryPath": "samples/anti-tamper-fortress/protection.dll"
+    },
+    "objective": "绕过 native addon 中的全部保护机制（PEB 检测、内存 CRC 校验、硬件断点清空、VEH 异常门），使得修改 app.asar 后程序仍能正常运行。",
+    "requirements": {
+      "deliverables": [
+        "protection bypass notes（检测面完整枚举）",
+        "protection bypass hook.js（Frida 动态绕过脚本）",
+        "protection bypass patch.py（静态补丁脚本）",
+        "anti analysis notes",
+        "exception runtime notes"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "native addon 保护机制分析",
+        "检测面枚举与绕过",
+        "app.asar 完整性校验绕过",
+        "反调试机制绕过"
+      ],
+      "outOfScope": [
+        "漏洞利用",
+        "未授权分发绕过后的二进制",
+        "内核驱动对抗"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Anti-tamper fortress: Electron + native multi-layer protection",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": false,
+      "loader": "electron-native-addon"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+Frida",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/anti-tamper-fortress/protection.dll",
+      "targetProcessNames": [
+        "anti-tamper-fortress.exe"
+      ],
+      "targetKeywords": [
+        "app.asar",
+        "CRC32",
+        "BeingDebugged",
+        "NtGlobalFlag",
+        "DR0",
+        "VEH",
+        "INT 3"
+      ],
+      "targetFunctionNames": [
+        "AddVectoredExceptionHandler",
+        "GetThreadContext",
+        "SetThreadContext",
+        "CreateFileMappingW",
+        "MapViewOfFile",
+        "VirtualProtect",
+        "IsDebuggerPresent"
+      ]
+    },
+    "successCriteria": [
+      "已枚举全部检测点并分类到 §1-§8",
+      "已产出可运行的 Frida bypass hook 脚本",
+      "已产出静态 patch 脚本（IDAPython/x64dbg）",
+      "绕过后修改 app.asar 程序仍能正常运行",
+      "记录了每个检测点的触发时机和绕过策略"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "DllMain 中的反调试初始化",
+        "VEH handler 注册与异常门",
+        "CRC 校验工作线程",
+        "硬件断点清空定时器",
+        "app.asar 文件读取与校验路径"
+      ],
+      "evidenceGoals": [
+        "全部检测点地址与分类",
+        "每个检测点的绕过方案",
+        "绕过前后的行为对比证据",
+        "稳定性验证结果"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-protection-bypass-workflow.mjs",
+        "scripts/cases/win-anti-analysis-workflow.mjs",
+        "scripts/cases/win-exception-runtime-workflow.mjs"
+      ]
+    }
+  }
+}

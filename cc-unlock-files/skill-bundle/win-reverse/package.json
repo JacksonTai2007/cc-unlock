@@ -1,0 +1,31 @@
+{
+  "name": "win-reverse-skill-framework",
+  "private": true,
+  "version": "0.2.0",
+  "description": "win-reverse 用户交付版的本地检查与任务闭环命令",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node tools/qa/check-all.mjs",
+    "check:skill-contract": "node tools/qa/check-skill-contract.mjs",
+    "check:doc-facts": "node tools/qa/check-doc-facts.mjs",
+    "check:framework-layout": "node tools/qa/check-framework-layout.mjs",
+    "check:topic-manifests": "node tools/qa/check-topic-manifests.mjs",
+    "check:capability-coverage": "node tools/qa/check-capability-coverage.mjs",
+    "check:operating-contracts": "node tools/qa/check-operating-contracts.mjs",
+    "check:deliverables": "node tools/qa/check-deliverables.mjs",
+    "check:drills": "node tools/qa/check-drill-scenarios.mjs",
+    "check:task-behavior": "node tools/qa/check-task-behavior.mjs",
+    "lint:cases": "node tools/qa/lint-cases.mjs",
+    "build:topics": "node tools/topic/generate-topic-docs.mjs",
+    "sync:doc-facts": "node tools/docs/sync-doc-facts.mjs",
+    "task:init": "node tools/task/task-init.mjs",
+    "task:start": "node tools/task/task-start.mjs",
+    "task:drill": "node tools/task/task-drill.mjs",
+    "task:sync": "node tools/task/task-sync.mjs",
+    "task:advance": "node tools/task/task-advance.mjs",
+    "task:web-shell-tech": "node tools/task/detect-web-shell-tech.mjs",
+    "task:close": "node tools/task/task-close.mjs"
+  }
+}

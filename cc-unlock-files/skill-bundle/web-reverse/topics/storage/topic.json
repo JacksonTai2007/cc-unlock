@@ -1,0 +1,92 @@
+{
+  "key": "storage",
+  "label": "Storage analysis",
+  "maturity": "closed-loop",
+  "routeTrack": "storage",
+  "signals": [
+    "cookie",
+    "localStorage",
+    "sessionStorage",
+    "indexedDB"
+  ],
+  "protocol": "references/storage-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/storage.json",
+  "taskInit": {
+    "aliases": [
+      "storage-analysis"
+    ],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "storageAnalysis.present",
+    "versionPath": "storageAnalysis.version",
+    "artifactsPath": "storageAnalysis.artifacts",
+    "minArtifacts": 2
+  },
+  "formalValidation": {
+    "presentPath": "storageAnalysis.present",
+    "requiredArtifacts": [
+      "run/storage-snapshot.json",
+      "run/storage-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "storageAnalysis.present=true but snapshotStatus is still not-started",
+        "path": "storageAnalysis.snapshotStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "storageAnalysis.present=true but storage artifacts are still placeholders",
+        "touchedAny": [
+          "run/storage-snapshot.json",
+          "run/storage-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-storage-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/storage-snapshot.json",
+    "artifacts/tasks/_TEMPLATE/run/storage-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "run/storage-snapshot.json",
+    "run/storage-notes.md"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/storage",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

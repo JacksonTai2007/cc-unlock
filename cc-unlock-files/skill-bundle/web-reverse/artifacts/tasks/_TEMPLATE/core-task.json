@@ -1,0 +1,176 @@
+{
+  "taskId": "replace-me",
+  "phase": "Observe",
+  "protectionTier": "T0",
+  "runtime": {
+    "browser": "unknown",
+    "bundleSystem": "unknown",
+    "wasmPresent": false
+  },
+  "browserSession": {
+    "strategy": "single-instance",
+    "browserInstanceId": "",
+    "attached": false,
+    "authenticated": false,
+    "reusedSession": false,
+    "reloginRequired": false,
+    "pinnedMcp": "",
+    "pinnedMcpSource": "",
+    "pinnedMcpLockedAt": ""
+  },
+  "routeState": {
+    "mode": "task-local",
+    "syncStatus": "not-started",
+    "statePath": "state/route-state.json",
+    "planPath": "state/route-plan.md",
+    "cluesPath": "state/clues.md",
+    "progressPath": "state/progress.md",
+    "activeTracks": [],
+    "activeEntrypoints": [],
+    "executionStatus": "not-evaluated",
+    "nextEntrypointId": "",
+    "nextExecutableAction": "",
+    "pauseCategory": "none",
+    "pauseReason": "",
+    "lastAdvancedAt": ""
+  },
+  "externalRefs": {
+    "searchStatus": "not-started",
+    "searchProvider": "",
+    "searchMode": "auto",
+    "searchRounds": 0,
+    "triggerSignals": [],
+    "sourceTypesPreferred": [
+      "official-docs",
+      "github",
+      "issue",
+      "public-analysis"
+    ],
+    "sourceTypesUsed": [],
+    "lastQueries": [],
+    "queryStats": [],
+    "featureBundle": {},
+    "matchedRefs": [],
+    "decisions": [],
+    "resultDigest": [],
+    "openQuestions": [],
+    "adoptedFindings": [],
+    "rejectedFindings": [],
+    "confidence": 0,
+    "lastDecisionSummary": "",
+    "policy": {
+      "policyPath": "",
+      "policyVersion": "",
+      "lastEvaluatedAt": "",
+      "mode": "auto",
+      "decision": "not-evaluated",
+      "reasons": [],
+      "searchabilityScore": 0,
+      "metrics": {}
+    },
+    "entrypointDrafts": [],
+    "probeDrafts": [],
+    "reconciliation": {
+      "generatedAt": "",
+      "summary": {
+        "merge": 0,
+        "review": 0,
+        "reject": 0
+      },
+      "suggestions": []
+    },
+    "lastAppliedAt": "",
+    "notes": []
+  },
+  "taskPacks": {
+    "mode": "core-only",
+    "selectedTopics": [],
+    "selectedExtensions": [],
+    "activatedTopics": [],
+    "activatedExtensions": []
+  },
+  "targetContext": {
+    "objective": "",
+    "targetActionDescription": "replace-with-real-trigger-action",
+    "targetUrlPatterns": [],
+    "targetKeywords": [],
+    "targetFunctionNames": [],
+    "targetTimeWindow": "",
+    "targetBundleHints": [],
+    "protectionHints": [],
+    "loginRequirements": [],
+    "timeoutPolicy": "",
+    "retryPolicy": ""
+  },
+  "validation": {
+    "status": "not-started",
+    "lastVerifiedAt": "",
+    "notes": []
+  },
+  "taskContract": {
+    "objective": "",
+    "nonNegotiables": [],
+    "deliverableTier": "generic-acceptance",
+    "completionCriteria": [],
+    "disallowedFallbacks": [],
+    "intermediateStatesNotDelivery": [],
+    "status": "draft"
+  },
+  "executionModel": {
+    "system": "task-contract-driven",
+    "currentState": "Observe",
+    "taskMode": "",
+    "fallbackMode": "",
+    "primaryTopic": "",
+    "secondaryTopics": [],
+    "primaryEntrypoint": "",
+    "microRoute": "",
+    "experimentClass": "",
+    "roundBudget": 2,
+    "roundsConsumed": 0,
+    "highValueEvidenceGoal": "",
+    "lastHighValueEvidence": "",
+    "nextUpgradeGate": "",
+    "stopLossCondition": "同类路线连续两轮无新增高价值证据时必须 retrospective / pivot。",
+    "controlSources": {},
+    "deepDivePermit": {
+      "active": false,
+      "subgoal": "",
+      "milestone": "",
+      "maxRounds": 0,
+      "exitCondition": "",
+      "expectedHighValueEvidence": "",
+      "currentMicroRoute": "",
+      "permitReason": "",
+      "reviewedAt": ""
+    }
+  },
+  "acceptanceModel": {
+    "claimLevel": "provisional",
+    "acceptanceGap": "",
+    "nextEvidenceGate": "",
+    "acceptancePath": "",
+    "validators": [
+      "generic-contract"
+    ],
+    "userRejectedApproaches": [],
+    "prohibitedIntermediateSignals": [],
+    "completionBlockedBy": [],
+    "canClaimDelivered": false
+  },
+  "firstDivergence": {
+    "status": "not-recorded",
+    "location": "",
+    "notes": []
+  },
+  "successCriteria": [],
+  "deliveryRequirements": {
+    "localReproductionRequested": false,
+    "apiCallExampleRequired": false
+  },
+  "boundaries": {
+    "activeTriggerAllowed": false,
+    "breakpointAllowed": false,
+    "forbiddenActions": []
+  }
+}

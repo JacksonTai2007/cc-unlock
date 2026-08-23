@@ -1,0 +1,15 @@
+{
+  "compressionStream": {
+    "version": 1,
+    "present": true,
+    "codec": "unknown",
+    "pipelineStatus": "not-started",
+    "boundaryStatus": "not-started",
+    "sampleStatus": "not-started",
+    "stages": [],
+    "artifacts": [
+      "run/compression-stream-notes.md",
+      "run/compression-samples.json"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "instrumentationHooking": {
+    "version": 1,
+    "present": true,
+    "coverageStatus": "not-started",
+    "injectionStage": "unknown",
+    "safetyStatus": "not-started",
+    "hookSurfaces": [],
+    "artifacts": [
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/hook-events.jsonl",
+      "run/hook-safety-notes.md"
+    ]
+  }
+}

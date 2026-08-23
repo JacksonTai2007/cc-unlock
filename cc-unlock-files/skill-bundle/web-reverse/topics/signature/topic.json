@@ -1,0 +1,304 @@
+{
+  "key": "signature",
+  "label": "Request signature / parameter reconstruction",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "signature",
+  "signals": [
+    "sign",
+    "signature",
+    "hmac",
+    "timestamp",
+    "nonce",
+    "canonical string",
+    "x-sign",
+    "x-t",
+    "request acceptance",
+    "signer state",
+    "x-ms-token",
+    "msToken"
+  ],
+  "protocol": "references/signature-playbook.md",
+  "extendedProtocols": [
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/signature.json",
+  "taskInit": {
+    "aliases": [
+      "sign-chain",
+      "request-signature"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "session",
+          "storage"
+        ],
+        "tier": "T3"
+      },
+      {
+        "withTopics": [
+          "env"
+        ],
+        "tier": "T4"
+      }
+    ],
+    "crossTopicSignals": {
+      "session": "stateful signer carrier chain",
+      "storage": "carrier storage snapshot",
+      "env": "env values as algorithm inputs",
+      "protocol": "request/response boundary",
+      "instrumentation-hooking": "hook capture → sign callsite",
+      "userland-crypto": "crypto → sign call chain",
+      "subtlecrypto": "Web Crypto → sign key derivation",
+      "fingerprint": "fingerprint → device binding for sign"
+    }
+  },
+  "taskSemantics": {
+    "presentPath": "signatureAnalysis.present",
+    "versionPath": "signatureAnalysis.version",
+    "artifactsPath": "signatureAnalysis.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "signatureAnalysis.signFields"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "signatureAnalysis.present",
+    "requiredArtifacts": [
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "signatureAnalysis.present=true but inputBoundaryStatus is still not-started",
+        "path": "signatureAnalysis.inputBoundaryStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but signFields is still empty",
+        "path": "signatureAnalysis.signFields",
+        "minLength": 1
+      },
+      {
+        "message": "signatureAnalysis.present=true but canonicalizationStatus is still unknown",
+        "path": "signatureAnalysis.canonicalizationStatus",
+        "disallow": [
+          "unknown",
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but determinismMode is still unknown",
+        "path": "signatureAnalysis.determinismMode",
+        "disallow": [
+          "unknown",
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but requestAcceptanceStatus is still not-started",
+        "path": "signatureAnalysis.requestAcceptanceStatus",
+        "disallow": [
+          "unknown",
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but carrierCoverageStatus is still not-started",
+        "path": "signatureAnalysis.carrierCoverageStatus",
+        "disallow": [
+          "unknown",
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but runtimeSyncStatus is still not-started",
+        "path": "signatureAnalysis.runtimeSyncStatus",
+        "disallow": [
+          "unknown",
+          "not-started"
+        ]
+      },
+      {
+        "message": "signatureAnalysis.present=true but signature artifacts are still placeholders",
+        "touchedAny": [
+          "run/signature-input-map.md",
+          "run/signature-fixtures.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "signatureAnalysis.present=true but randomness / clock / state dependency is still unknown",
+        "checks": [
+          {
+            "path": "signatureAnalysis.randomnessSource",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "signatureAnalysis.clockSource",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "signatureAnalysis.stateDependencyStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-signature-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/signature-input-map.md",
+    "artifacts/tasks/_TEMPLATE/run/signature-fixtures.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "canonical string",
+    "请求验收状态",
+    "run/signature-input-map.md",
+    "run/signature-fixtures.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-signature",
+    "extensions": [
+      "--signature"
+    ],
+    "taskSeed": [
+      {
+        "path": "signatureAnalysis.inputBoundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "signatureAnalysis.canonicalizationStatus",
+        "value": "captured"
+      },
+      {
+        "path": "signatureAnalysis.determinismMode",
+        "value": "deterministic-with-dynamic-inputs"
+      },
+      {
+        "path": "signatureAnalysis.randomnessSource",
+        "value": "nonce-generator"
+      },
+      {
+        "path": "signatureAnalysis.clockSource",
+        "value": "Date.now"
+      },
+      {
+        "path": "signatureAnalysis.stateDependencyStatus",
+        "value": "session-seed-mapped"
+      },
+      {
+        "path": "signatureAnalysis.carrierCoverageStatus",
+        "value": "header-query-cookie-runtime-mapped"
+      },
+      {
+        "path": "signatureAnalysis.runtimeSyncStatus",
+        "value": "verified"
+      },
+      {
+        "path": "signatureAnalysis.requestAcceptanceStatus",
+        "value": "verified"
+      },
+      {
+        "path": "signatureAnalysis.algorithmFamily",
+        "value": "hmac-sha256"
+      },
+      {
+        "path": "signatureAnalysis.signFields",
+        "value": [
+          "x-sign",
+          "x-t"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/signature-input-map.md",
+        "text": "# signature input map\n\n- field: x-sign\n- headers: x-ms-token + x-sign + x-t\n- carrier matrix: x-ms-token(header/runtime), msToken(query/runtime)\n- canonical: method + path + nonce + timestamp + headers\n- dynamic inputs: nonce-generator + Date.now + session seed\n- acceptance: HTTP 200 with expected JSON body\n"
+      },
+      {
+        "path": "run/signature-fixtures.json",
+        "json": {
+          "signFields": [
+            "x-sign",
+            "x-t"
+          ],
+          "algorithmFamily": "hmac-sha256",
+          "carrierMap": {
+            "x-ms-token": [
+              "header",
+              "runtime"
+            ],
+            "msToken": [
+              "query",
+              "runtime"
+            ]
+          },
+          "runtimeState": {
+            "msToken": "token-1"
+          },
+          "syncChecks": [
+            "runtime.msToken == header.x-ms-token",
+            "runtime.msToken == query.msToken"
+          ],
+          "inputs": {
+            "nonce": "nonce-1",
+            "timestamp": "1700000000"
+          },
+          "acceptance": {
+            "status": 200,
+            "bodyShape": "json"
+          }
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e",
+    "check:algo-selfcheck"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/signature"
+}

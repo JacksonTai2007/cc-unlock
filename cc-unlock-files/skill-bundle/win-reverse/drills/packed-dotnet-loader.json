@@ -1,0 +1,124 @@
+{
+  "id": "packed-dotnet-loader",
+  "title": "Packed .NET loader with anti-analysis, config blob, and TLS beacon",
+  "summary": "从壳入口、CLR stage、远端注入链到配置解密与 TLS beacon 重放的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "packer-unpack",
+    "anti-analysis",
+    "dotnet",
+    "loader-injection",
+    "config-recovery",
+    "tls-network"
+  ],
+  "taskInit": {
+    "protectionTier": "T3",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": true
+  },
+  "taskInput": {
+    "target": {
+      "value": "packed-dotnet-loader sample",
+      "binaryPath": "samples/packed-dotnet-loader.exe"
+    },
+    "objective": "确认壳/OEP、恢复 CLR stage、定位远端注入链、提取配置 blob 与 TLS beacon 参数，并给出本地可复验重放。",
+    "requirements": {
+      "deliverables": [
+        "PE triage 结论",
+        "unpack / OEP / IAT 状态",
+        "loader-injection notes",
+        "config schema",
+        "TLS replay 示例"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": true
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分析",
+        "用户态调试",
+        "Frida / API hook",
+        "内存 dump",
+        "本地协议重放"
+      ],
+      "outOfScope": [
+        "未授权对外联机",
+        "对第三方生产系统进行持久化修改"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Packed .NET loader / config blob / TLS beacon",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": true,
+      "loader": "custom-packer"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+dnSpy+Frida",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/packed-dotnet-loader.exe",
+      "targetProcessNames": [
+        "packed-dotnet-loader.exe",
+        "rundll32.exe"
+      ],
+      "targetModuleNames": [
+        "mscoree.dll",
+        "clr.dll",
+        "winhttp.dll"
+      ],
+      "targetNetworkIndicators": [
+        "/gate",
+        "/beacon",
+        "443/tcp"
+      ],
+      "targetKeywords": [
+        "oep",
+        "manual map",
+        "config blob",
+        "aes"
+      ],
+      "targetFunctionNames": [
+        "VirtualAlloc",
+        "WriteProcessMemory",
+        "CreateRemoteThread",
+        "WinHttpSendRequest"
+      ]
+    },
+    "successCriteria": [
+      "确认壳 stub 与真实 OEP",
+      "确认 CLR stage 与关键托管入口",
+      "复原远端进程注入链及远端入口",
+      "解出主要配置字段与编码链",
+      "至少完成一次 TLS beacon 本地重放验收"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "入口节异常分发与壳 stub",
+        "CLR bootstrap stub / 托管入口",
+        "CreateRemoteThread / WriteProcessMemory",
+        "blob decode routine",
+        "WinHttpSendRequest / TLS 边界"
+      ],
+      "evidenceGoals": [
+        "OEP / dump / IAT 状态",
+        "注入时机与远端映像基址",
+        "配置明文字段与字段语义",
+        "网络路径、请求参数与验收 replay"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-packer-unpack-workflow.mjs",
+        "scripts/cases/win-dotnet-workflow.mjs",
+        "scripts/cases/win-loader-injection-workflow.mjs",
+        "scripts/cases/win-tls-network-workflow.mjs"
+      ]
+    }
+  }
+}

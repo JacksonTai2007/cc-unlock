@@ -1,0 +1,130 @@
+{
+  "id": "mixed-service-host",
+  "title": "Mixed-mode service host / IPC control plane drill",
+  "summary": "围绕 C++/CLI 服务宿主、异常驱动启动链、命名管道控制面与内存重建的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "dotnet",
+    "mixed-mode-interop",
+    "ipc-persistence",
+    "exception-runtime",
+    "memory-forensics"
+  ],
+  "taskInit": {
+    "protectionTier": "T4",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "mixed service host sample",
+      "binaryPath": "samples/mixed-service-host.exe"
+    },
+    "objective": "确认服务型 mixed-mode 宿主的真实启动链、托管/非托管桥接、IPC 控制面与内存中有效模块边界，并完成一次最小本地复现。",
+    "requirements": {
+      "deliverables": [
+        "mixed-mode notes",
+        "bridge map",
+        "ipc surface",
+        "persistence map",
+        "exception/runtime notes",
+        "memory layout",
+        "dump plan"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分诊",
+        "服务/命名管道控制面恢复",
+        "异常驱动启动链分析",
+        "最小 dump 与本地复现"
+      ],
+      "outOfScope": [
+        "真实系统持久化投送",
+        "未授权服务安装",
+        "内核提权"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Mixed-mode service host / IPC control plane",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": true,
+      "loader": "service-mixed-host"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+dnSpy+Frida",
+      "spawnStrategy": "service-start-and-trace",
+      "privilegeLevel": "admin"
+    },
+    "accessRequirements": {
+      "adminRequired": true,
+      "interactiveUnlockRequired": false,
+      "driverSigningBypassRequired": false
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/mixed-service-host.exe",
+      "targetProcessNames": [
+        "mixed-service-host.exe",
+        "svchost.exe"
+      ],
+      "targetModuleNames": [
+        "mscoree.dll",
+        "clr.dll",
+        "advapi32.dll"
+      ],
+      "targetNamedObjects": [
+        "\\\\.\\pipe\\svc-control",
+        "Global\\MixedSvcMutex"
+      ],
+      "targetKeywords": [
+        "service host",
+        "mixed mode",
+        "named pipe",
+        "tls callback"
+      ],
+      "targetFunctionNames": [
+        "ServiceMain",
+        "AddVectoredExceptionHandler",
+        "CorBindToRuntimeEx",
+        "CreateNamedPipeW"
+      ]
+    },
+    "successCriteria": [
+      "确认服务启动链与 TLS/异常门顺序",
+      "确认至少一条托管/非托管桥接链",
+      "确认命名管道或等价 IPC 的真实读写双方",
+      "建立最小内存布局并定义可执行 dump 方案",
+      "完成一次最小本地复现或验证"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "TLS callback / VEH 启动门",
+        "ServiceMain / 控制面初始化",
+        "CLR host / mixed bridge",
+        "NamedPipe server / client use 点",
+        "内存中有效模块边界"
+      ],
+      "evidenceGoals": [
+        "启动链与异常链证据",
+        "托管/非托管 bridge edge",
+        "IPC 控制面与持久化痕迹",
+        "VAD / module / dump 策略"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-dotnet-workflow.mjs",
+        "scripts/cases/win-mixed-mode-interop-workflow.mjs",
+        "scripts/cases/win-ipc-persistence-workflow.mjs",
+        "scripts/cases/win-exception-runtime-workflow.mjs",
+        "scripts/cases/win-memory-forensics-workflow.mjs"
+      ]
+    }
+  }
+}

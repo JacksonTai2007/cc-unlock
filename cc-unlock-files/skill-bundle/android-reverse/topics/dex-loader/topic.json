@@ -1,0 +1,176 @@
+{
+  "key": "dex-loader",
+  "label": "Dex loader / shell / dynamic code",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "dex-loader",
+  "signals": [
+    "dexclassloader",
+    "inmemorydexclassloader",
+    "stub application",
+    "shell",
+    "libdexhelper",
+    "bangcle",
+    "dump"
+  ],
+  "protocol": "references/dex-loader-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/dex-loader.json",
+  "taskInit": {
+    "aliases": [
+      "shell"
+    ],
+    "baseProtectionTier": "A5"
+  },
+  "taskSemantics": {
+    "presentPath": "dexLoader.present",
+    "versionPath": "dexLoader.version",
+    "artifactsPath": "dexLoader.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "dexLoader.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "dexLoader.present",
+    "requiredArtifacts": [
+      "run/class-loader-trace.js",
+      "run/dex-loader-dump-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "dexLoader.present=true but status is still not-started",
+        "path": "dexLoader.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "dexLoader.present=true but keyFindings is still empty",
+        "path": "dexLoader.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "dexLoader.present=true but class-loader trace is still placeholder",
+        "touchedAny": [
+          "run/class-loader-trace.js"
+        ]
+      },
+      {
+        "message": "dexLoader.present=true but dex-loader dump notes are still placeholder",
+        "touchedAny": [
+          "run/dex-loader-dump-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "bangcle-libdexhelper route selected but unpackStrategy is missing",
+        "checks": [
+          {
+            "path": "dexLoader.shellFamily",
+            "disallow": [
+              "bangcle-libdexhelper"
+            ]
+          },
+          {
+            "path": "dexLoader.unpackStrategy",
+            "truthy": true
+          }
+        ]
+      },
+      {
+        "message": "bangcle-libdexhelper route selected but unpack evidence is missing",
+        "checks": [
+          {
+            "path": "dexLoader.shellFamily",
+            "disallow": [
+              "bangcle-libdexhelper"
+            ]
+          },
+          {
+            "touchedAny": [
+              "run/bangcle-libdexhelper-evidence.md",
+              "run/unpack-evidence.json"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "bangcle-libdexhelper route selected but ELF unpack evidence refs are missing",
+        "checks": [
+          {
+            "path": "dexLoader.shellFamily",
+            "disallow": [
+              "bangcle-libdexhelper"
+            ]
+          },
+          {
+            "path": "dexLoader.elfUnpackEvidenceRefs",
+            "minLength": 1
+          }
+        ]
+      },
+      {
+        "message": "bangcle-libdexhelper route selected but inner ELF refs are missing",
+        "checks": [
+          {
+            "path": "dexLoader.shellFamily",
+            "disallow": [
+              "bangcle-libdexhelper"
+            ]
+          },
+          {
+            "path": "dexLoader.innerElfRefs",
+            "minLength": 1
+          }
+        ]
+      },
+      {
+        "message": "bangcle-libdexhelper route selected but DEX validation refs are missing",
+        "checks": [
+          {
+            "path": "dexLoader.shellFamily",
+            "disallow": [
+              "bangcle-libdexhelper"
+            ]
+          },
+          {
+            "path": "dexLoader.dexValidationRefs",
+            "minLength": 1
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-dex-loader-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/class-loader-trace.js",
+    "artifacts/tasks/_TEMPLATE/run/dex-loader-dump-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/bangcle-libdexhelper-evidence.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "DexClassLoader",
+    "run/class-loader-trace.js",
+    "run/dex-loader-dump-notes.md",
+    "bangcle-libdexhelper"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/dex-loader"
+}

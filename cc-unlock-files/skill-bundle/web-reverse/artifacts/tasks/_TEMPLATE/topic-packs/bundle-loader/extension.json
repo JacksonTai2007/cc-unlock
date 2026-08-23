@@ -1,0 +1,13 @@
+{
+  "bundleLoader": {
+    "version": 1,
+    "present": true,
+    "loaderType": "unknown",
+    "mappingStatus": "not-started",
+    "artifact": "run/chunk-loader-notes.md",
+    "artifacts": [
+      "run/chunk-loader-notes.md",
+      "run/preload-orchestrator.js"
+    ]
+  }
+}

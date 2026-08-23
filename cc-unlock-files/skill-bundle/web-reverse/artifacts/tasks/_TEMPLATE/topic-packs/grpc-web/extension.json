@@ -1,0 +1,15 @@
+{
+  "grpcWeb": {
+    "version": 1,
+    "present": true,
+    "frameStatus": "not-started",
+    "schemaStatus": "not-started",
+    "trailerStatus": "not-started",
+    "methods": [],
+    "artifacts": [
+      "run/grpc-frame-notes.md",
+      "run/grpc-schema-map.md",
+      "run/grpc-replay.js"
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "key": "static-triage",
+  "label": "PE triage / imports / resources",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "static-triage",
+  "signals": [
+    "pe",
+    "section",
+    "import",
+    "resource",
+    "rtti",
+    "entrypoint"
+  ],
+  "protocol": "references/static-triage-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/static-triage.json",
+  "taskInit": {
+    "aliases": [
+      "pe-triage"
+    ],
+    "baseProtectionTier": "T0"
+  },
+  "taskSemantics": {
+    "presentPath": "staticTriage.present",
+    "versionPath": "staticTriage.version",
+    "artifactsPath": "staticTriage.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "staticTriage.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "staticTriage.present",
+    "requiredArtifacts": [
+      "run/static-triage-notes.md",
+      "run/import-surface.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "staticTriage.present=true but status is still not-started",
+        "path": "staticTriage.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "staticTriage.present=true but keyFindings is still empty",
+        "path": "staticTriage.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "staticTriage.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/static-triage-notes.md",
+          "run/import-surface.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-static-triage-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/static-triage-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/import-surface.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "PE",
+    "导入",
+    "run/static-triage-notes.md",
+    "run/import-surface.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/static-triage"
+}

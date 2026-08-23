@@ -1,0 +1,85 @@
+{
+  "key": "smali-patching",
+  "label": "Smali patch / rebuild / resign / install verify",
+  "maturity": "closed-loop",
+  "routeTrack": "smali-patching",
+  "signals": [
+    "smali",
+    "patch",
+    "rebuild",
+    "resign",
+    "apktool",
+    "install verify"
+  ],
+  "protocol": "references/smali-patching-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/smali-patching.json",
+  "taskInit": {
+    "aliases": [
+      "smali",
+      "patch"
+    ],
+    "baseProtectionTier": "A2"
+  },
+  "taskSemantics": {
+    "presentPath": "smaliPatch.present",
+    "artifactsPath": "smaliPatch.artifact",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "smaliPatch.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "smaliPatch.present",
+    "requiredArtifacts": [
+      "run/smali-patch-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "smaliPatch.present=true but status is still not-started",
+        "path": "smaliPatch.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "smaliPatch.present=true but keyFindings is still empty",
+        "path": "smaliPatch.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "smaliPatch.present=true but smali patch notes are still placeholders",
+        "touchedAny": [
+          "run/smali-patch-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-smali-patching-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/smali-patch-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "smali",
+    "run/smali-patch-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/smali-patching"
+}

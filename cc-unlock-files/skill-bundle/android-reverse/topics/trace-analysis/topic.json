@@ -1,0 +1,83 @@
+{
+  "key": "trace-analysis",
+  "label": "Trace collection, slicing, taint analysis, and algorithm recovery",
+  "maturity": "guided",
+  "routeTrack": "trace-analysis",
+  "signals": [
+    "trace",
+    "trace-ui",
+    "trace-slice",
+    "taint",
+    "ltv-taint",
+    "gumtrace",
+    "qtrace",
+    "vmlifter",
+    "instruction trace",
+    "execution trace",
+    "algorithm recovery",
+    "semantic lift"
+  ],
+  "protocol": "references/trace-analysis-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/trace-analysis.json",
+  "taskInit": {
+    "aliases": [
+      "trace",
+      "trc"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "trace.present",
+    "artifactsPath": "trace.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "trace.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "trace.present",
+    "requiredArtifacts": [
+      "run/trace-analysis-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "trace.present=true but status is still not-started",
+        "path": "trace.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "trace.present=true but keyFindings is still empty",
+        "path": "trace.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "trace.present=true but trace-analysis-notes is still placeholder",
+        "touchedAny": [
+          "run/trace-analysis-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-trace-analysis-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/trace-analysis/run/trace-analysis-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Trace Analysis",
+    "run/trace-analysis-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/trace-analysis"
+}

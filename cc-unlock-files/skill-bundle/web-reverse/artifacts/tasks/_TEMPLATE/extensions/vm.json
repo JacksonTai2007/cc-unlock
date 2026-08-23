@@ -1,0 +1,37 @@
+{
+  "vm": {
+    "version": 1,
+    "present": true,
+    "triageResult": "not-started",
+    "triageReason": "",
+    "blackboxApi": "",
+    "triageNotes": [],
+    "boundaryStatus": "not-started",
+    "dispatcherStatus": "not-started",
+    "decodeStatus": "not-started",
+    "envReadStatus": "not-started",
+    "bytecodeLifecycleStatus": "not-started",
+    "nestingStatus": "not-started",
+    "bytecodeSource": "",
+    "stateModel": "unknown",
+    "traceStatus": "not-started",
+    "bridgeStatus": "not-started",
+    "exceptionStatus": "not-started",
+    "opcodeCoverage": "0%",
+    "traceSignals": [],
+    "envReadSignals": [],
+    "handlerClusters": [],
+    "artifacts": [
+      "run/vm-opcodes.txt",
+      "run/vm-trace.jsonl",
+      "run/dispatcher-map.md",
+      "run/vm-decode-notes.md",
+      "run/vm-handler-clusters.md",
+      "run/vm-env-reads.json",
+      "run/vm-bytecode-lifecycle.md",
+      "run/vm-nesting-map.md",
+      "run/vm-env-trace-template.js",
+      "run/vm-template-profile.json"
+    ]
+  }
+}

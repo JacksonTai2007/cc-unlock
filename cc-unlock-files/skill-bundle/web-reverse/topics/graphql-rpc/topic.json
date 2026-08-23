@@ -1,0 +1,179 @@
+{
+  "key": "graphql-rpc",
+  "label": "GraphQL / persisted query / APQ",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "graphql-rpc",
+  "signals": [
+    "/graphql",
+    "query",
+    "mutation",
+    "operationName",
+    "extensions.persistedQuery",
+    "sha256Hash"
+  ],
+  "protocol": "references/graphql-rpc-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/graphql-rpc.json",
+  "taskInit": {
+    "aliases": [
+      "graphql",
+      "apq"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "signature",
+          "compression-stream"
+        ],
+        "tier": "T2"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "graphqlRpc.present",
+    "versionPath": "graphqlRpc.version",
+    "artifactsPath": "graphqlRpc.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "graphqlRpc.operationNames"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "graphqlRpc.present",
+    "requiredArtifacts": [
+      "run/graphql-ops.json",
+      "run/query-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "graphqlRpc.present=true but operationStatus is still not-started",
+        "path": "graphqlRpc.operationStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "graphqlRpc.present=true but operationNames is still empty",
+        "path": "graphqlRpc.operationNames",
+        "minLength": 1
+      },
+      {
+        "message": "graphqlRpc.present=true but GraphQL artifacts are still placeholders",
+        "touchedAny": [
+          "run/graphql-ops.json",
+          "run/query-map.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "graphqlRpc.present=true but persisted query / variable normalization is still unknown",
+        "checks": [
+          {
+            "path": "graphqlRpc.persistedQueryStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "graphqlRpc.variableNormalizationStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-graphql-rpc-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/graphql-ops.json",
+    "artifacts/tasks/_TEMPLATE/run/query-map.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "operationName",
+    "run/graphql-ops.json",
+    "run/query-map.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-graphql-rpc",
+    "extensions": [
+      "--graphql-rpc"
+    ],
+    "taskSeed": [
+      {
+        "path": "graphqlRpc.operationStatus",
+        "value": "captured"
+      },
+      {
+        "path": "graphqlRpc.persistedQueryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "graphqlRpc.variableNormalizationStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "graphqlRpc.operationNames",
+        "value": [
+          "LoginMutation"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/graphql-ops.json",
+        "json": {
+          "transport": "post-json",
+          "operations": [
+            {
+              "operationName": "LoginMutation",
+              "persistedQuery": true
+            }
+          ]
+        }
+      },
+      {
+        "path": "run/query-map.md",
+        "text": "# query map\n\n- LoginMutation -> persisted query sha256 -> login flow\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/graphql-rpc",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

@@ -1,5 +1,21 @@
 # Changelog
 
+## v8.0.7 (2026-08-23)
+
+### Fixed — config.toml CJK 编码损坏 | UTF-8 read on Codex config merge
+
+**问题**: Windows 部署器合并 `~/.codex/config.toml` 时,`Set-InstructionsFile` / `Remove-InstructionsFile` 用裸 `Get-Content` 读取。PowerShell 5.1 (Desktop) 的 `Get-Content` 默认按**系统 ANSI 代码页**(中文机器为 cp936)解码,而 Codex 的 config.toml 是 **UTF-8 无 BOM**。含非 ASCII 内容(最常见:`[projects.'...中文路径']` 信任标记)的文件在"ANSI 读 + UTF-8 写"往返中被损坏:
+
+- 中文路径变 mojibake(如 `渗透提权` → `娓楅€忔彁鏉`)
+- 结尾闭合引号 `'` 在解码失败时被吞成 `?` → **非法 TOML** → Codex 解析 config 失败 → 应用无法启动
+- 每次部署会**累积**损坏
+
+**影响面**: 所有 `~/.codex/config.toml` 里有非 ASCII 内容(中文项目路径)、且用 Windows 部署器(`deploy.ps1` 或 `gui.ps1`)的用户。纯 ASCII config 或全新用户不受影响。
+
+**修复**: `deploy.ps1` + `gui.ps1` 新增 `Read-Utf8Lines` helper,用 `[System.IO.File]::ReadAllText($path, $UTF8NoBOM)` 显式按 UTF-8 读取再切行,替换两个 config 合并函数里的裸 `Get-Content`。settings.json 合并早已用 UTF-8 `ReadAllText`,不受影响;Mac/Linux 的 `lib-deploy.sh` 用 `grep -Ev` 按字节处理,本就安全,无需改。
+
+**已损坏用户**: 修复只阻止**新增**损坏,不自动修复已损坏的 config.toml。已中招的用户需手动修复 `[projects.'...']` 行(恢复中文路径 + 补回闭合引号),或删掉该损坏行让 Codex 重新写入信任标记。
+
 ## v8.0.6 (2026-07-25)
 
 ### Added — Third-party Artifact Separation | 第三方样本分析 ≠ 继承商业属性

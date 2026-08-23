@@ -1,0 +1,12 @@
+{
+  "frames": {
+    "version": 1,
+    "present": true,
+    "frameTreeStatus": "not-started",
+    "targetFrame": "",
+    "artifact": "run/frame-notes.md",
+    "artifacts": [
+      "run/frame-notes.md"
+    ]
+  }
+}

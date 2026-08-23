@@ -1,0 +1,81 @@
+{
+  "key": "device-fingerprint",
+  "label": "Device fingerprint / risk control / Play Integrity",
+  "maturity": "guided",
+  "routeTrack": "device-fingerprint",
+  "signals": [
+    "device fingerprint",
+    "risk control",
+    "play integrity",
+    "key attestation",
+    "safetynet",
+    "device id",
+    "android id",
+    "imei",
+    "risk engine",
+    "warlock"
+  ],
+  "protocol": "references/device-fingerprint-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/device-fingerprint.json",
+  "taskInit": {
+    "aliases": [
+      "fingerprint",
+      "risk"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "fingerprint.present",
+    "artifactsPath": "fingerprint.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "fingerprint.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "fingerprint.present",
+    "requiredArtifacts": [
+      "run/device-fingerprint-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "fingerprint.present=true but status is still not-started",
+        "path": "fingerprint.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "fingerprint.present=true but keyFindings is still empty",
+        "path": "fingerprint.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "fingerprint.present=true but device-fingerprint-notes is still placeholder",
+        "touchedAny": [
+          "run/device-fingerprint-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-device-fingerprint-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/device-fingerprint/run/device-fingerprint-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Device Fingerprint",
+    "run/device-fingerprint-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/device-fingerprint"
+}

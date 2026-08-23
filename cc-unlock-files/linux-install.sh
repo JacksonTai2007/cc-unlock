@@ -1,6 +1,6 @@
 #!/bin/bash
-# cc-unlock v8.0.6 — Linux install
-# Memory-based security research authorization for Claude Code + Codex
+# cc-unlock v8.0.7 — Linux install
+# Memory-based cybersecurity academy tutoring for Claude Code + Codex
 #
 # 用法 | Usage:
 #   ./linux-install.sh                      交互菜单 | interactive menu

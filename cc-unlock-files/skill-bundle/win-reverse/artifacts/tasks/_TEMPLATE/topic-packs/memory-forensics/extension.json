@@ -1,0 +1,15 @@
+{
+  "memoryForensics": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "suspiciousRegions": [],
+    "artifacts": [
+      "run/memory-layout.md",
+      "run/dump-plan.md"
+    ]
+  }
+}

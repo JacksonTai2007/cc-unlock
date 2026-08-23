@@ -1,0 +1,199 @@
+{
+  "key": "behavior-telemetry",
+  "label": "Behavior telemetry / interaction traces",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "behavior-telemetry",
+  "signals": [
+    "mousemove",
+    "scroll cadence",
+    "focus",
+    "visibilitychange",
+    "input rhythm"
+  ],
+  "protocol": "references/behavior-telemetry-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/behavior-telemetry.json",
+  "taskInit": {
+    "aliases": [
+      "behavioral-telemetry",
+      "interaction-trace"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "fingerprint"
+        ],
+        "tier": "T4"
+      },
+      {
+        "withTopics": [
+          "frame",
+          "session"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "behaviorTelemetry.present",
+    "versionPath": "behaviorTelemetry.version",
+    "artifactsPath": "behaviorTelemetry.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "behaviorTelemetry.channels"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "behaviorTelemetry.present",
+    "requiredArtifacts": [
+      "run/behavior-telemetry-notes.md",
+      "run/telemetry-profile.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "behaviorTelemetry.present=true but captureStatus is still not-started",
+        "path": "behaviorTelemetry.captureStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "behaviorTelemetry.present=true but channels is still empty",
+        "path": "behaviorTelemetry.channels",
+        "minLength": 1
+      },
+      {
+        "message": "behaviorTelemetry.present=true but telemetry artifacts are still placeholders",
+        "touchedAny": [
+          "run/behavior-telemetry-notes.md",
+          "run/telemetry-profile.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "behaviorTelemetry.present=true but normalization / binding is still unknown",
+        "checks": [
+          {
+            "path": "behaviorTelemetry.normalizationStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "behaviorTelemetry.bindingStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-behavior-telemetry-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/behavior-telemetry-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/telemetry-profile.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "mousemove",
+    "visibilitychange",
+    "run/behavior-telemetry-notes.md",
+    "run/telemetry-profile.json"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/behavior-telemetry",
+  "synthetic": {
+    "id": "synthetic-behavior-telemetry",
+    "extensions": [
+      "--behavior-telemetry"
+    ],
+    "taskSeed": [
+      {
+        "path": "behaviorTelemetry.captureStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "behaviorTelemetry.normalizationStatus",
+        "value": "recorded"
+      },
+      {
+        "path": "behaviorTelemetry.bindingStatus",
+        "value": "challenge-bound"
+      },
+      {
+        "path": "behaviorTelemetry.channels",
+        "value": [
+          "mousemove",
+          "scroll",
+          "focus",
+          "visibilitychange"
+        ]
+      },
+      {
+        "path": "behaviorTelemetry.samplingRate",
+        "value": "event-driven"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/behavior-telemetry-notes.md",
+        "text": "# behavior telemetry notes\n\n- channels: mousemove, scroll, focus, visibilitychange\n- normalization: event-driven sampling\n- binding: challenge-bound\n- decision points: cadence, rhythm, focus pattern\n"
+      },
+      {
+        "path": "run/telemetry-profile.json",
+        "json": {
+          "channels": [
+            "mousemove",
+            "scroll",
+            "focus",
+            "visibilitychange"
+          ],
+          "sampling": "event-driven",
+          "normalization": "relative-delta",
+          "binding": "challenge-bound",
+          "features": [
+            "cadence",
+            "rhythm",
+            "focus-pattern"
+          ]
+        }
+      }
+    ]
+  },
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

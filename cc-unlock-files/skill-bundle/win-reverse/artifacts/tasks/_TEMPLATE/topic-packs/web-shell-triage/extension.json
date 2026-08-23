@@ -1,0 +1,21 @@
+{
+  "webShellTriage": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "probableRuntimes": [],
+    "probableFrontend": [],
+    "probablePackagers": [],
+    "entryHints": [],
+    "downstreamTopics": [],
+    "downstreamSummary": "",
+    "artifacts": [
+      "run/web-shell-notes.md",
+      "run/web-shell-tech.json",
+      "run/web-shell-next-steps.md"
+    ]
+  }
+}

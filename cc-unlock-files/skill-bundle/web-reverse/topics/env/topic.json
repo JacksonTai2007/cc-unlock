@@ -1,0 +1,180 @@
+{
+  "key": "env",
+  "label": "Env conformance / host behavior",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "env",
+  "signals": [
+    "first divergence",
+    "descriptor",
+    "queueMicrotask",
+    "typed array"
+  ],
+  "protocol": "references/env-conformance-playbook.md",
+  "extendedProtocols": [
+    "references/env-drift-decision-tree.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/env.json",
+  "taskInit": {
+    "aliases": [
+      "env-conformance"
+    ],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "envConformance.present",
+    "versionPath": "envConformance.version",
+    "artifactsPath": "envConformance.artifacts",
+    "minArtifacts": 4
+  },
+  "formalValidation": {
+    "presentPath": "envConformance.present",
+    "requiredArtifacts": [
+      "run/env-conformance-template.js",
+      "run/env-conformance-notes.md",
+      "run/env-drift-matrix.md",
+      "run/browser-env-snapshot.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "envConformance.present=true but firstDivergence is not recorded",
+        "path": "firstDivergence.status",
+        "disallow": [
+          "not-recorded"
+        ]
+      },
+      {
+        "message": "envConformance.present=true but presence classification is still not recorded",
+        "path": "envConformance.presenceClassificationStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "envConformance.present=true but env artifacts are still template placeholders",
+        "touchedAny": [
+          "run/env-conformance-notes.md",
+          "run/env-drift-matrix.md",
+          "run/browser-env-snapshot.json"
+        ]
+      }
+    ],
+    "phaseGuards": [
+      {
+        "minPhase": "Patch",
+        "requirementsAll": [
+          {
+            "message": "phase={phase} and envConformance.present=true but firstDivergence is still not recorded",
+            "path": "firstDivergence.status",
+            "disallow": [
+              "not-recorded"
+            ]
+          },
+          {
+            "message": "phase={phase} and envConformance.present=true but presence classification is still not recorded",
+            "path": "envConformance.presenceClassificationStatus",
+            "disallow": [
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-env-conformance-workflow.mjs",
+    "scripts/cases/web-node-env-patching-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/env-conformance-template.js",
+    "artifacts/tasks/_TEMPLATE/run/env-conformance-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/env-drift-matrix.md",
+    "artifacts/tasks/_TEMPLATE/run/browser-env-snapshot.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "first divergence",
+    "present / undefined / absent / pending",
+    "typed-array",
+    "run/env-drift-matrix.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-env",
+    "extensions": [
+      "--env"
+    ],
+    "taskSeed": [
+      {
+        "path": "firstDivergence",
+        "value": {
+          "status": "recorded",
+          "location": "queueMicrotask",
+          "notes": [
+            "synthetic env divergence"
+          ]
+        }
+      },
+      {
+        "path": "envConformance.driftSurface",
+        "value": "scheduler"
+      },
+      {
+        "path": "envConformance.presenceClassificationStatus",
+        "value": "recorded"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/env-conformance-template.js",
+        "text": "export const drift = 'queueMicrotask';\n"
+      },
+      {
+        "path": "run/env-conformance-notes.md",
+        "text": "# env notes\n\nfirst divergence narrowed to queueMicrotask\n\npresence classification recorded: process absent\n"
+      },
+      {
+        "path": "run/env-drift-matrix.md",
+        "text": "# drift\n\n- queueMicrotask: patched\n"
+      },
+      {
+        "path": "run/browser-env-snapshot.json",
+        "json": {
+          "process": "absent",
+          "queueMicrotask": "native",
+          "crypto": "present"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/env"
+}

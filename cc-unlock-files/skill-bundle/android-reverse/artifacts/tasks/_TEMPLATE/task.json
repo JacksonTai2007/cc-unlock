@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "taskId": "replace-me",
+  "objective": "",
+  "deliverableTier": "T1",
+  "deliverables": [
+    {
+      "id": "primary",
+      "tier": "T1",
+      "criteriaIds": [],
+      "status": "in-progress",
+      "required": true
+    }
+  ],
+  "currentDeliverableId": "primary",
+  "phase": "Observe",
+  "protectionTier": null,
+  "runtime": {
+    "platform": "android",
+    "packaging": "unknown",
+    "runtimeFlavor": "unknown"
+  },
+  "executionContext": {
+    "attachMode": "unknown",
+    "deviceMode": "none",
+    "deviceReady": false,
+    "rooted": null,
+    "sessionReusable": false,
+    "userActionRequired": false
+  },
+  "routeState": {
+    "mode": "task-local",
+    "syncStatus": "not-started",
+    "statePath": "state/route-state.json",
+    "planPath": "state/route-plan.md",
+    "cluesPath": "state/clues.md",
+    "progressPath": "state/progress.md",
+    "activeTracks": [],
+    "activeEntrypoints": [],
+    "executionStatus": "not-evaluated",
+    "nextEntrypointId": "",
+    "nextExecutableAction": "",
+    "pauseCategory": "none",
+    "pauseReason": "",
+    "lastAdvancedAt": ""
+  },
+  "taskPacks": {
+    "mode": "core-only",
+    "selectedTopics": [],
+    "selectedExtensions": []
+  },
+  "targetContext": {
+    "targetActionDescription": "replace-with-real-trigger-action",
+    "targetSignals": [],
+    "targetKeywords": [],
+    "targetFunctionNames": []
+  },
+  "validation": {
+    "status": "not-started",
+    "lastVerifiedAt": "",
+    "notes": []
+  },
+  "firstDivergence": {
+    "status": "not-recorded",
+    "location": "",
+    "notes": []
+  },
+  "completionCriteria": [],
+  "disallowedFallbacks": [],
+  "userRejectedApproaches": [],
+  "deliveryRequirements": {
+    "localReproductionRequested": false,
+    "apiCallExampleRequired": false
+  },
+  "patchBaseline": {
+    "status": "not-started",
+    "sourceArtifactSha256": "",
+    "resignedArtifactSha256": "",
+    "signatureVerified": false,
+    "installed": false,
+    "launched": false,
+    "usedUninstall": false,
+    "userApprovedDataReset": false,
+    "evidenceRefs": []
+  },
+  "patchRegressionMatrix": [],
+  "userAcceptance": {
+    "status": "not-requested",
+    "evidenceRefs": [],
+    "confirmedAt": ""
+  },
+  "toolchain": {
+    "declaredMcpTools": [],
+    "preferredTools": [],
+    "unavailableTools": [],
+    "foregroundRequirements": []
+  },
+  "boundaries": {
+    "activeTriggerAllowed": false,
+    "forbiddenActions": []
+  },
+  "requirementsStatus": [],
+  "requiredTopicCards": [],
+  "coverageNotes": []
+}

@@ -1,0 +1,15 @@
+{
+  "binaryCodec": {
+    "version": 1,
+    "present": true,
+    "codecFamily": "unknown",
+    "decodeStatus": "not-started",
+    "schemaStatus": "not-started",
+    "sampleStatus": "not-started",
+    "messageTypes": [],
+    "artifacts": [
+      "run/binary-codec-notes.md",
+      "run/binary-samples.json"
+    ]
+  }
+}

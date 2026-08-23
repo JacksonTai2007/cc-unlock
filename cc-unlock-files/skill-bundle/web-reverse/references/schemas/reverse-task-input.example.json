@@ -1,0 +1,65 @@
+{
+  "target": {
+    "kind": "url",
+    "value": "https://masked.example/path"
+  },
+  "objective": "还原接口参数生成链路，在本地生成必要参数并成功请求 API",
+  "targetUrlPatterns": [
+    "https://masked.example/api/search/user/full/",
+    "/api/search/user/full/"
+  ],
+  "targetKeywords": [
+    "msToken",
+    "X-Bogus",
+    "silent reject",
+    "200 空体"
+  ],
+  "targetFunctionNames": [
+    "frontierSign",
+    "buildSearchPayload"
+  ],
+  "targetActionDescription": "搜索用户并触发目标接口请求，定位参数组装与签名入口",
+  "targetTimeWindow": "登录后 5 分钟内复现",
+  "targetBundleHints": [
+    "webpack runtime",
+    "dynamic import"
+  ],
+  "protectionHints": [
+    "JSVMP",
+    "stateful signer"
+  ],
+  "loginRequirements": [
+    "需要已登录会话",
+    "需要保留浏览器 cookie 与 runtime token"
+  ],
+  "successCriteria": [
+    "定位 sign 字段、carrier matrix 与 signer state 同步关系",
+    "本地生成参数后请求接口获得有效 JSON 响应"
+  ],
+  "requirements": {
+    "depth": "standard",
+    "timeBudget": "2h",
+    "localReproductionRequested": true,
+    "apiCallExampleRequired": true,
+    "timeoutPolicy": "单轮验证 30s 超时，连续两轮无新证据则切 entrypoint",
+    "retryPolicy": "同类低层 hook 最多 2 轮",
+    "deliverables": [
+      "report.md",
+      "run/verify-once.mjs",
+      "run/fixtures.json",
+      "run/pure-signature.js",
+      "run/local-repro-example.js",
+      "run/web-replay.js"
+    ]
+  },
+  "boundaries": {
+    "activeTriggerAllowed": false,
+    "breakpointAllowed": true,
+    "rateLimit": "manual-only",
+    "forbiddenActions": [
+      "真实凭证入库",
+      "在线利用",
+      "越权扩域"
+    ]
+  }
+}

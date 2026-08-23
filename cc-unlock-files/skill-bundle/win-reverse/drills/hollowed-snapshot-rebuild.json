@@ -1,0 +1,105 @@
+{
+  "id": "hollowed-snapshot-rebuild",
+  "title": "Hollowed snapshot / VAD rebuild drill",
+  "summary": "围绕进程镂空残留、VAD 布局、内存 dump 粒度与重建验收的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "loader-injection",
+    "memory-forensics",
+    "packer-unpack",
+    "static-triage"
+  ],
+  "taskInit": {
+    "protectionTier": "T4",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "hollowed snapshot sample",
+      "binaryPath": "samples/hollowed-snapshot.exe"
+    },
+    "objective": "恢复 hollowing/manual-map 后的真实内存布局，给出最小 dump 方案并验证重建目标可支持后续静态与运行时分析。",
+    "requirements": {
+      "deliverables": [
+        "loader injection notes",
+        "remote map",
+        "memory layout",
+        "dump plan",
+        "unpack notes"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "注入链与远端映像分析",
+        "VAD 与 dump 规划",
+        "最小重建验证"
+      ],
+      "outOfScope": [
+        "外部投递",
+        "真实恶意联机"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Hollowed snapshot / VAD / dump reconstruction",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": false,
+      "loader": "process-hollowing"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+PE-sieve",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/hollowed-snapshot.exe",
+      "targetProcessNames": [
+        "hollowed-snapshot.exe",
+        "svchost.exe"
+      ],
+      "targetKeywords": [
+        "process hollowing",
+        "manual map residue",
+        "vad",
+        "minidump"
+      ],
+      "targetFunctionNames": [
+        "NtUnmapViewOfSection",
+        "WriteProcessMemory",
+        "ResumeThread",
+        "VirtualAllocEx"
+      ]
+    },
+    "successCriteria": [
+      "确认 hollowing 或 manual-map 的真实路径",
+      "建立最小 VAD/module 图",
+      "给出最小 dump 粒度与时机",
+      "验证 dump 结果可支持后续分析"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "remote image replace",
+        "section/map residue",
+        "VAD suspicious region",
+        "dump then validate"
+      ],
+      "evidenceGoals": [
+        "装载链证据",
+        "内存布局证据",
+        "dump 可用性验证"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-loader-injection-workflow.mjs",
+        "scripts/cases/win-memory-forensics-workflow.mjs",
+        "scripts/cases/win-packer-unpack-workflow.mjs"
+      ]
+    }
+  }
+}

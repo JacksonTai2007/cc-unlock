@@ -1,0 +1,81 @@
+{
+  "key": "kernel-assisted-re",
+  "label": "Kernel-assisted reverse engineering (eBPF, HWBP, seccomp for app RE)",
+  "maturity": "guided",
+  "routeTrack": "kernel-assisted-re",
+  "signals": [
+    "ebpf",
+    "hardware breakpoint",
+    "hwbp",
+    "pte hook",
+    "seccomp",
+    "svc monitor",
+    "dex dump kernel",
+    "edbg",
+    "kernel module",
+    "kpm"
+  ],
+  "protocol": "references/kernel-assisted-re-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/kernel-assisted-re.json",
+  "taskInit": {
+    "aliases": [
+      "kernel",
+      "kre"
+    ],
+    "baseProtectionTier": "A5"
+  },
+  "taskSemantics": {
+    "presentPath": "kre.present",
+    "artifactsPath": "kre.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "kre.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "kre.present",
+    "requiredArtifacts": [
+      "run/kernel-assisted-re-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "kre.present=true but status is still not-started",
+        "path": "kre.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "kre.present=true but keyFindings is still empty",
+        "path": "kre.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "kre.present=true but kernel-assisted-re-notes is still placeholder",
+        "touchedAny": [
+          "run/kernel-assisted-re-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-kernel-assisted-re-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/kernel-assisted-re/run/kernel-assisted-re-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Kernel-Assisted RE",
+    "run/kernel-assisted-re-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/kernel-assisted-re"
+}

@@ -1,0 +1,89 @@
+{
+  "key": "deobfuscation",
+  "label": "OLLVM / FLA / BR / SUB / BCF / deobfuscation",
+  "maturity": "guided",
+  "routeTrack": "deobfuscation",
+  "signals": [
+    "ollvm",
+    "fla",
+    "control flow flattening",
+    "bogus control flow",
+    "bcf",
+    "instruction substitution",
+    "mba",
+    "dispatcher",
+    "deobfuscation",
+    "arkari",
+    "blackobfuscator",
+    "hikari",
+    "goron",
+    "blr obfuscation"
+  ],
+  "protocol": "references/deobfuscation-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/deobfuscation.json",
+  "taskInit": {
+    "aliases": [
+      "deobf",
+      "ollvm"
+    ],
+    "baseProtectionTier": "A4"
+  },
+  "taskSemantics": {
+    "presentPath": "deobfuscation.present",
+    "artifactsPath": "deobfuscation.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "deobfuscation.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "deobfuscation.present",
+    "requiredArtifacts": [
+      "run/deobfuscation-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "deobfuscation.present=true but status is still not-started",
+        "path": "deobfuscation.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "deobfuscation.present=true but keyFindings is still empty",
+        "path": "deobfuscation.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "deobfuscation.present=true but deobfuscation-notes is still placeholder",
+        "touchedAny": [
+          "run/deobfuscation-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-deobfuscation-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-state-machine-template.py",
+    "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-angr-template.py",
+    "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-unicorn-template.py",
+    "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/br-patch-template.py",
+    "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/bcf-bss-patch-template.py"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Deobfuscation",
+    "run/deobfuscation-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation"
+}

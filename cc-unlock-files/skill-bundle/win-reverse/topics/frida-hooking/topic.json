@@ -1,0 +1,90 @@
+{
+  "key": "frida-hooking",
+  "label": "Frida runtime / API / crypto hook",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "frida-hooking",
+  "signals": [
+    "frida",
+    "interceptor",
+    "stalker",
+    "cryptoapi",
+    "bcrypt",
+    "hook"
+  ],
+  "protocol": "references/frida.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/frida-hooking.json",
+  "taskInit": {
+    "aliases": [
+      "frida"
+    ],
+    "baseProtectionTier": "T0"
+  },
+  "taskSemantics": {
+    "presentPath": "fridaHooking.present",
+    "versionPath": "fridaHooking.version",
+    "artifactsPath": "fridaHooking.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "fridaHooking.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "fridaHooking.present",
+    "requiredArtifacts": [
+      "run/frida-hook-template.js",
+      "run/hook-events.jsonl"
+    ],
+    "requirementsAll": [
+      {
+        "message": "fridaHooking.present=true but status is still not-started",
+        "path": "fridaHooking.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "fridaHooking.present=true but keyFindings is still empty",
+        "path": "fridaHooking.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "fridaHooking.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/frida-hook-template.js",
+          "run/hook-events.jsonl"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-frida-hook-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/frida-hook-template.js",
+    "artifacts/tasks/_TEMPLATE/run/hook-events.jsonl"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Frida",
+    "Hook",
+    "run/frida-hook-template.js",
+    "run/hook-events.jsonl"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/frida-hooking"
+}

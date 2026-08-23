@@ -1,0 +1,132 @@
+{
+  "key": "webauthn-passkey",
+  "label": "WebAuthn / passkey / challenge flow",
+  "maturity": "closed-loop",
+  "routeTrack": "webauthn-passkey",
+  "signals": [
+    "navigator.credentials",
+    "PublicKeyCredential",
+    "webauthn.create",
+    "webauthn.get",
+    "challenge"
+  ],
+  "protocol": "references/webauthn-passkey-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/webauthn-passkey.json",
+  "taskInit": {
+    "aliases": [
+      "webauthn",
+      "passkey"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "session",
+          "challenge-orchestration"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "webauthnPasskey.present",
+    "versionPath": "webauthnPasskey.version",
+    "artifactsPath": "webauthnPasskey.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "webauthnPasskey.ceremonies"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "webauthnPasskey.present",
+    "requiredArtifacts": [
+      "run/credential-flow.md",
+      "run/request-response-samples.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "webauthnPasskey.present=true but ceremonyStatus is still not-started",
+        "path": "webauthnPasskey.ceremonyStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "webauthnPasskey.present=true but ceremonies is still empty",
+        "path": "webauthnPasskey.ceremonies",
+        "minLength": 1
+      },
+      {
+        "message": "webauthnPasskey.present=true but WebAuthn artifacts are still placeholders",
+        "touchedAny": [
+          "run/credential-flow.md",
+          "run/request-response-samples.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "webauthnPasskey.present=true but challenge / authenticator status is still unknown",
+        "checks": [
+          {
+            "path": "webauthnPasskey.challengeStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "webauthnPasskey.authenticatorStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-webauthn-passkey-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/credential-flow.md",
+    "artifacts/tasks/_TEMPLATE/run/request-response-samples.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "PublicKeyCredential",
+    "run/credential-flow.md",
+    "run/request-response-samples.json"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/webauthn-passkey",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

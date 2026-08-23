@@ -1,0 +1,202 @@
+{
+  "key": "userland-crypto",
+  "label": "Userland crypto / algorithm extraction",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "userland-crypto",
+  "signals": [
+    "CryptoJS",
+    "AES.encrypt",
+    "MD5",
+    "SHA256",
+    "RSAKey",
+    "WordArray",
+    "Base64.parse"
+  ],
+  "protocol": "references/userland-crypto-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/userland-crypto.json",
+  "taskInit": {
+    "aliases": [
+      "cryptojs",
+      "pure-crypto"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "signature",
+          "compression-stream"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "userlandCrypto.present",
+    "versionPath": "userlandCrypto.version",
+    "artifactsPath": "userlandCrypto.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "userlandCrypto.cryptoFamilies"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "userlandCrypto.present",
+    "requiredArtifacts": [
+      "run/crypto-callgraph.md",
+      "run/plain-cipher-pairs.json",
+      "run/pure-crypto.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "userlandCrypto.present=true but callgraphStatus is still not-started",
+        "path": "userlandCrypto.callgraphStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "userlandCrypto.present=true but cryptoFamilies is still empty",
+        "path": "userlandCrypto.cryptoFamilies",
+        "minLength": 1
+      },
+      {
+        "message": "userlandCrypto.present=true but userland crypto artifacts are still placeholders",
+        "touchedAny": [
+          "run/crypto-callgraph.md",
+          "run/plain-cipher-pairs.json",
+          "run/pure-crypto.js"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "userlandCrypto.present=true but boundary / verification / port status is still unknown",
+        "checks": [
+          {
+            "path": "userlandCrypto.boundaryStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "userlandCrypto.sampleVerificationStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "userlandCrypto.portStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-userland-crypto-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/crypto-callgraph.md",
+    "artifacts/tasks/_TEMPLATE/run/plain-cipher-pairs.json",
+    "artifacts/tasks/_TEMPLATE/run/pure-crypto.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "run/crypto-callgraph.md",
+    "run/plain-cipher-pairs.json",
+    "run/pure-crypto.js"
+  ],
+  "synthetic": {
+    "id": "synthetic-userland-crypto",
+    "extensions": [
+      "--userland-crypto"
+    ],
+    "taskSeed": [
+      {
+        "path": "userlandCrypto.callgraphStatus",
+        "value": "captured"
+      },
+      {
+        "path": "userlandCrypto.boundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "userlandCrypto.determinismMode",
+        "value": "non-deterministic-with-random-iv"
+      },
+      {
+        "path": "userlandCrypto.sampleVerificationStatus",
+        "value": "semantic-equivalent"
+      },
+      {
+        "path": "userlandCrypto.portStatus",
+        "value": "verified"
+      },
+      {
+        "path": "userlandCrypto.cryptoFamilies",
+        "value": [
+          "cryptojs-aes"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/crypto-callgraph.md",
+        "text": "# crypto callgraph\n\n- entry: encryptPayload\n- family: CryptoJS AES\n"
+      },
+      {
+        "path": "run/plain-cipher-pairs.json",
+        "json": {
+          "family": "cryptojs-aes",
+          "pairs": [
+            {
+              "plain": "hello",
+              "cipher": "BASE64_CIPHER"
+            }
+          ]
+        }
+      },
+      {
+        "path": "run/pure-crypto.js",
+        "text": "\"use strict\";\n\nfunction pureCrypto(input) {\n  return input;\n}\n\nmodule.exports = { pureCrypto };\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/userland-crypto",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

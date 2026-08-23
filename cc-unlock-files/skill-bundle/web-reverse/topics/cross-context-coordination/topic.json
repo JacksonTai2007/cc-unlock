@@ -1,0 +1,134 @@
+{
+  "key": "cross-context-coordination",
+  "label": "Cross-context coordination / message graph",
+  "maturity": "closed-loop",
+  "routeTrack": "cross-context-coordination",
+  "signals": [
+    "BroadcastChannel",
+    "storage event",
+    "SharedArrayBuffer",
+    "Atomics",
+    "AudioWorklet",
+    "PaintWorklet",
+    "OffscreenCanvas"
+  ],
+  "protocol": "references/cross-context-coordination-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/cross-context-coordination.json",
+  "taskInit": {
+    "aliases": [
+      "cross-context",
+      "message-graph"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "worker",
+          "frame"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "crossContextCoordination.present",
+    "versionPath": "crossContextCoordination.version",
+    "artifactsPath": "crossContextCoordination.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "crossContextCoordination.contexts"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "crossContextCoordination.present",
+    "requiredArtifacts": [
+      "run/context-map.md",
+      "run/message-graph.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "crossContextCoordination.present=true but coordinationStatus is still not-started",
+        "path": "crossContextCoordination.coordinationStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "crossContextCoordination.present=true but contexts is still empty",
+        "path": "crossContextCoordination.contexts",
+        "minLength": 1
+      },
+      {
+        "message": "crossContextCoordination.present=true but cross-context artifacts are still placeholders",
+        "touchedAny": [
+          "run/context-map.md",
+          "run/message-graph.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "crossContextCoordination.present=true but channel / timing status is still unknown",
+        "checks": [
+          {
+            "path": "crossContextCoordination.channelStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "crossContextCoordination.timingStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-cross-context-coordination-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/context-map.md",
+    "artifacts/tasks/_TEMPLATE/run/message-graph.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "BroadcastChannel",
+    "run/context-map.md",
+    "run/message-graph.json"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/cross-context-coordination",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

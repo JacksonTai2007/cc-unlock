@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/win-reverse-task-input.schema.json",
+  "title": "win-reverse task input",
+  "type": "object",
+  "required": [
+    "target",
+    "objective",
+    "requirements",
+    "boundaries"
+  ],
+  "properties": {
+    "target": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "binaryPath": {
+              "type": "string",
+              "minLength": 1
+            },
+            "samplePaths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "hashes": {
+              "type": "object",
+              "properties": {
+                "md5": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha1": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requirements": {
+      "anyOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "deliverables"
+          ],
+          "properties": {
+            "deliverables": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "localReproductionRequested": {
+              "type": "boolean"
+            },
+            "protocolReplayExampleRequired": {
+              "type": "boolean"
+            },
+            "apiCallExampleRequired": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "boundaries": {
+      "anyOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "inScope": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "outOfScope": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "samplePaths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "focusSignals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "enum": [
+            "x86",
+            "x64",
+            "arm64",
+            "unknown"
+          ]
+        },
+        "wow64": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "managed": {
+          "type": "boolean"
+        },
+        "kernelMode": {
+          "type": "boolean"
+        },
+        "subsystem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loader": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binaryFormat": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "adminRequired": {
+          "type": "boolean"
+        },
+        "interactiveUnlockRequired": {
+          "type": "boolean"
+        },
+        "driverSigningBypassRequired": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

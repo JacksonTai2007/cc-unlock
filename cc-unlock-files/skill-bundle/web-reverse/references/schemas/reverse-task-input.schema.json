@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "web-reverse task input",
+  "type": "object",
+  "required": ["target", "objective", "requirements", "boundaries"],
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["url", "file"] },
+        "value": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "targetUrlPatterns": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "targetKeywords": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "targetFunctionNames": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "targetActionDescription": {
+      "type": "string"
+    },
+    "targetTimeWindow": {
+      "type": "string"
+    },
+    "targetBundleHints": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "protectionHints": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "loginRequirements": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "successCriteria": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "requirements": {
+      "type": "object",
+      "properties": {
+        "depth": { "type": "string", "enum": ["quick", "standard", "deep"] },
+        "timeBudget": { "type": "string" },
+        "deliverables": { "type": "array", "items": { "type": "string" } },
+        "localReproductionRequested": { "type": "boolean" },
+        "apiCallExampleRequired": { "type": "boolean" },
+        "timeoutPolicy": { "type": "string" },
+        "retryPolicy": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "boundaries": {
+      "type": "object",
+      "properties": {
+        "activeTriggerAllowed": { "type": "boolean" },
+        "breakpointAllowed": { "type": "boolean" },
+        "rateLimit": { "type": "string" },
+        "forbiddenActions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

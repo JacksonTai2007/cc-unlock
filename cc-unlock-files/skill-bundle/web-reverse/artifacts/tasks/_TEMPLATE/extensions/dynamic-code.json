@@ -1,0 +1,13 @@
+{
+  "dynamicCode": {
+    "version": 1,
+    "present": true,
+    "surfaces": [],
+    "captureStatus": "not-started",
+    "sandboxStatus": "not-started",
+    "artifacts": [
+      "run/dynamic-code-capture-template.js",
+      "run/dynamic-code-notes.md"
+    ]
+  }
+}

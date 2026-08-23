@@ -1,0 +1,4 @@
+interface:
+  display_name: "Android 逆向"
+  short_description: "授权 Android 应用逆向：APK/JNI/SO/Frida/壳/协议还原与 task-local 续跑"
+  default_prompt: "使用 android-reverse framework 处理授权 Android 应用逆向任务。窄范围静态问题走快速分诊；T2-T5、动态取证、patch、协议恢复或多轮任务才创建 task-local。检查当前 workspace 的 history data files；新完整任务执行 `task-start`/`task-init`，已有任务按 `task.json -> route-state.json -> report/fixtures -> task-sync -> task-advance` 恢复，route-plan/clues/progress 只作生成视图。默认不得新建第二个 task-local，除非显式传 `--force-new-task`。完整任务每次 probe/patch/verify/tool preflight 后先落原始证据并执行 `task-record-attempt`；动态或目标状态变更前做当前路线所需环境预检；相同策略三次失败时读取失败协议并 retrospective。报告与说明使用中文；`execution.status=ready-to-continue` 时继续执行 `nextExecutableAction`。完成声明前执行结构化验证，最终交付物包含 `report.md`。"

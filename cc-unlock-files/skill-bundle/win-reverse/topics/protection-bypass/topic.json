@@ -1,0 +1,132 @@
+{
+  "key": "protection-bypass",
+  "label": "Anti-tamper / anti-debug bypass / file protection bypass",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "protection-bypass",
+  "signals": [
+    "file-integrity",
+    "integrity-check",
+    "hardware-bp",
+    "direct-syscall",
+    "kernel-callback",
+    "code-vm",
+    "anti-tamper",
+    "anti-dump",
+    "anti-attach",
+    "stolen-bytes",
+    "crc-check",
+    "文件保护",
+    "内存校验",
+    "反篡改",
+    "校验",
+    "闪退",
+    "内核保护"
+  ],
+  "protocol": "references/protection-bypass.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/protection-bypass.json",
+  "taskInit": {
+    "aliases": [
+      "protection-bypass",
+      "anti-tamper"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": ["anti-analysis"],
+        "tier": "T3"
+      },
+      {
+        "withTopics": ["exception-runtime"],
+        "tier": "T3"
+      },
+      {
+        "withTopics": ["loader-injection"],
+        "tier": "T4"
+      },
+      {
+        "withTopics": ["memory-forensics"],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "protectionBypass.present",
+    "versionPath": "protectionBypass.version",
+    "artifactsPath": "protectionBypass.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "protectionBypass.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "protectionBypass.present",
+    "requiredArtifacts": [
+      "run/protection-bypass-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "protectionBypass.present=true but status is still not-started",
+        "path": "protectionBypass.status",
+        "disallow": ["not-started"]
+      },
+      {
+        "message": "protectionBypass.present=true but keyFindings is still empty",
+        "path": "protectionBypass.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "protectionBypass.present=true but notes are still placeholders",
+        "touchedAny": [
+          "run/protection-bypass-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "protectionBypass requires a hook script, patch script, or static bypass report",
+        "checks": [
+          { "touchedAny": ["run/protection-bypass-hook.js"] },
+          { "touchedAny": ["run/protection-bypass-patch.py"] },
+          { "touchedAny": ["run/protection-bypass-report.md"] }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-protection-bypass-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/protection-bypass-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/protection-bypass-hook.js",
+    "artifacts/tasks/_TEMPLATE/run/protection-bypass-patch.py",
+    "artifacts/tasks/_TEMPLATE/run/protection-bypass-report.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "反篡改",
+    "文件保护",
+    "检测面枚举",
+    "绕过方案",
+    "run/protection-bypass-notes.md",
+    "run/protection-bypass-hook.js",
+    "run/protection-bypass-patch.py",
+    "run/protection-bypass-report.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/protection-bypass"
+}
