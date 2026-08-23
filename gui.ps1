@@ -11,6 +11,7 @@ try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 try { chcp 65001 | Out-Null } catch {}
 
 $UTF8NoBOM = New-Object System.Text.UTF8Encoding $false
+$UTF8Strict = New-Object System.Text.UTF8Encoding($false, $true)
 
 # === Paths ===
 $USER_HOME = $env:USERPROFILE
@@ -115,12 +116,12 @@ $script:S = @{
     ab_title      = @{ zh = '关于 cc-unlock'; en = 'About cc-unlock' }
     ab_version    = @{ zh = 'cc-unlock 版本'; en = 'cc-unlock Version' }
     ab_desc_title = @{ zh = '描述';     en = 'DESCRIPTION' }
-    ab_desc       = @{ zh = '网络安全学院辅导工具 — Loop Engineering 自递归执行引擎 + 全课程技能框架'; en = 'Cybersecurity academy tutor — Loop Engineering self-recursive engine + full curriculum skill frameworks' }
+    ab_desc       = @{ zh = '安全研究工作站 — Loop Sec 自递归执行引擎 + 4 套技能框架'; en = 'Security research workstation — Loop Sec self-recursive engine + 4 skill frameworks' }
     ab_feat_title = @{ zh = '功能';     en = 'FEATURES' }
-    ab_feat1      = @{ zh = '- 学员记忆注入 (academy memory bundle)'; en = '- Learner memory injection (academy memory bundle)' }
-    ab_feat2      = @{ zh = '- CLAUDE.md 全课程辅导策略'; en = '- CLAUDE.md full curriculum tutoring policy' }
-    ab_feat3      = @{ zh = '- Loop Engineering 自递归执行 + 3 技能框架 (android/web/win-reverse)'; en = '- Loop Engineering self-recursive + 3 skill frameworks (android/web/win-reverse)' }
-    ab_feat4      = @{ zh = '- Codex 系统提示词 + 记忆部署'; en = '- Codex system prompt + memory deployment' }
+    ab_feat1      = @{ zh = '- 研究员记忆注入 (memory bundle)'; en = '- Researcher memory injection (memory bundle)' }
+    ab_feat2      = @{ zh = '- CLAUDE.md 轻量人格 + lab-scope 框架'; en = '- CLAUDE.md lightweight persona + lab-scope framework' }
+    ab_feat3      = @{ zh = '- Loop Sec 自递归执行 + 4 技能框架 (loop-sec/android/web/win-reverse)'; en = '- Loop Sec self-recursive + 4 skill frameworks (loop-sec/android/web/win-reverse)' }
+    ab_feat4      = @{ zh = '- Codex 系统提示词 + 记忆 + scope confirmation'; en = '- Codex system prompt + memory + scope confirmation' }
     ab_feat5      = @{ zh = '- settings.json 权限配置'; en = '- settings.json permission config' }
     ab_target     = @{ zh = '支持平台';   en = 'Supported Platforms' }
     ab_target_v   = @{ zh = 'Claude Code + OpenAI Codex'; en = 'Claude Code + OpenAI Codex' }
@@ -252,33 +253,38 @@ function Get-MemoryDir([string]$ProjectName) { return Join-Path $CLAUDE_PROJECTS
 # UTF-8 (BOM-tolerant) line read. Bare Get-Content reads with the system ANSI codepage
 # (e.g. cp936) and corrupts non-ASCII bytes — CJK project paths in config.toml — on the
 # read/rewrite round-trip. Reading as UTF-8 preserves them.
-function Read-Utf8Lines($FilePath) {
-    $raw = $null
-    try { $raw = [System.IO.File]::ReadAllText($FilePath, $UTF8NoBOM) } catch { return @() }
-    if ([string]::IsNullOrEmpty($raw)) { return @() }
-    $raw = ($raw -replace "`r`n", "`n").TrimEnd("`n")
-    if ([string]::IsNullOrEmpty($raw)) { return @() }
-    return @($raw -split "`n")
+function Read-ConfigSafe($FilePath) {
+    $rawBytes = $null
+    try { $rawBytes = [System.IO.File]::ReadAllBytes($FilePath) } catch { return @{ Lines = @(); Enc = $UTF8NoBOM } }
+    if (!$rawBytes -or $rawBytes.Length -eq 0) { return @{ Lines = @(); Enc = $UTF8NoBOM } }
+    $enc = $UTF8NoBOM
+    $text = $null
+    try { $text = $UTF8Strict.GetString($rawBytes) }
+    catch { $enc = [System.Text.Encoding]::Default; $text = $enc.GetString($rawBytes) }
+    $text = ($text -replace "`r`n", "`n").TrimEnd("`n")
+    if ([string]::IsNullOrEmpty($text)) { return @{ Lines = @(); Enc = $enc } }
+    return @{ Lines = @($text -split "`n"); Enc = $enc }
 }
 
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
     if (!(Test-Path $ConfigPath)) { return (Write-Utf8NoBom $ConfigPath ($line + "`n")) }
-    $existing = Read-Utf8Lines $ConfigPath
-    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $cfg = Read-ConfigSafe $ConfigPath
+    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $content = (@($line) + $kept) -join "`n"
     if (!$content.EndsWith("`n")) { $content += "`n" }
-    return (Write-Utf8NoBom $ConfigPath $content)
+    [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
+    return $true
 }
 
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
-    $existing = Read-Utf8Lines $ConfigPath
-    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $cfg = Read-ConfigSafe $ConfigPath
+    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $hasContent = ($kept | Where-Object { $_ -match '\S' }).Count -gt 0
     if ($hasContent) {
         $content = ($kept -join "`n"); if (!$content.EndsWith("`n")) { $content += "`n" }
-        Write-Utf8NoBom $ConfigPath $content | Out-Null; return 'kept'
+        [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc); return 'kept'
     }
     Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue; return 'removed'
 }
@@ -376,12 +382,7 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath) {
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
         if (!(Test-Path $skillDir)) { New-Item -ItemType Directory -Path $skillDir -Force | Out-Null }
-        $skillSrc = Join-Path $SKILL_BUNDLE 'loop-sec.md'
-        if (Test-Path $skillSrc) {
-            $skillDst = Join-Path $skillDir 'loop-sec.md'
-            if (Copy-Safe $skillSrc $skillDst) { LogOk "loop-sec.md -> .claude/skills/" } else { LogFail "loop-sec.md" }
-        }
-        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
             $sdSrc = Join-Path $SKILL_BUNDLE $sd
             if (Test-Path $sdSrc) {
                 $sdDst = Join-Path $skillDir $sd
@@ -416,9 +417,7 @@ function Uninstall-FromWorkspace([string]$ProjectName, [string]$WorkspacePath) {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
         if (Test-Path $claudePath) { Remove-Item $claudePath -Force -ErrorAction SilentlyContinue; LogOk "Removed CLAUDE.md" }
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
-        $skillPath = Join-Path $skillDir 'loop-sec.md'
-        if (Test-Path $skillPath) { Remove-Item $skillPath -Force -ErrorAction SilentlyContinue; LogOk "Removed loop-sec.md" }
-        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
             $sdPath = Join-Path $skillDir $sd
             if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed $sd" }
         }
@@ -522,14 +521,7 @@ function Deploy-CodexSkills {
     LogHeader "Codex Skills"
     $codexSkillDir = Join-Path $CODEX_DIR 'skills'
     if (!(Test-Path $codexSkillDir)) { New-Item -ItemType Directory -Path $codexSkillDir -Force | Out-Null }
-    $skillSrc = Join-Path $SKILL_BUNDLE 'loop-sec.md'
-    if (Test-Path $skillSrc) {
-        $loopDir = Join-Path $codexSkillDir 'loop-sec'
-        if (!(Test-Path $loopDir)) { New-Item -ItemType Directory -Path $loopDir -Force | Out-Null }
-        $dst = Join-Path $loopDir 'SKILL.md'
-        if (Copy-Safe $skillSrc $dst) { LogOk "loop-sec/SKILL.md -> .codex/skills/" } else { LogFail "loop-sec/SKILL.md" }
-    }
-    foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+    foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
         $sdSrc = Join-Path $SKILL_BUNDLE $sd
         if (Test-Path $sdSrc) {
             $sdDst = Join-Path $codexSkillDir $sd
@@ -562,9 +554,7 @@ function Uninstall-CodexSkills {
     $codexSkillDir = Join-Path $CODEX_DIR 'skills'
     if (!(Test-Path $codexSkillDir)) { return }
     LogHeader "Codex Skills"
-    $loopDir = Join-Path $codexSkillDir 'loop-sec'
-    if (Test-Path $loopDir) { Remove-Item $loopDir -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed .codex/skills/loop-sec/" }
-    foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+    foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
         $sdPath = Join-Path $codexSkillDir $sd
         if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed .codex/skills/$sd/" }
     }
@@ -594,13 +584,10 @@ function Verify-Workspace([string]$ProjectName, [string]$WorkspacePath) {
         if (Test-Path $cp) {
             $sz = (Get-Item $cp).Length
             $c = Get-Content $cp -Raw -ErrorAction SilentlyContinue
-            $loop = if ($c -match 'Loop Engineering') { '+ Loop Engine' } else { '' }
+            $loop = if ($c -match 'loop-sec|Loop Engineering') { '+ Loop Sec' } else { '' }
             LogOk "CLAUDE.md ($sz bytes) $loop"
         } else { LogWarn "CLAUDE.md not found" }
-        $sp = Join-Path $WorkspacePath '.claude\skills\loop-sec.md'
-        if (Test-Path $sp) { $sz = (Get-Item $sp).Length; LogOk "loop-sec.md ($sz bytes)" }
-        else { LogInfo "loop-sec.md not deployed" }
-        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
             $sdPath = Join-Path $WorkspacePath ".claude\skills\$sd"
             if (Test-Path $sdPath) {
                 $count = @(Get-ChildItem $sdPath -Recurse -File -ErrorAction SilentlyContinue).Count
@@ -628,7 +615,7 @@ function Get-Workspaces {
             if (Test-Path $cp) {
                 try {
                     $c = Get-Content $cp -Raw -ErrorAction Stop
-                    if ($c -match 'Loop Engineering') { $hasLoop = $true }
+                    if ($c -match 'loop-sec|Loop Engineering') { $hasLoop = $true }
                 } catch {}
             }
         }
@@ -642,7 +629,7 @@ function Get-Workspaces {
 # ================================================================
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'cc-unlock v8.0.7 - Cybersecurity Academy'
+$form.Text = 'cc-unlock v8.0.7 - Security Research Workstation'
 $form.Size = New-Object System.Drawing.Size(880, 620)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $CLR_BG
@@ -815,7 +802,7 @@ $ovTitle.AutoSize = $true
 $pageOverview.Controls.Add($ovTitle)
 
 $ovSub = New-Object System.Windows.Forms.Label
-$ovSub.Text = 'Cybersecurity Academy Tutoring Tool'
+$ovSub.Text = 'Security Research Workstation'
 $ovSub.Font = $fBody
 $ovSub.ForeColor = $CLR_SUBTEXT
 $ovSub.Location = New-Object System.Drawing.Point(27, 52)
@@ -1169,7 +1156,7 @@ $btnVerify.Add_Click({
     if (Test-Path $CODEX_DIR) {
         LogHeader "Codex"
         foreach ($c in @(
-            @{ File = 'system-prompt.md'; Pattern = 'Loop Engineering|cc-unlock|cybersecurity academy' },
+            @{ File = 'system-prompt.md'; Pattern = 'loop-sec|cc-unlock|security research' },
             @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
         )) {
             $p = Join-Path $CODEX_DIR $c.File

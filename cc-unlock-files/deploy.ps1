@@ -580,16 +580,29 @@ function Remove-Settings {
 
 # --- Codex functions ---
 
-# Read a file as UTF-8 (BOM-tolerant) and split into lines. Bare Get-Content reads
-# with the system ANSI codepage (e.g. cp936), which corrupts non-ASCII bytes — CJK
-# project paths in config.toml — on the read/rewrite round-trip. This preserves them.
-function Read-Utf8Lines($FilePath) {
-    $raw = $null
-    try { $raw = [System.IO.File]::ReadAllText($FilePath, $UTF8NoBOM) } catch { return @() }
-    if ([string]::IsNullOrEmpty($raw)) { return @() }
-    $raw = ($raw -replace "`r`n", "`n").TrimEnd("`n")
-    if ([string]::IsNullOrEmpty($raw)) { return @() }
-    return @($raw -split "`n")
+# Read config file with auto-detected encoding. Returns @{ Lines; Enc }.
+# The relay tool (or Codex desktop) may write config.toml in system default
+# encoding (e.g. GBK/cp936 on Chinese Windows) instead of UTF-8. Forcing
+# UTF-8 corrupts CJK project paths on the read/rewrite round-trip.
+# Strategy: try strict UTF-8 first; if invalid sequences are found, fall
+# back to the system's default ANSI codepage. Write back in whichever
+# encoding was detected, so non-ASCII bytes survive the round-trip.
+function Read-ConfigSafe($FilePath) {
+    $rawBytes = $null
+    try { $rawBytes = [System.IO.File]::ReadAllBytes($FilePath) } catch { return @{ Lines = @(); Enc = $UTF8NoBOM } }
+    if (!$rawBytes -or $rawBytes.Length -eq 0) { return @{ Lines = @(); Enc = $UTF8NoBOM } }
+    $enc = $UTF8NoBOM
+    $text = $null
+    try {
+        $strict = New-Object System.Text.UTF8Encoding($false, $true)
+        $text = $strict.GetString($rawBytes)
+    } catch {
+        $enc = [System.Text.Encoding]::Default
+        $text = $enc.GetString($rawBytes)
+    }
+    $text = ($text -replace "`r`n", "`n").TrimEnd("`n")
+    if ([string]::IsNullOrEmpty($text)) { return @{ Lines = @(); Enc = $enc } }
+    return @{ Lines = @($text -split "`n"); Enc = $enc }
 }
 
 function Set-InstructionsFile($ConfigPath) {
@@ -597,23 +610,24 @@ function Set-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) {
         return (Write-Utf8NoBom $ConfigPath ($line + "`n"))
     }
-    $existing = Read-Utf8Lines $ConfigPath
-    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $cfg = Read-ConfigSafe $ConfigPath
+    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $content = (@($line) + $kept) -join "`n"
     if (!$content.EndsWith("`n")) { $content += "`n" }
-    return (Write-Utf8NoBom $ConfigPath $content)
+    [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
+    return $true
 }
 
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
-    $existing = Read-Utf8Lines $ConfigPath
-    $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $cfg = Read-ConfigSafe $ConfigPath
+    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $hasContent = $false
     foreach ($l in $kept) { if ($l -match '\S') { $hasContent = $true; break } }
     if ($hasContent) {
         $content = ($kept -join "`n")
         if (!$content.EndsWith("`n")) { $content += "`n" }
-        Write-Utf8NoBom $ConfigPath $content | Out-Null
+        [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
         return 'kept'
     }
     Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue
