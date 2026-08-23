@@ -13,7 +13,10 @@ param(
     [switch]$Codex,
     [switch]$SkipSettings,
     [switch]$SkipSkill,
-    [string]$Mode
+    [string]$Mode,
+    [string]$RelayUrl,
+    [string]$RelayKey,
+    [string]$RelayModel
 )
 
 if ($Mode) {
@@ -580,58 +583,111 @@ function Remove-Settings {
 
 # --- Codex functions ---
 
-# Read config file with auto-detected encoding. Returns @{ Lines; Enc }.
-# The relay tool (or Codex desktop) may write config.toml in system default
-# encoding (e.g. GBK/cp936 on Chinese Windows) instead of UTF-8. Forcing
-# UTF-8 corrupts CJK project paths on the read/rewrite round-trip.
-# Strategy: try strict UTF-8 first; if invalid sequences are found, fall
-# back to the system's default ANSI codepage. Write back in whichever
-# encoding was detected, so non-ASCII bytes survive the round-trip.
-function Read-ConfigSafe($FilePath) {
-    $rawBytes = $null
-    try { $rawBytes = [System.IO.File]::ReadAllBytes($FilePath) } catch { return @{ Lines = @(); Enc = $UTF8NoBOM } }
-    if (!$rawBytes -or $rawBytes.Length -eq 0) { return @{ Lines = @(); Enc = $UTF8NoBOM } }
-    $enc = $UTF8NoBOM
-    $text = $null
-    try {
-        $strict = New-Object System.Text.UTF8Encoding($false, $true)
-        $text = $strict.GetString($rawBytes)
-    } catch {
-        $enc = [System.Text.Encoding]::Default
-        $text = $enc.GetString($rawBytes)
-    }
-    $text = ($text -replace "`r`n", "`n").TrimEnd("`n")
-    if ([string]::IsNullOrEmpty($text)) { return @{ Lines = @(); Enc = $enc } }
-    return @{ Lines = @($text -split "`n"); Enc = $enc }
-}
+# Latin-1 (ISO 8859-1) byte passthrough for config.toml manipulation.
+# Latin-1 is a 1-to-1 mapping: every byte 0x00-0xFF maps to the same
+# Unicode code point. This means:
+#   - Non-ASCII bytes (CJK in GBK, UTF-8, or any encoding) pass through
+#     as-is without interpretation — they are NEVER decoded as text.
+#   - Our key (model_instructions_file) is pure ASCII, so regex matches
+#     work correctly on it without touching non-ASCII content.
+#   - Writing back via Latin-1 produces the exact same bytes — zero
+#     encoding corruption regardless of the file's actual encoding.
+# This replaces the old UTF-8-strict-then-GBK-fallback approach, which
+# failed when corruption had already produced "valid UTF-8 garbage" that
+# passed the strict check.
+$LATIN1 = [System.Text.Encoding]::GetEncoding(28591)
 
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
     if (!(Test-Path $ConfigPath)) {
         return (Write-Utf8NoBom $ConfigPath ($line + "`n"))
     }
-    $cfg = Read-ConfigSafe $ConfigPath
-    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
-    $content = (@($line) + $kept) -join "`n"
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    if ($text -match '(?m)^model_instructions_file\s*=\s*"system-prompt\.md"') { return $true }
+    $lines = $text -split "`r?`n"
+    $kept = @($lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $content = $line + "`n" + ($kept -join "`n")
     if (!$content.EndsWith("`n")) { $content += "`n" }
-    [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
     return $true
 }
 
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
-    $cfg = Read-ConfigSafe $ConfigPath
-    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    $lines = $text -split "`r?`n"
+    $kept = @($lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $hasContent = $false
     foreach ($l in $kept) { if ($l -match '\S') { $hasContent = $true; break } }
     if ($hasContent) {
         $content = ($kept -join "`n")
         if (!$content.EndsWith("`n")) { $content += "`n" }
-        [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
+        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
         return 'kept'
     }
     Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue
     return 'removed'
+}
+
+# Disable Windows sandbox for relay/proxy users. Codex desktop's sandbox
+# setup ("正在完成 Windows 设置") requires official OpenAI API endpoints
+# that relay services don't support. Also fails on Windows Home (no Hyper-V).
+# Call after writing config.toml so our change lands on the merged file.
+function Disable-SandboxIfNeeded($ConfigPath) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    if ($text -match '(?m)^sandbox\s*=\s*"off"') { return }
+    if ($text -match '(?m)^sandbox\s*=\s*"[^"]*"') {
+        $text = $text -replace '(?m)^(sandbox\s*=\s*)"[^"]*"', '$1"off"'
+        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($text))
+    }
+}
+
+function Deploy-RelayProvider($ConfigPath, $ApiUrl, $ApiKey, $Model) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    $lines = $text -split "`r?`n"
+    $kept = [System.Collections.ArrayList]::new()
+    $skip = $false
+    foreach ($l in $lines) {
+        if ($l -match '^\[model_providers\.cc_unlock_relay\]') { $skip = $true; continue }
+        if ($skip -and $l -match '^\[') { $skip = $false }
+        if (!$skip) { [void]$kept.Add($l) }
+    }
+    $block = @(
+        ''
+        '[model_providers.cc_unlock_relay]'
+        "name = `"cc-unlock Relay`""
+        "base_url = `"$ApiUrl`""
+        'wire_api = "responses"'
+        'requires_openai_auth = false'
+    )
+    if ($ApiKey) { $block += "api_key = `"$ApiKey`"" }
+    if ($Model) { $block += "model = `"$Model`"" }
+    $content = ($kept -join "`n") + ($block -join "`n") + "`n"
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
+}
+
+function Remove-RelayProvider($ConfigPath) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    if ($text -notmatch '\[model_providers\.cc_unlock_relay\]') { return }
+    $lines = $text -split "`r?`n"
+    $kept = [System.Collections.ArrayList]::new()
+    $skip = $false
+    foreach ($l in $lines) {
+        if ($l -match '^\[model_providers\.cc_unlock_relay\]') { $skip = $true; continue }
+        if ($skip -and $l -match '^\[') { $skip = $false }
+        if (!$skip) { [void]$kept.Add($l) }
+    }
+    $content = ($kept -join "`n")
+    if (!$content.EndsWith("`n")) { $content += "`n" }
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
 }
 
 function Deploy-Codex-Config {
@@ -659,6 +715,11 @@ function Deploy-Codex-Config {
         Write-Host '  [ok] config.toml (merged)' -ForegroundColor Green
     } else {
         Write-Host '  [FAIL] config.toml' -ForegroundColor Red
+    }
+    Disable-SandboxIfNeeded $configPath
+    if ($RelayUrl) {
+        Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
+        Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
     }
     $old = Join-Path $CODEX_DIR 'AGENTS.md'
     if (Test-Path $old) {
@@ -802,7 +863,9 @@ function Uninstall-Codex-Config {
             Write-Host "  [ok] Removed $f" -ForegroundColor Yellow
         }
     }
-    switch (Remove-InstructionsFile (Join-Path $CODEX_DIR 'config.toml')) {
+    $cfgPath = Join-Path $CODEX_DIR 'config.toml'
+    Remove-RelayProvider $cfgPath
+    switch (Remove-InstructionsFile $cfgPath) {
         'removed' { Write-Host '  [ok] Removed config.toml' -ForegroundColor Yellow }
         'kept'    { Write-Host '  [ok] config.toml (kept other settings)' -ForegroundColor DarkGray }
     }

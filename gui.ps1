@@ -11,7 +11,7 @@ try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 try { chcp 65001 | Out-Null } catch {}
 
 $UTF8NoBOM = New-Object System.Text.UTF8Encoding $false
-$UTF8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+$LATIN1 = [System.Text.Encoding]::GetEncoding(28591)
 
 # === Paths ===
 $USER_HOME = $env:USERPROFILE
@@ -92,6 +92,11 @@ $script:S = @{
     dp_codex_sec  = @{ zh = 'CODEX';       en = 'CODEX' }
     dp_codex_dep  = @{ zh = '部署 Codex'; en = 'Deploy Codex' }
     dp_codex_uni  = @{ zh = '卸载 Codex'; en = 'Uninstall Codex' }
+    dp_relay_sec  = @{ zh = 'CODEX 中转站'; en = 'CODEX RELAY' }
+    dp_relay_chk  = @{ zh = '使用中转站接入';  en = 'Use Relay Provider' }
+    dp_relay_url  = @{ zh = 'API 地址:';     en = 'API URL:' }
+    dp_relay_key  = @{ zh = 'API Key:';      en = 'API Key:' }
+    dp_relay_mod  = @{ zh = '模型:';         en = 'Model:' }
     dp_deploy_sel = @{ zh = '部署选中';   en = 'Deploy Selected' }
     dp_deploy_all = @{ zh = '全部部署';   en = 'Deploy All' }
     dp_uninst_sel = @{ zh = '卸载选中';   en = 'Uninstall Selected' }
@@ -253,40 +258,86 @@ function Get-MemoryDir([string]$ProjectName) { return Join-Path $CLAUDE_PROJECTS
 # UTF-8 (BOM-tolerant) line read. Bare Get-Content reads with the system ANSI codepage
 # (e.g. cp936) and corrupts non-ASCII bytes — CJK project paths in config.toml — on the
 # read/rewrite round-trip. Reading as UTF-8 preserves them.
-function Read-ConfigSafe($FilePath) {
-    $rawBytes = $null
-    try { $rawBytes = [System.IO.File]::ReadAllBytes($FilePath) } catch { return @{ Lines = @(); Enc = $UTF8NoBOM } }
-    if (!$rawBytes -or $rawBytes.Length -eq 0) { return @{ Lines = @(); Enc = $UTF8NoBOM } }
-    $enc = $UTF8NoBOM
-    $text = $null
-    try { $text = $UTF8Strict.GetString($rawBytes) }
-    catch { $enc = [System.Text.Encoding]::Default; $text = $enc.GetString($rawBytes) }
-    $text = ($text -replace "`r`n", "`n").TrimEnd("`n")
-    if ([string]::IsNullOrEmpty($text)) { return @{ Lines = @(); Enc = $enc } }
-    return @{ Lines = @($text -split "`n"); Enc = $enc }
-}
-
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
     if (!(Test-Path $ConfigPath)) { return (Write-Utf8NoBom $ConfigPath ($line + "`n")) }
-    $cfg = Read-ConfigSafe $ConfigPath
-    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
-    $content = (@($line) + $kept) -join "`n"
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    if ($text -match '(?m)^model_instructions_file\s*=\s*"system-prompt\.md"') { return $true }
+    $lines = $text -split "`r?`n"
+    $kept = @($lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $content = $line + "`n" + ($kept -join "`n")
     if (!$content.EndsWith("`n")) { $content += "`n" }
-    [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc)
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
     return $true
 }
 
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
-    $cfg = Read-ConfigSafe $ConfigPath
-    $kept = @($cfg.Lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    $lines = $text -split "`r?`n"
+    $kept = @($lines | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $hasContent = ($kept | Where-Object { $_ -match '\S' }).Count -gt 0
     if ($hasContent) {
         $content = ($kept -join "`n"); if (!$content.EndsWith("`n")) { $content += "`n" }
-        [System.IO.File]::WriteAllText($ConfigPath, $content, $cfg.Enc); return 'kept'
+        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content)); return 'kept'
     }
     Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue; return 'removed'
+}
+
+function Disable-SandboxIfNeeded($ConfigPath) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    if ($text -match '(?m)^sandbox\s*=\s*"off"') { return }
+    if ($text -match '(?m)^sandbox\s*=\s*"[^"]*"') {
+        $text = $text -replace '(?m)^(sandbox\s*=\s*)"[^"]*"', '$1"off"'
+        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($text))
+    }
+}
+
+function Deploy-RelayProvider($ConfigPath, $ApiUrl, $ApiKey, $Model) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    $lines = $text -split "`r?`n"
+    $kept = [System.Collections.ArrayList]::new()
+    $skip = $false
+    foreach ($l in $lines) {
+        if ($l -match '^\[model_providers\.cc_unlock_relay\]') { $skip = $true; continue }
+        if ($skip -and $l -match '^\[') { $skip = $false }
+        if (!$skip) { [void]$kept.Add($l) }
+    }
+    $block = @(
+        ''
+        '[model_providers.cc_unlock_relay]'
+        "name = `"cc-unlock Relay`""
+        "base_url = `"$ApiUrl`""
+        'wire_api = "responses"'
+        'requires_openai_auth = false'
+    )
+    if ($ApiKey) { $block += "api_key = `"$ApiKey`"" }
+    if ($Model) { $block += "model = `"$Model`"" }
+    $content = ($kept -join "`n") + ($block -join "`n") + "`n"
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
+}
+
+function Remove-RelayProvider($ConfigPath) {
+    if (!(Test-Path $ConfigPath)) { return }
+    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
+    $text = $LATIN1.GetString($raw)
+    $lines = $text -split "`r?`n"
+    $kept = [System.Collections.ArrayList]::new()
+    $skip = $false
+    foreach ($l in $lines) {
+        if ($l -match '^\[model_providers\.cc_unlock_relay\]') { $skip = $true; continue }
+        if ($skip -and $l -match '^\[') { $skip = $false }
+        if (!$skip) { [void]$kept.Add($l) }
+    }
+    $content = ($kept -join "`n")
+    if (!$content.EndsWith("`n")) { $content += "`n" }
+    [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($content))
 }
 
 function Resolve-WorkspacePath([string]$projName) {
@@ -513,6 +564,11 @@ function Deploy-CodexConfig {
     }
     $cfg = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
+    Disable-SandboxIfNeeded $cfg
+    if ($script:chkRelay -and $script:chkRelay.Checked -and $script:txtRelayUrl.Text) {
+        Deploy-RelayProvider $cfg $script:txtRelayUrl.Text $script:txtRelayKey.Text $script:txtRelayModel.Text
+        LogOk "Relay provider configured: $($script:txtRelayUrl.Text)"
+    }
     Deploy-CodexSkills
     Deploy-CodexMemory
 }
@@ -542,7 +598,9 @@ function Uninstall-CodexConfig {
         $p = Join-Path $CODEX_DIR $f
         if (Test-Path $p) { Remove-Item $p -Force -ErrorAction SilentlyContinue; LogOk "Removed $f" }
     }
-    switch (Remove-InstructionsFile (Join-Path $CODEX_DIR 'config.toml')) {
+    $cfgPath = Join-Path $CODEX_DIR 'config.toml'
+    Remove-RelayProvider $cfgPath
+    switch (Remove-InstructionsFile $cfgPath) {
         'removed' { LogOk "Removed config.toml" }
         'kept'    { LogInfo "config.toml (kept other settings)" }
     }
@@ -927,6 +985,7 @@ $pageDeploy = New-Object System.Windows.Forms.Panel
 $pageDeploy.Dock = 'Fill'
 $pageDeploy.BackColor = $CLR_BG
 $pageDeploy.Visible = $false
+$pageDeploy.AutoScroll = $true
 $content.Controls.Add($pageDeploy)
 
 # DP: Title
@@ -1053,17 +1112,96 @@ Bind-T $dpLblCodex 'dp_codex_sec'
 $btnCodexDeploy = New-ActionButton 'dp_codex_dep' 25  338 120 $CLR_BTN_GREEN
 $btnCodexUninst = New-ActionButton 'dp_codex_uni' 153 338 120 $CLR_BTN_RED
 
+# DP: Relay Section
+$dpLblRelay = New-Object System.Windows.Forms.Label
+$dpLblRelay.Font = $fSection
+$dpLblRelay.ForeColor = $CLR_SUBTEXT
+$dpLblRelay.Location = New-Object System.Drawing.Point(25, 378)
+$dpLblRelay.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblRelay)
+Bind-T $dpLblRelay 'dp_relay_sec'
+
+$script:chkRelay = New-Object System.Windows.Forms.CheckBox
+$script:chkRelay.Font = $fBody
+$script:chkRelay.ForeColor = $CLR_TEXT
+$script:chkRelay.Location = New-Object System.Drawing.Point(25, 398)
+$script:chkRelay.AutoSize = $true
+$pageDeploy.Controls.Add($script:chkRelay)
+Bind-T $script:chkRelay 'dp_relay_chk'
+
+$dpLblRelayUrl = New-Object System.Windows.Forms.Label
+$dpLblRelayUrl.Font = $fBody
+$dpLblRelayUrl.ForeColor = $CLR_SUBTEXT
+$dpLblRelayUrl.Location = New-Object System.Drawing.Point(25, 425)
+$dpLblRelayUrl.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblRelayUrl)
+Bind-T $dpLblRelayUrl 'dp_relay_url'
+
+$script:txtRelayUrl = New-Object System.Windows.Forms.TextBox
+$script:txtRelayUrl.Font = $fMono
+$script:txtRelayUrl.BackColor = $CLR_SURFACE
+$script:txtRelayUrl.ForeColor = $CLR_TEXT
+$script:txtRelayUrl.BorderStyle = 'FixedSingle'
+$script:txtRelayUrl.Location = New-Object System.Drawing.Point(110, 422)
+$script:txtRelayUrl.Size = New-Object System.Drawing.Size(560, 24)
+$pageDeploy.Controls.Add($script:txtRelayUrl)
+
+$dpLblRelayKey = New-Object System.Windows.Forms.Label
+$dpLblRelayKey.Font = $fBody
+$dpLblRelayKey.ForeColor = $CLR_SUBTEXT
+$dpLblRelayKey.Location = New-Object System.Drawing.Point(25, 452)
+$dpLblRelayKey.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblRelayKey)
+Bind-T $dpLblRelayKey 'dp_relay_key'
+
+$script:txtRelayKey = New-Object System.Windows.Forms.TextBox
+$script:txtRelayKey.Font = $fMono
+$script:txtRelayKey.BackColor = $CLR_SURFACE
+$script:txtRelayKey.ForeColor = $CLR_TEXT
+$script:txtRelayKey.BorderStyle = 'FixedSingle'
+$script:txtRelayKey.UseSystemPasswordChar = $true
+$script:txtRelayKey.Location = New-Object System.Drawing.Point(110, 449)
+$script:txtRelayKey.Size = New-Object System.Drawing.Size(560, 24)
+$pageDeploy.Controls.Add($script:txtRelayKey)
+
+$dpLblRelayModel = New-Object System.Windows.Forms.Label
+$dpLblRelayModel.Font = $fBody
+$dpLblRelayModel.ForeColor = $CLR_SUBTEXT
+$dpLblRelayModel.Location = New-Object System.Drawing.Point(25, 479)
+$dpLblRelayModel.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblRelayModel)
+Bind-T $dpLblRelayModel 'dp_relay_mod'
+
+$script:txtRelayModel = New-Object System.Windows.Forms.TextBox
+$script:txtRelayModel.Font = $fMono
+$script:txtRelayModel.BackColor = $CLR_SURFACE
+$script:txtRelayModel.ForeColor = $CLR_TEXT
+$script:txtRelayModel.BorderStyle = 'FixedSingle'
+$script:txtRelayModel.Location = New-Object System.Drawing.Point(110, 476)
+$script:txtRelayModel.Size = New-Object System.Drawing.Size(560, 24)
+$pageDeploy.Controls.Add($script:txtRelayModel)
+
+$script:chkRelay.Add_CheckedChanged({
+    $enabled = $script:chkRelay.Checked
+    $script:txtRelayUrl.Enabled = $enabled
+    $script:txtRelayKey.Enabled = $enabled
+    $script:txtRelayModel.Enabled = $enabled
+})
+$script:txtRelayUrl.Enabled = $false
+$script:txtRelayKey.Enabled = $false
+$script:txtRelayModel.Enabled = $false
+
 # DP: Log
 $dpLblLog = New-Object System.Windows.Forms.Label
 $dpLblLog.Font = $fSection
 $dpLblLog.ForeColor = $CLR_SUBTEXT
-$dpLblLog.Location = New-Object System.Drawing.Point(25, 378)
+$dpLblLog.Location = New-Object System.Drawing.Point(25, 508)
 $dpLblLog.AutoSize = $true
 $pageDeploy.Controls.Add($dpLblLog)
 Bind-T $dpLblLog 'dp_log'
 
 $logBox = New-Object System.Windows.Forms.RichTextBox
-$logBox.Location = New-Object System.Drawing.Point(25, 398)
+$logBox.Location = New-Object System.Drawing.Point(25, 528)
 $logBox.Size = New-Object System.Drawing.Size(645, 165)
 $logBox.BackColor = $CLR_SURFACE
 $logBox.ForeColor = $CLR_TEXT
