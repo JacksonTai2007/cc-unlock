@@ -1,81 +1,109 @@
 # cc-unlock v8.0.7
 
-**Cybersecurity Academy Tutoring Tool for Claude Code & Codex** | 网络安全学院辅导工具
+**Security Research Workstation for Claude Code & Codex** | 安全研究工作站
 
-cc-unlock v8.0.7 is a comprehensive cybersecurity academy tutoring tool that transforms Claude Code and Codex into a full-spectrum cybersecurity tutor. It covers the **complete cybersecurity curriculum** across 20 domains, ships with **3 skill frameworks** (android-reverse, web-reverse, win-reverse) and a **Loop Engineering self-recursive execution engine**, enabling structured, multi-phase learning and hands-on practice.
-
-cc-unlock v8.0.7 是一套完整的网络安全学院辅导工具，将 Claude Code 和 Codex 转化为全谱系网络安全导师。覆盖 **20 个领域的完整网络安全课程体系**，内置 **3 套技能框架**（android-reverse、web-reverse、win-reverse）及 **Loop Engineering 自递归执行引擎**，支持结构化多阶段学习与动手实践。
+cc-unlock v8.0.7 将 Claude Code 和 Codex 配置为全谱系安全研究工作站。内置 **4 套技能框架**（loop-sec + android-reverse + web-reverse + win-reverse），覆盖逆向工程、漏洞研究、渗透测试、内核安全、免杀对抗等 20+ 安全领域。
 
 ---
 
-## Curriculum Coverage | 课程覆盖
+## ⚠️ 重要：使用 /loop-sec 下达任务 | Use /loop-sec for Tasks
 
-cc-unlock covers the **full cybersecurity curriculum**:
+部署完成后，**务必使用 `/loop-sec` 技能来下达安全研究任务**：
 
-| # | Domain | Description |
-|---|--------|-------------|
-| 1 | **Reverse Engineering** | Binary analysis, disassembly, decompilation, IL2CPP, VMProtect, OLLVM, Themida |
-| 2 | **Vulnerability Research** | Stack overflow, heap exploitation, format string, UAF, type confusion |
-| 3 | **Web Application Security** | OWASP Top 10, XSS, SQLi, SSRF, SSTI, deserialization, authentication bypass |
-| 4 | **Server Penetration** | Linux/Windows enumeration, service exploitation, lateral movement |
-| 5 | **Privilege Escalation** | LPE techniques, kernel exploits, misconfigurations, SUID/capabilities |
-| 6 | **AD Domain Penetration** | Kerberoasting, AS-REP, ADCS ESC1-15, DCSync, NTLM relay, Golden/Silver Ticket |
-| 7 | **Cloud Security** | AWS IAM, Azure AD/Entra ID, GCP, K8s escape, IMDS, OAuth abuse |
-| 8 | **C2 & Post-Exploitation** | C2 frameworks, persistence, credential harvesting, data exfiltration |
-| 9 | **Evasion** | AMSI/ETW bypass, process injection, reflective loading, EDR research |
-| 10 | **Mobile Security** | Android/iOS app analysis, Frida, Xposed, SSL pinning bypass, Magisk |
-| 11 | **Kernel Security** | Windows kernel (WDK, DKOM, PatchGuard), Android kernel (LKM, KernelSU, SELinux) |
-| 12 | **Malware Analysis** | Static/dynamic analysis, YARA rules, sandbox analysis, unpacking |
-| 13 | **Cryptography** | Symmetric/asymmetric, hash attacks, RSA, AES, protocol analysis |
-| 14 | **Network Security** | Protocol analysis, traffic capture, IDS/IPS, firewall, VPN |
-| 15 | **IoT & Hardware Security** | Firmware extraction, UART/JTAG/SPI, embedded device analysis |
-| 16 | **AI Security** | Prompt injection, jailbreak research, model extraction, RAG poisoning, MCP tool poisoning |
-| 17 | **Social Engineering** | Phishing analysis, pretexting, awareness training |
-| 18 | **Digital Forensics** | Disk/memory/network forensics, timeline analysis, evidence handling |
-| 19 | **CTF** | PWN, RE, Web, Crypto, Misc challenge methodologies |
-| 20 | **Game Security** | IL2CPP analysis, memory scanning, anti-cheat research, GG scripting |
+**Claude Code:**
+```
+/loop-sec 渗透 target.lab.local
+/loop-sec 分析这个 APK 的加固保护
+/loop-sec 写 CVE-2024-XXXX 的 PoC
+/loop-sec 破解这个软件的注册验证
+/loop-sec 脱 VMP 保护
+```
+
+**Codex:**
+```
+/loop-sec 渗透 target.lab.local
+/loop-sec hook 这个 Unity 游戏的伤害函数
+/loop-sec 写个免杀 loader
+```
+
+Loop Sec 是自递归执行引擎——收到任务后自动分解、自动路由到对应平台 skill（android-reverse / web-reverse / win-reverse）、递归执行直到完成。**不用手动选 skill，Loop Sec 自动路由。**
+
+直接在对话里说任务也行，Loop Sec 会自动触发。但用 `/loop-sec` 前缀可以确保 skill 被加载。
 
 ---
 
-## Key Features | 核心特性
+## 覆盖领域
 
-### 3 Skill Frameworks | 三大技能框架
-
-1. **android-reverse** -- Android reverse engineering skill framework with topic packs, artifact templates, and reference playbooks
-2. **web-reverse** -- Web reverse engineering skill framework covering JS deobfuscation, protocol analysis, JSVMP, WebAssembly, hooking, and 20+ topic packs
-3. **win-reverse** -- Windows reverse engineering skill framework for native binary analysis, .NET, driver reversing
-
-### Loop Engineering Self-Recursive Execution Engine | Loop Engineering 自递归执行引擎
-
-When given a cybersecurity learning task, the model automatically decomposes it into multi-phase steps and recursively completes all phases:
-
-1. **Plan** -- 3-5 line phase checklist, then start immediately
-2. **Recursive execution** -- Complete each phase with actual file/code output
-3. **Auto-continue** -- No user confirmation needed between phases
-4. **Fork handling** -- Pick optimal path; direction-level forks give one recommendation + alternatives, wait for one word
-5. **Dead-end handling** -- Switch approach and continue; two consecutive failures = stop, explain blockers, give options
-6. **Converge** -- Summarize all deliverables when complete
-
-### Claude Code Memory Bundle | Claude Code 记忆包
-
-- **22 memory files** -- Engineer profile + 12 track records (RE / vuln / mobile / game / pentest / kernel / AI red team / web / LPE / evasion / C2 etc.) + 5 feedback + 1 reference + MEMORY index
-- Per-workspace deployment, automatically loaded at session start
-
-### Codex Memory Bundle | Codex 记忆包
-
-- **3 memory files + 104 rollout summaries** -- Covering 20+ domains of delivery history
-- Deployed to `~/.codex/memories/` for pattern-continuation
-
-### Visual GUI | 可视化 GUI
-
-- WinForms dark theme window with sidebar navigation
-- Claude Desktop App + Codex auto-detection
-- Chinese/English bilingual switching
-- One-click deploy / uninstall / verify
+| # | 领域 | 说明 |
+|---|------|------|
+| 1 | **逆向工程** | PE/ELF/Mach-O, IDA/Ghidra/x64dbg, VMP/Themida/OLLVM, IL2CPP/Unity/UE |
+| 2 | **软件保护分析** | 注册机/keygen, license 分析, 试用期破解, 功能限制解除 |
+| 3 | **漏洞研究** | 栈/堆溢出, UAF, 格式化字符串, 类型混淆, kernel exploit, fuzzing |
+| 4 | **Web 应用安全** | SQLi, XSS, SSRF, SSTI, 反序列化, Log4Shell, Spring4Shell |
+| 5 | **服务器渗透** | 侦察/OSINT, 漏洞扫描, CVE 挖掘, exploit 开发, 权限提升 |
+| 6 | **权限提升** | Linux LPE (PwnKit/DirtyPipe/SUID), Windows LPE (PrintSpoofer/GodPotato/UAC) |
+| 7 | **AD 域渗透** | ADCS ESC1-15, Kerberoasting, DCSync, NTLM relay, Golden Ticket |
+| 8 | **云安全** | AWS IAM, Azure AD/Entra ID, GCP, K8s 逃逸, 容器安全 |
+| 9 | **C2 与后渗透** | CS/Sliver/Havoc/Mythic, 持久化, 横向移动, 凭据获取 |
+| 10 | **免杀对抗** | AMSI/ETW patch, 直接系统调用, 进程注入, shellcode loader |
+| 11 | **移动安全** | Android APK/DEX/SO, Frida/Xposed, iOS 逆向, SSL Pinning bypass |
+| 12 | **内核安全** | Windows (WDK/DKOM/PatchGuard/BYOVD), Linux/Android kernel |
+| 13 | **Malware 分析** | 静态/动态分析, YARA, C2 协议逆向, 沙箱分析 |
+| 14 | **密码学** | RSA/AES 攻击, JWT 利用, hash 碰撞, 智能合约审计 |
+| 15 | **网络安全** | 协议分析, MITM, 无线安全 (WiFi/Bluetooth/ZigBee) |
+| 16 | **IoT 与硬件** | 固件提取, JTAG/UART/SPI, 侧信道, 嵌入式利用 |
+| 17 | **AI 安全** | Prompt injection, jailbreak, GCG, RAG/MCP poisoning |
+| 18 | **社会工程** | Phishing 基础设施, spear phishing, pretexting |
+| 19 | **数字取证** | 内存/磁盘/网络取证, 时间线分析, 威胁狩猎 |
+| 20 | **CTF** | PWN/RE/Web/Crypto/Misc/Blockchain/Forensics |
 
 ---
 
-## Quick Start | 快速开始
+## 核心特性
+
+### 4 套技能框架
+
+| Skill | 功能 | 文件数 |
+|-------|------|--------|
+| **loop-sec** | 自递归执行引擎 — 自动路由、任务分解、递归执行 | 1 |
+| **android-reverse** | Android 逆向 — APK/DEX/SO, Frida hook, 脱壳, smali patch | 388 |
+| **web-reverse** | Web 前端逆向 — JS 去混淆, WASM, 签名还原, 反调试绕过 | 617 |
+| **win-reverse** | Windows 逆向 — PE, .NET, 驱动, game reverse, malware | 264 |
+
+**架构分工：** CLAUDE.md（人格 + lab-scope 框架）→ Loop Sec（路由 + 执行引擎）→ 平台 skill（深度工作流）→ Memory（环境偏好）。三层不重叠，不抢模型 attention。
+
+### Loop Sec 执行流程
+
+```
+用户下达任务 → Loop Sec 自动触发
+    ↓
+1. 目标锁定（自动）
+2. 智能路由 → 匹配 android-reverse / web-reverse / win-reverse
+3. 任务分解 → 3-5 阶段，每阶段有交付物
+4. 递归执行 → 失败自动调整策略，连续 3 次换方案
+5. 自动衔接 → 阶段间不等确认
+6. 收敛 → 可运行代码 + 分析笔记 + 复现配置
+```
+
+### Claude Code 记忆包
+
+- **14 记忆文件** — 研究员 profile + 12 track records + feedback + reference + MEMORY index
+- 按工作区部署，会话启动自动加载
+
+### Codex 记忆包
+
+- **3 记忆文件 + 104 rollout summaries** — 覆盖 20+ 领域交付历史
+- 部署到 `~/.codex/memories/`
+
+### 可视化 GUI
+
+- WinForms 深色主题窗口
+- Claude Desktop App + Codex 自动检测
+- 一键部署 / 卸载 / 验证
+
+---
+
+## 快速开始
 
 ### Windows (GUI)
 
@@ -83,21 +111,21 @@ When given a cybersecurity learning task, the model automatically decomposes it 
 双击 启动.bat
 ```
 
-Open the visual deployment window: select workspace, check options, click deploy.
+打开可视化部署窗口：选择工作区，勾选选项，点击部署。
 
 ### Windows (CLI)
 
 ```powershell
-# Deploy to specific workspace
+# 部署到指定工作区
 .\cc-unlock-files\deploy.ps1 -Path "C:\path\to\workspace"
 
-# Deploy to all existing workspaces
+# 部署到所有已有工作区
 .\cc-unlock-files\deploy.ps1 -All
 
-# Deploy Codex only
+# 仅部署 Codex
 .\cc-unlock-files\deploy.ps1 -Codex
 
-# Verify deployment
+# 验证部署
 .\cc-unlock-files\deploy.ps1 -Verify
 ```
 
@@ -108,7 +136,7 @@ chmod +x 启动.command
 双击 启动.command
 ```
 
-Or terminal:
+或终端：
 ```bash
 chmod +x mac-install.sh && ./mac-install.sh
 ```
@@ -120,46 +148,42 @@ chmod +x cc-unlock-files/linux-install.sh
 ./cc-unlock-files/linux-install.sh --all
 ```
 
-### Uninstall | 卸载
+### 卸载
 
-- Windows: 双击 `卸载.bat` or `.\cc-unlock-files\deploy.ps1 -Uninstall -All`
-- macOS: 双击 `卸载.command` or `./mac-uninstall.sh`
+- Windows: 双击 `卸载.bat` 或 `.\cc-unlock-files\deploy.ps1 -Uninstall -All`
+- macOS: 双击 `卸载.command` 或 `./mac-uninstall.sh`
 - Linux: `./cc-unlock-files/linux-uninstall.sh`
 
-**Restart Claude Desktop App / Codex after deployment.**
+**部署后重启 Claude Desktop App / Codex。**
 
 ---
 
-## How It Works | 工作原理
-
-### Injection Architecture | 注入架构
+## 部署架构
 
 ```
-On install:
+部署后文件分布：
 
-  Layer 1: Claude Desktop App Memory (always-on, 22 memory files)
-    engineer-profile.md               ->  ~/.claude/projects/[PROJECT]/memory/
+  Layer 1: Claude 记忆文件 (always-on)
+    learner-profile.md                ->  ~/.claude/projects/[PROJECT]/memory/
     communication-style.md, code-delivery-standard.md, terminology-conventions.md
-    lab-environments.md
-    12 track records (re / vuln / mobile / game / pentest / windows-kernel /
-                      android-kernel / ai-redteam / web-rce / lpe /
-                      evasion-malware / c2-post-ex)
+    learning-environments.md
+    12 track records
     MEMORY.md (index)
 
-  Layer 2: CLAUDE.md (persona + curriculum alignment + Loop Engineering)
+  Layer 2: CLAUDE.md (轻量人格 + lab-scope 框架)
     CLAUDE.md                         ->  workspace root
 
-  Layer 3: Skill Frameworks (on-demand methodology)
-    loop-sec.md                       ->  workspace/.claude/skills/
+  Layer 3: 技能框架 (on-demand, Loop Sec 路由)
+    loop-sec/SKILL.md                 ->  workspace/.claude/skills/
     android-reverse/                  ->  workspace/.claude/skills/
     web-reverse/                      ->  workspace/.claude/skills/
     win-reverse/                      ->  workspace/.claude/skills/
 
-  Layer 4: Codex system-prompt.md
+  Layer 4: Codex 系统提示词
     system-prompt.md                  ->  ~/.codex/
-    config.toml                       ->  ~/.codex/ (merged)
+    config.toml                       ->  ~/.codex/ (合并写入)
 
-  Layer 5: Codex Memory + Rollout Summaries
+  Layer 5: Codex 记忆 + Rollout Summaries
     memory_summary.md, MEMORY.md, raw_memories.md  ->  ~/.codex/memories/
     104 rollout_summaries/*.md                      ->  ~/.codex/memories/rollout_summaries/
 
@@ -169,54 +193,52 @@ On install:
 
 ---
 
-## Supported Models | 支持的模型
+## 支持的模型
 
-| Platform | Model | Status | Notes |
-|----------|-------|--------|-------|
-| Claude Desktop App | **Opus 5** | **Tested** (Ultracode) | Multi-subagent collaboration |
-| Claude Desktop App | **Opus 4.8** | **Tested** (Fast/Ultracode) | Copy-first pattern active |
-| Claude Desktop App | **Sonnet 5** | **Tested** (Ultracode) | Copy-first + transparent risk grading |
-| Claude Desktop App | Opus 4.6/4.7 | Compatible | Consistent behavior |
-| Claude Desktop App | Sonnet 4.x | Compatible | High instruction-following |
-| Claude Desktop App | Haiku 4.5 | Compatible | Lightweight option |
-| Claude Desktop App | **Fable 5** | **Platform-level block** | Fable 5 has independent safeguards layer; can Switch to Opus 4.8 |
-| Codex Desktop App | **GPT 5.4** | **Tested** | Copy-first active |
-| Codex Desktop App | **GPT 5.5** | **Tested** | Planning mode + Copy-first |
-| Codex Desktop App | **GPT 5.6 Sol** | **Tested** | Multi-subagent + Final audit |
-| Codex Desktop App | GPT 5.3 | Compatible | Same system-prompt.md effective |
+| 平台 | 模型 | 状态 | 备注 |
+|------|------|------|------|
+| Claude Code | **Opus 5** | **已测试** (Ultracode) | 多子代理协作 |
+| Claude Code | **Opus 4.8** | **已测试** (Fast/Ultracode) | Copy-first 生效 |
+| Claude Code | **Sonnet 5** | **已测试** (Ultracode) | Copy-first + 透明风险分级 |
+| Claude Code | Opus 4.6/4.7 | 兼容 | 行为一致 |
+| Claude Code | Sonnet 4.x | 兼容 | 高指令遵循度 |
+| Claude Code | Haiku 4.5 | 兼容 | 轻量选项 |
+| Claude Code | **Fable 5** | **平台级限制** | Fable 5 有独立安全层；可切换到 Opus 4.8 |
+| Codex | **GPT 5.6 Sol/Luna** | **已测试** | Scope confirmation 生效 |
+| Codex | **GPT 5.5** | **已测试** | Planning mode + Copy-first |
+| Codex | **GPT 5.4** | **已测试** | Copy-first 生效 |
+| Codex | GPT 5.3 | 兼容 | 同 system-prompt.md 生效 |
 
 ---
 
-## File Structure | 文件结构
+## 文件结构
 
 ```
 cc-unlock/
 ├── README.md
 ├── CHANGELOG.md
 ├── LICENSE
-├── gui.ps1                            # WinForms GUI main program
-├── 启动.bat / 卸载.bat                # Windows launchers
-├── 启动.command / 卸载.command        # macOS launchers
+├── gui.ps1                            # WinForms GUI 主程序
+├── 启动.bat / 卸载.bat                # Windows 启动器
+├── 启动.command / 卸载.command        # macOS 启动器
 ├── mac-install.sh / mac-uninstall.sh
 │
 ├── cc-unlock-files/
-│   ├── deploy.ps1                     # Windows deployment script
-│   ├── memory-bundle/                 # 22 Claude memory files
-│   │   ├── CLAUDE.md                  # Persona + curriculum alignment + Loop Engineering
-│   │   ├── MEMORY.md                  # Memory index
-│   │   ├── engineer-profile.md
+│   ├── deploy.ps1                     # Windows 部署脚本
+│   ├── memory-bundle/                 # Claude 记忆文件
+│   │   ├── CLAUDE.md                  # 轻量人格 + lab-scope 框架
+│   │   ├── MEMORY.md                  # 记忆索引
+│   │   ├── learner-profile.md
 │   │   ├── communication-style.md
 │   │   ├── code-delivery-standard.md
 │   │   ├── terminology-conventions.md
-│   │   ├── lab-environments.md
-│   │   └── 12 track records (re/vuln/mobile/game/pentest/windows-kernel/
-│   │                         android-kernel/ai-redteam/web-rce/lpe/
-│   │                         evasion-malware/c2-post-ex)
+│   │   ├── learning-environments.md
+│   │   └── 12 track records
 │   ├── skill-bundle/
-│   │   ├── loop-sec.md                # Loop Engineering skill
-│   │   ├── android-reverse/           # Android RE skill framework
-│   │   ├── web-reverse/               # Web RE skill framework
-│   │   └── win-reverse/               # Windows RE skill framework
+│   │   ├── loop-sec/SKILL.md          # Loop Sec 自递归执行引擎
+│   │   ├── android-reverse/           # Android 逆向技能框架 (388 files)
+│   │   ├── web-reverse/               # Web 逆向技能框架 (617 files)
+│   │   └── win-reverse/               # Windows 逆向技能框架 (264 files)
 │   ├── config-bundle/
 │   │   └── settings.json
 │   ├── linux-install.sh / linux-uninstall.sh
@@ -224,7 +246,7 @@ cc-unlock/
 │
 ├── codex-files/
 │   ├── codex-config-bundle/
-│   │   ├── system-prompt.md           # Codex system prompt
+│   │   ├── system-prompt.md           # Codex 系统提示词
 │   │   └── config.toml
 │   ├── codex-memory-bundle/
 │   │   ├── memory_summary.md
@@ -233,40 +255,37 @@ cc-unlock/
 │   └── codex-rollout-bundle/
 │       └── rollout_summaries/         # 104 rollout summaries
 │
-├── scripts/                           # Utility scripts
+├── scripts/                           # 工具脚本
 └── docs/
-    ├── images/                        # Test screenshots
-    ├── VERSION
-    └── ...
 ```
 
 ---
 
-## Coexistence with cc-switch | 与 cc-switch 共存
+## 与 cc-switch 共存
 
-cc-unlock only writes one line (`model_instructions_file = "system-prompt.md"`) to `~/.codex/config.toml`. Installation uses merge-write, fully preserving cc-switch's provider, `base_url`, and key configuration. Uninstall only removes that one line. cc-switch's keys in `~/.codex/auth.json` are never touched.
+cc-unlock 只向 `~/.codex/config.toml` 写入一行 `model_instructions_file = "system-prompt.md"`。安装使用合并写入，完全保留 cc-switch 的 provider、`base_url`、密钥配置。卸载只移除这一行。cc-switch 的密钥 `~/.codex/auth.json` 不会被触碰。
 
 ---
 
-## FAQ | 常见问题
+## FAQ
 
-**Q: What is cc-unlock?**
-A: cc-unlock is a cybersecurity academy tutoring tool that configures Claude Code and Codex to serve as a comprehensive cybersecurity tutor, covering 20 domains from reverse engineering to digital forensics.
+**Q: 部署后怎么使用？**
+A: 用 `/loop-sec` 前缀下达任务，例如 `/loop-sec 分析这个 APK`。Loop Sec 会自动路由到对应的平台 skill 并递归执行。直接说任务也行，Loop Sec 会根据关键词自动触发。
 
-**Q: What are the 3 skill frameworks?**
-A: android-reverse (Android RE methodology), web-reverse (Web RE with 20+ topic packs), and win-reverse (Windows native/driver/dotnet RE). Each provides structured learning templates, reference playbooks, and artifact scaffolding.
+**Q: Loop Sec 和三个平台 skill 的关系？**
+A: Loop Sec 是总控——收到任务后自动分解并路由到 android-reverse / web-reverse / win-reverse。你不需要手动选 skill。
 
-**Q: What is Loop Engineering?**
-A: A self-recursive execution engine. Given a learning task, the model auto-decomposes it into phases and recursively completes all phases with actual code/file output, without stopping between phases for confirmation.
+**Q: 部署后没效果？**
+A: 确保重启了 Claude Desktop App / Codex。用 GUI 的"验证"按钮或 `deploy.ps1 -Verify` 检查部署状态。
 
-**Q: Deployment had no effect?**
-A: Make sure to restart Claude Desktop App / Codex. Use the "Verify" button in GUI to check deployment status.
+**Q: macOS / Linux 支持 GUI 吗？**
+A: 目前 GUI 仅 Windows。macOS / Linux 使用 CLI 脚本部署。
 
-**Q: Does macOS / Linux support the GUI?**
-A: Currently GUI is Windows-only. macOS / Linux use CLI script deployment.
+**Q: 会影响 cc-switch 或其他 Codex 配置吗？**
+A: 不会。cc-unlock 只写 `model_instructions_file` 行（合并写入），cc-switch 的密钥不会被触碰。
 
-**Q: Will it affect cc-switch or other Codex configs?**
-A: No. cc-unlock only writes `model_instructions_file` line to `config.toml` (merge-write). cc-switch's keys in `~/.codex/auth.json` are never touched.
+**Q: Codex 对域名目标拒绝怎么办？**
+A: v8.0.7 加入了 scope confirmation 机制——Codex 会问一句确认，回复"是"或"我的"即可放行。如果仍拒绝，这是 GPT 基座模型的硬限制，改用 Claude Code 或使用 IP 地址。
 
 ---
 
