@@ -564,9 +564,9 @@ function Deploy-CodexConfig {
     }
     $cfg = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
-    Disable-SandboxIfNeeded $cfg
     if ($script:chkRelay -and $script:chkRelay.Checked -and $script:txtRelayUrl.Text) {
         Deploy-RelayProvider $cfg $script:txtRelayUrl.Text $script:txtRelayKey.Text $script:txtRelayModel.Text
+        Disable-SandboxIfNeeded $cfg
         LogOk "Relay provider configured: $($script:txtRelayUrl.Text)"
     }
     Deploy-CodexSkills
