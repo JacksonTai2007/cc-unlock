@@ -631,21 +631,6 @@ function Remove-InstructionsFile($ConfigPath) {
     return 'removed'
 }
 
-# Disable Windows sandbox for relay/proxy users. Codex desktop's sandbox
-# setup ("正在完成 Windows 设置") requires official OpenAI API endpoints
-# that relay services don't support. Also fails on Windows Home (no Hyper-V).
-# Call after writing config.toml so our change lands on the merged file.
-function Disable-SandboxIfNeeded($ConfigPath) {
-    if (!(Test-Path $ConfigPath)) { return }
-    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
-    $text = $LATIN1.GetString($raw)
-    if ($text -match '(?m)^sandbox\s*=\s*"off"') { return }
-    if ($text -match '(?m)^sandbox\s*=\s*"[^"]*"') {
-        $text = $text -replace '(?m)^(sandbox\s*=\s*)"[^"]*"', '$1"off"'
-        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($text))
-    }
-}
-
 function Deploy-RelayProvider($ConfigPath, $ApiUrl, $ApiKey, $Model) {
     if (!(Test-Path $ConfigPath)) { return }
     $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
@@ -718,7 +703,6 @@ function Deploy-Codex-Config {
     }
     if ($RelayUrl) {
         Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
-        Disable-SandboxIfNeeded $configPath
         Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
     }
     $old = Join-Path $CODEX_DIR 'AGENTS.md'

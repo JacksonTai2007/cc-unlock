@@ -286,17 +286,6 @@ function Remove-InstructionsFile($ConfigPath) {
     Remove-Item $ConfigPath -Force -ErrorAction SilentlyContinue; return 'removed'
 }
 
-function Disable-SandboxIfNeeded($ConfigPath) {
-    if (!(Test-Path $ConfigPath)) { return }
-    $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
-    $text = $LATIN1.GetString($raw)
-    if ($text -match '(?m)^sandbox\s*=\s*"off"') { return }
-    if ($text -match '(?m)^sandbox\s*=\s*"[^"]*"') {
-        $text = $text -replace '(?m)^(sandbox\s*=\s*)"[^"]*"', '$1"off"'
-        [System.IO.File]::WriteAllBytes($ConfigPath, $LATIN1.GetBytes($text))
-    }
-}
-
 function Deploy-RelayProvider($ConfigPath, $ApiUrl, $ApiKey, $Model) {
     if (!(Test-Path $ConfigPath)) { return }
     $raw = [System.IO.File]::ReadAllBytes($ConfigPath)
@@ -566,7 +555,6 @@ function Deploy-CodexConfig {
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
     if ($script:chkRelay -and $script:chkRelay.Checked -and $script:txtRelayUrl.Text) {
         Deploy-RelayProvider $cfg $script:txtRelayUrl.Text $script:txtRelayKey.Text $script:txtRelayModel.Text
-        Disable-SandboxIfNeeded $cfg
         LogOk "Relay provider configured: $($script:txtRelayUrl.Text)"
     }
     Deploy-CodexSkills
