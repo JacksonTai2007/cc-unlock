@@ -716,9 +716,9 @@ function Deploy-Codex-Config {
     } else {
         Write-Host '  [FAIL] config.toml' -ForegroundColor Red
     }
-    Disable-SandboxIfNeeded $configPath
     if ($RelayUrl) {
         Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
+        Disable-SandboxIfNeeded $configPath
         Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
     }
     $old = Join-Path $CODEX_DIR 'AGENTS.md'
