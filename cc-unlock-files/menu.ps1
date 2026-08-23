@@ -1,11 +1,11 @@
-﻿# cc-unlock v8.0.6 menu
+# cc-unlock v8.0.7 menu
 param([switch]$Uninstall)
 
 $deploy = Join-Path $PSScriptRoot 'deploy.ps1'
 
 if ($Uninstall) {
     Write-Host ''
-    Write-Host '  cc-unlock v8.0.6 Uninstall / 卸载'
+    Write-Host '  cc-unlock v8.0.7 Uninstall / 卸载'
     Write-Host ''
     Write-Host '  [1] Remove from workspace (select folder) / 从指定工作区移除'
     Write-Host '  [2] Remove from all workspaces / 从全部工作区移除'
@@ -20,9 +20,9 @@ if ($Uninstall) {
     }
 } else {
     Write-Host ''
-    Write-Host '  cc-unlock v8.0.6'
-    Write-Host '  Memory-based security research authorization'
-    Write-Host '  基于 memory 的安全研究授权配置'
+    Write-Host '  cc-unlock v8.0.7'
+    Write-Host '  Security research workstation'
+    Write-Host '  安全研究工作站'
     Write-Host ''
     Write-Host '  [1] Deploy to workspace (select folder) / 部署到指定工作区'
     Write-Host '  [2] Deploy to all workspaces / 部署到所有工作区'

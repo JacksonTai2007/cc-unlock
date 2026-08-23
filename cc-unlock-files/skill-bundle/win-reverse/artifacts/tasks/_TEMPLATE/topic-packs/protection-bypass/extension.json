@@ -1,0 +1,15 @@
+{
+  "protectionBypass": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/protection-bypass-notes.md",
+      "run/protection-bypass-hook.js",
+      "run/protection-bypass-patch.py"
+    ]
+  }
+}

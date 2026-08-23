@@ -1,0 +1,186 @@
+{
+  "key": "compression-stream",
+  "label": "Compression / decompression boundary",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "compression-stream",
+  "signals": [
+    "gzip",
+    "deflate",
+    "brotli",
+    "CompressionStream",
+    "DecompressionStream"
+  ],
+  "protocol": "references/compression-stream-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/compression-stream.json",
+  "taskInit": {
+    "aliases": [
+      "compressionstream",
+      "decompression"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "protocol"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "binary-codec",
+          "streaming-runtime"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "compressionStream.present",
+    "versionPath": "compressionStream.version",
+    "artifactsPath": "compressionStream.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "compressionStream.stages"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "compressionStream.present",
+    "requiredArtifacts": [
+      "run/compression-stream-notes.md",
+      "run/compression-samples.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "compressionStream.present=true but pipelineStatus is still not-started",
+        "path": "compressionStream.pipelineStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "compressionStream.present=true but stages is still empty",
+        "path": "compressionStream.stages",
+        "minLength": 1
+      },
+      {
+        "message": "compressionStream.present=true but compression artifacts are still placeholders",
+        "touchedAny": [
+          "run/compression-stream-notes.md",
+          "run/compression-samples.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "compressionStream.present=true but codec / boundaryStatus is still unknown",
+        "checks": [
+          {
+            "path": "compressionStream.codec",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "compressionStream.boundaryStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-compression-stream-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/compression-stream-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/compression-samples.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "CompressionStream",
+    "gzip",
+    "run/compression-stream-notes.md",
+    "run/compression-samples.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-compression-stream",
+    "extensions": [
+      "--compression-stream"
+    ],
+    "taskSeed": [
+      {
+        "path": "compressionStream.codec",
+        "value": "gzip"
+      },
+      {
+        "path": "compressionStream.pipelineStatus",
+        "value": "captured"
+      },
+      {
+        "path": "compressionStream.boundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "compressionStream.sampleStatus",
+        "value": "captured"
+      },
+      {
+        "path": "compressionStream.stages",
+        "value": [
+          "json",
+          "gzip",
+          "request body"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/compression-stream-notes.md",
+        "text": "# compression stream notes\n\n- order: json -> gzip -> request body\n"
+      },
+      {
+        "path": "run/compression-samples.json",
+        "json": {
+          "codec": "gzip",
+          "before": "json payload",
+          "afterCarrier": "request body"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/compression-stream",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "key": "protection-bypass",
+  "label": "Protection bypass / root / frida / integrity / pinning",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "protection-bypass",
+  "signals": [
+    "rootbeer",
+    "frida detection",
+    "ptrace",
+    "play integrity",
+    "safetynet",
+    "certificatepinner"
+  ],
+  "protocol": "references/integrity-pinning-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/protection-bypass.json",
+  "taskInit": {
+    "aliases": [
+      "bypass"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "protectionBypass.present",
+    "versionPath": "protectionBypass.version",
+    "artifactsPath": "protectionBypass.artifacts",
+    "minArtifacts": 4,
+    "arrayPaths": [
+      "protectionBypass.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "protectionBypass.present",
+    "requiredArtifacts": [
+      "run/anti-root-bypass.js",
+      "run/anti-frida-bypass.js",
+      "run/integrity-bypass.js",
+      "run/cert-pinning-bypass.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "protectionBypass.present=true but status is still not-started",
+        "path": "protectionBypass.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "protectionBypass.present=true but keyFindings is still empty",
+        "path": "protectionBypass.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "protectionBypass.present=true but root surface is still not-started",
+        "path": "protectionBypass.surfaceMatrix.root.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "protectionBypass.present=true but frida surface is still not-started",
+        "path": "protectionBypass.surfaceMatrix.frida.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "protectionBypass.present=true but integrity surface is still not-started",
+        "path": "protectionBypass.surfaceMatrix.integrity.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "protectionBypass.present=true but pinning surface is still not-started",
+        "path": "protectionBypass.surfaceMatrix.pinning.status",
+        "disallow": [
+          "not-started"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "root surface must be marked not-applicable or touch run/anti-root-bypass.js",
+        "checks": [
+          {
+            "path": "protectionBypass.surfaceMatrix.root.status",
+            "equals": "not-applicable"
+          },
+          {
+            "touchedAny": [
+              "run/anti-root-bypass.js"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "frida surface must be marked not-applicable or touch run/anti-frida-bypass.js",
+        "checks": [
+          {
+            "path": "protectionBypass.surfaceMatrix.frida.status",
+            "equals": "not-applicable"
+          },
+          {
+            "touchedAny": [
+              "run/anti-frida-bypass.js"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "integrity surface must be marked not-applicable or touch run/integrity-bypass.js",
+        "checks": [
+          {
+            "path": "protectionBypass.surfaceMatrix.integrity.status",
+            "equals": "not-applicable"
+          },
+          {
+            "touchedAny": [
+              "run/integrity-bypass.js"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "pinning surface must be marked not-applicable or touch run/cert-pinning-bypass.js",
+        "checks": [
+          {
+            "path": "protectionBypass.surfaceMatrix.pinning.status",
+            "equals": "not-applicable"
+          },
+          {
+            "touchedAny": [
+              "run/cert-pinning-bypass.js"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-protection-bypass-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/anti-root-bypass.js",
+    "artifacts/tasks/_TEMPLATE/run/anti-frida-bypass.js",
+    "artifacts/tasks/_TEMPLATE/run/integrity-bypass.js",
+    "artifacts/tasks/_TEMPLATE/run/cert-pinning-bypass.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Root",
+    "Frida",
+    "Integrity",
+    "Pinning",
+    "run/anti-root-bypass.js",
+    "run/anti-frida-bypass.js",
+    "run/integrity-bypass.js",
+    "run/cert-pinning-bypass.js"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/protection-bypass"
+}
+

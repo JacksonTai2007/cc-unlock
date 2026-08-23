@@ -1,0 +1,136 @@
+{
+  "key": "dynamic-code",
+  "label": "Dynamic code / eval unpacking",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "dynamic-code",
+  "signals": [
+    "eval",
+    "Function",
+    "string timer",
+    "dynamic import"
+  ],
+  "protocol": "references/dynamic-code-playbook.md",
+  "extendedProtocols": [
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/dynamic-code.json",
+  "taskInit": {
+    "aliases": [],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "dynamicCode.present",
+    "versionPath": "dynamicCode.version",
+    "artifactsPath": "dynamicCode.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "dynamicCode.surfaces"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "dynamicCode.present",
+    "requiredArtifacts": [
+      "run/dynamic-code-capture-template.js",
+      "run/dynamic-code-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "dynamicCode.present=true but dynamic-code artifacts are still placeholders",
+        "touchedAny": [
+          "run/dynamic-code-capture-template.js",
+          "run/dynamic-code-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "dynamicCode.present=true but surfaces/captureStatus are still not-started",
+        "checks": [
+          {
+            "path": "dynamicCode.surfaces",
+            "minLength": 1
+          },
+          {
+            "path": "dynamicCode.captureStatus",
+            "disallow": [
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-dynamic-code-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/dynamic-code-capture-template.js",
+    "artifacts/tasks/_TEMPLATE/run/dynamic-code-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "eval",
+    "Function",
+    "dynamic import",
+    "run/dynamic-code-notes.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-dynamic-code",
+    "extensions": [
+      "--dynamic-code"
+    ],
+    "taskSeed": [
+      {
+        "path": "dynamicCode.surfaces",
+        "value": [
+          "eval"
+        ]
+      },
+      {
+        "path": "dynamicCode.captureStatus",
+        "value": "captured"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/dynamic-code-capture-template.js",
+        "text": "export const surface = 'eval';\n"
+      },
+      {
+        "path": "run/dynamic-code-notes.md",
+        "text": "# dynamic code\n\neval boundary captured\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/dynamic-code"
+}

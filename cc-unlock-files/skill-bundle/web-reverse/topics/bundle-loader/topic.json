@@ -1,0 +1,99 @@
+{
+  "key": "bundle-loader",
+  "label": "Bundle / chunk loader",
+  "maturity": "closed-loop",
+  "routeTrack": "bundle-loader",
+  "signals": [
+    "webpackJsonp",
+    "__webpack_require__",
+    "chunk loader",
+    "dynamic import"
+  ],
+  "protocol": "references/bundle-loader-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/bundle-loader.json",
+  "taskInit": {
+    "aliases": [
+      "chunk-loader"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "bundleLoader.present",
+    "versionPath": "bundleLoader.version",
+    "artifactsPath": "bundleLoader.artifacts",
+    "minArtifacts": 2,
+    "requiredValues": [
+      {
+        "path": "bundleLoader.artifact",
+        "equals": "run/chunk-loader-notes.md"
+      }
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "bundleLoader.present",
+    "requiredArtifacts": [
+      "run/chunk-loader-notes.md",
+      "run/preload-orchestrator.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "bundleLoader.present=true but mappingStatus is still not-started",
+        "path": "bundleLoader.mappingStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "bundleLoader.present=true but bundle-loader artifacts are still placeholders",
+        "touchedAny": [
+          "run/chunk-loader-notes.md",
+          "run/preload-orchestrator.js"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-bundle-loader-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/chunk-loader-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/preload-orchestrator.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "chunk loader",
+    "run/chunk-loader-notes.md",
+    "run/preload-orchestrator.js"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/bundle-loader",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

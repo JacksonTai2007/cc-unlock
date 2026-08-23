@@ -1,0 +1,11 @@
+{
+  "storageAnalysis": {
+    "version": 1,
+    "present": true,
+    "snapshotStatus": "not-started",
+    "artifacts": [
+      "run/storage-snapshot.json",
+      "run/storage-notes.md"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "readPoints": [
+    {
+      "property": "navigator.userAgent",
+      "pc": "",
+      "opcode": "",
+      "handler": "",
+      "count": 0,
+      "notes": ""
+    }
+  ],
+  "transformChains": [
+    {
+      "source": "navigator.userAgent",
+      "path": [
+        "read",
+        "normalize",
+        "hash/xor/concat"
+      ],
+      "sink": "",
+      "confidence": "low"
+    }
+  ],
+  "consumeTargets": [
+    {
+      "target": "",
+      "category": "control-flow",
+      "notes": ""
+    }
+  ],
+  "swapMatrix": [
+    {
+      "property": "navigator.userAgent",
+      "baseline": "",
+      "mutated": "",
+      "outputChanged": false,
+      "notes": ""
+    }
+  ],
+  "unknowns": []
+}

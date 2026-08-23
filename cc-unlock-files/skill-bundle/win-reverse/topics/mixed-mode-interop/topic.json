@@ -1,0 +1,119 @@
+{
+  "key": "mixed-mode-interop",
+  "label": "Mixed-mode / COM interop / CLR hosting",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "mixed-mode-interop",
+  "signals": [
+    "cxxcli",
+    "mixedmode",
+    "ijw",
+    "pinvoke",
+    "cominterop",
+    "clrhost"
+  ],
+  "protocol": "references/mixed-mode-interop-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/mixed-mode-interop.json",
+  "taskInit": {
+    "aliases": [
+      "mixed-mode",
+      "interop"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "dotnet"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "loader-injection"
+        ],
+        "tier": "T2"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "mixedModeInterop.present",
+    "versionPath": "mixedModeInterop.version",
+    "artifactsPath": "mixedModeInterop.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "mixedModeInterop.keyFindings",
+      "mixedModeInterop.bridgeEdges",
+      "mixedModeInterop.hostTypes"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "mixedModeInterop.present",
+    "requiredArtifacts": [
+      "run/mixed-mode-notes.md",
+      "run/bridge-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "mixedModeInterop.present=true but status is still not-started",
+        "path": "mixedModeInterop.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "mixedModeInterop.present=true but keyFindings is still empty",
+        "path": "mixedModeInterop.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "mixedModeInterop.present=true but notes are still placeholders",
+        "touchedAny": [
+          "run/mixed-mode-notes.md",
+          "run/bridge-map.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "mixedModeInterop requires either a hook script or a bridge analysis report",
+        "checks": [
+          { "touchedAny": ["run/interop-hook-template.js"] },
+          { "touchedAny": ["run/interop-bridge-report.md"] }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-mixed-mode-interop-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/mixed-mode-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/bridge-map.md",
+    "artifacts/tasks/_TEMPLATE/run/interop-hook-template.js",
+    "artifacts/tasks/_TEMPLATE/run/interop-bridge-report.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "C++/CLI",
+    "P/Invoke",
+    "run/mixed-mode-notes.md",
+    "run/bridge-map.md",
+    "run/interop-bridge-report.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/mixed-mode-interop"
+}

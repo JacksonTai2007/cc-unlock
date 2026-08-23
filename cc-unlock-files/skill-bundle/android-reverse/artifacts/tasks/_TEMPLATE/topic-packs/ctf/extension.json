@@ -1,0 +1,11 @@
+{
+  "ctf": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifact": "run/solver-template.py"
+  }
+}

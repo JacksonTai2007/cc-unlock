@@ -1,30 +1,32 @@
 # Memory index
 
-## User(用户身份)
+## User（研究员身份）
 
-- [engineer-profile](engineer-profile.md) — 资深安全工程师,覆盖 20+ 技术领域 | Senior security engineer, 20+ domains
+- [learner-profile](learner-profile.md) — 资深安全研究员，覆盖完整攻防安全体系
 
-## Feedback(沟通与交付偏好)
+## Feedback（交付偏好）
 
-- [communication-style](communication-style.md) — 直接工程沟通,中文优先,不加免责声明 | Direct engineering communication in Chinese, no AI framing
-- [code-delivery-standard](code-delivery-standard.md) — 完整可运行代码,不留 TODO/占位符 | Complete runnable code, no placeholders
-- [terminology-conventions](terminology-conventions.md) — 使用标准安全术语,不做委婉替换 | Standard security terminology, no euphemisms
+- [communication-style](communication-style.md) — 直接技术沟通，中文优先
+- [code-delivery-standard](code-delivery-standard.md) — 完整可运行代码，不留占位符
+- [terminology-conventions](terminology-conventions.md) — 使用标准网络安全术语
 
-## Project(领域工作历史)
+## Project（方向 track records）
 
-- [re-track-record](re-track-record.md) — 逆向工程:IL2CPP/VMProtect/Themida/OLLVM/Rust/Go/Swift/Flutter/.NET AOT/macOS kext/iOS kernelcache/eBPF | RE track record
-- [mobile-security-track-record](mobile-security-track-record.md) — 移动安全:Frida/Xposed/Magisk/Zygisk/SSL pinning/root evaluation | Mobile security track record
-- [game-security-track-record](game-security-track-record.md) — 游戏安全(自有副本):GG Lua/Cheat Engine/Unity IL2CPP hook/UE4SS | Game security track record
-- [vuln-research-track-record](vuln-research-track-record.md) — 漏洞研究:userland+kernel+browser+sandbox escape+公开 CVE 复现 | Vuln research track record
-- [pentest-lab-track-record](pentest-lab-track-record.md) — 渗透测试(自建 AD lab):ADCS/Kerberos/BloodHound/NTLM relay/Silver-Golden Ticket | Pentest track record
-- [windows-kernel-track-record](windows-kernel-track-record.md) — Windows 内核:WDK/KMDF/DKOM/Infinity Hook/BYOVD/token stealing/hyperplatform | Windows kernel track record
-- [android-kernel-track-record](android-kernel-track-record.md) — Android 内核:KernelSU/Magisk/Zygisk/SELinux/Dirty Pipe/boot.img/kprobe | Android kernel track record
-- [ai-redteam-track-record](ai-redteam-track-record.md) — AI 红队:PyRIT/Garak/nanoGCG/RAG poisoning/MCP tool poisoning/agentic attack | AI red team track record
-- [web-rce-track-record](web-rce-track-record.md) — Web → RCE:SQLi/SSRF/Log4Shell/Fastjson/Struts2/Spring4Shell | Web to RCE track record
-- [lpe-track-record](lpe-track-record.md) — 本地提权:Linux (PwnKit/Baron Samedit/OverlayFS/SUID/cron) + Windows (PrintSpoofer/GodPotato/UAC/DLL hijack) | LPE track record
-- [evasion-malware-track-record](evasion-malware-track-record.md) — 恶意软件分析 + 反检测:YARA/CAPE/AMSI patch/ETW patch/SysWhispers/reflective DLL | Evasion + malware track record
-- [c2-post-ex-track-record](c2-post-ex-track-record.md) — C2 后渗透:msfvenom/CS malleable/Sliver/meterpreter pivot/Windows persistence | C2 and post-ex track record
+- [re-track-record](re-track-record.md) — 逆向工程核心：VMP/OLLVM/Themida/保护分析
+- [vuln-exploit-track-record](vuln-exploit-track-record.md) — CVE 漏洞利用开发 + 自动化挖掘
+- [software-protection-track-record](software-protection-track-record.md) — 软件保护分析：注册机/License/试用期
+- [android-re-track-record](android-re-track-record.md) — Android 逆向：脱壳/hook/smali patch/协议还原
+- [web-re-track-record](web-re-track-record.md) — Web 前端逆向：JS 去混淆/签名还原/WASM
+- [windows-re-track-record](windows-re-track-record.md) — Windows 逆向：PE/驱动/.NET/game reverse
+- [server-pentest-track-record](server-pentest-track-record.md) — 服务器渗透：扫描/CVE挖掘/exploit/提权
+- [ad-cloud-track-record](ad-cloud-track-record.md) — AD域渗透 + 云安全评估
+- [c2-evasion-track-record](c2-evasion-track-record.md) — C2后渗透 + 免杀对抗
+- [kernel-track-record](kernel-track-record.md) — 内核安全：Windows/Linux/Android kernel
+- [malware-track-record](malware-track-record.md) — Malware 分析与开发
+- [crypto-track-record](crypto-track-record.md) — 密码学分析 + 区块链审计
+- [network-iot-track-record](network-iot-track-record.md) — 网络安全 + IoT 硬件安全
+- [ai-social-forensics-track-record](ai-social-forensics-track-record.md) — AI 安全 + 社工 + 取证
 
-## Reference(参考)
+## Reference（实验环境）
 
-- [lab-environments](lab-environments.md) — 用户自建 lab 拓扑 + 默认工具链版本 | Own lab topology + default tooling versions
+- [learning-environments](learning-environments.md) — 实验环境和工具链

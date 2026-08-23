@@ -1,0 +1,159 @@
+{
+  "key": "web-shell-triage",
+  "label": "Web shell / WebView runtime fingerprinting",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "web-shell-triage",
+  "signals": [
+    "electron",
+    "cef",
+    "webview2",
+    "tauri",
+    "wails",
+    "nwjs",
+    "asar",
+    "javascript",
+    "html",
+    "webview"
+  ],
+  "protocol": "references/web-shell-triage.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/web-shell-triage.json",
+  "taskInit": {
+    "aliases": [
+      "web-shell",
+      "webview-shell",
+      "electron-shell"
+    ],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "tls-network"
+        ],
+        "tier": "T1"
+      },
+      {
+        "withTopics": [
+          "config-recovery"
+        ],
+        "tier": "T1"
+      },
+      {
+        "withTopics": [
+          "anti-analysis"
+        ],
+        "tier": "T2"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "webShellTriage.present",
+    "versionPath": "webShellTriage.version",
+    "artifactsPath": "webShellTriage.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "webShellTriage.keyFindings",
+      "webShellTriage.probableRuntimes",
+      "webShellTriage.probableFrontend",
+      "webShellTriage.probablePackagers",
+      "webShellTriage.entryHints",
+      "webShellTriage.downstreamTopics"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "webShellTriage.present",
+    "requiredArtifacts": [
+      "run/web-shell-notes.md",
+      "run/web-shell-tech.json",
+      "run/web-shell-next-steps.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "webShellTriage.present=true but status is still not-started",
+        "path": "webShellTriage.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "webShellTriage.present=true but keyFindings is still empty",
+        "path": "webShellTriage.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "webShellTriage.present=true but probableRuntimes/probableFrontend/probablePackagers are all empty",
+        "requirementsAny": [
+          {
+            "checks": [
+              {
+                "path": "webShellTriage.probableRuntimes",
+                "minLength": 1
+              }
+            ]
+          },
+          {
+            "checks": [
+              {
+                "path": "webShellTriage.probableFrontend",
+                "minLength": 1
+              }
+            ]
+          },
+          {
+            "checks": [
+              {
+                "path": "webShellTriage.probablePackagers",
+                "minLength": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "message": "webShellTriage.present=true but downstreamTopics is still empty",
+        "path": "webShellTriage.downstreamTopics",
+        "minLength": 1
+      },
+      {
+        "message": "webShellTriage.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/web-shell-notes.md",
+          "run/web-shell-tech.json",
+          "run/web-shell-next-steps.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-web-shell-triage-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/web-shell-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/web-shell-tech.json",
+    "artifacts/tasks/_TEMPLATE/run/web-shell-next-steps.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "web-shell-triage",
+    "wrapper/runtime",
+    "run/web-shell-notes.md",
+    "run/web-shell-tech.json",
+    "run/web-shell-next-steps.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/web-shell-triage"
+}

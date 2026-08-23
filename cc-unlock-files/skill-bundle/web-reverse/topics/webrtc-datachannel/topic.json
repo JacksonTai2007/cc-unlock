@@ -1,0 +1,132 @@
+{
+  "key": "webrtc-datachannel",
+  "label": "WebRTC / signaling / datachannel",
+  "maturity": "closed-loop",
+  "routeTrack": "webrtc-datachannel",
+  "signals": [
+    "RTCPeerConnection",
+    "createOffer",
+    "setLocalDescription",
+    "ICE",
+    "RTCDataChannel"
+  ],
+  "protocol": "references/webrtc-datachannel-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/webrtc-datachannel.json",
+  "taskInit": {
+    "aliases": [
+      "webrtc",
+      "datachannel"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "cross-context-coordination",
+          "session"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "webrtcDatachannel.present",
+    "versionPath": "webrtcDatachannel.version",
+    "artifactsPath": "webrtcDatachannel.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "webrtcDatachannel.channelLabels"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "webrtcDatachannel.present",
+    "requiredArtifacts": [
+      "run/signaling-map.md",
+      "run/channel-frames.jsonl"
+    ],
+    "requirementsAll": [
+      {
+        "message": "webrtcDatachannel.present=true but signalingStatus is still not-started",
+        "path": "webrtcDatachannel.signalingStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "webrtcDatachannel.present=true but channelLabels is still empty",
+        "path": "webrtcDatachannel.channelLabels",
+        "minLength": 1
+      },
+      {
+        "message": "webrtcDatachannel.present=true but WebRTC artifacts are still placeholders",
+        "touchedAny": [
+          "run/signaling-map.md",
+          "run/channel-frames.jsonl"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "webrtcDatachannel.present=true but ICE / protocol status is still unknown",
+        "checks": [
+          {
+            "path": "webrtcDatachannel.iceStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "webrtcDatachannel.protocolStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-webrtc-datachannel-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/signaling-map.md",
+    "artifacts/tasks/_TEMPLATE/run/channel-frames.jsonl"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "RTCPeerConnection",
+    "run/signaling-map.md",
+    "run/channel-frames.jsonl"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/webrtc-datachannel",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

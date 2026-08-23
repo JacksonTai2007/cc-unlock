@@ -1,0 +1,17 @@
+{
+  "ipcPersistence": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "carriers": [],
+    "triggerPoints": [],
+    "artifacts": [
+      "run/ipc-persistence-notes.md",
+      "run/ipc-surface.md",
+      "run/persistence-map.md"
+    ]
+  }
+}

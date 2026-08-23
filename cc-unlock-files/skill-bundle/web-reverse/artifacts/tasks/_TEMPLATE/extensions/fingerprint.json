@@ -1,0 +1,22 @@
+{
+  "fingerprint": {
+    "version": 2,
+    "present": true,
+    "profileStatus": "not-started",
+    "probeOrderStatus": "unknown",
+    "networkBindingStatus": "unknown",
+    "automationLeakStatus": "unknown",
+    "overrideStrategy": "not-decided",
+    "vectors": [],
+    "networkFields": [],
+    "detectorFamilies": [],
+    "automationMarkers": [],
+    "executionContexts": [],
+    "patchScope": [],
+    "artifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-notes.md",
+      "run/fingerprint-inspector-template.js"
+    ]
+  }
+}

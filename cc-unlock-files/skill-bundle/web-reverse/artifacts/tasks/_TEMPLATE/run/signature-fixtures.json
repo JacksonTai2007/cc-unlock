@@ -1,0 +1,14 @@
+{
+  "request": {
+    "headers": {}
+  },
+  "normalized": {},
+  "clock": {},
+  "randomness": {},
+  "session": {},
+  "carrierMap": {},
+  "runtimeState": {},
+  "syncChecks": [],
+  "output": {},
+  "acceptance": {}
+}

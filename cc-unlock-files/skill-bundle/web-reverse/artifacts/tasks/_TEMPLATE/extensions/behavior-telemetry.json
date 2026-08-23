@@ -1,0 +1,14 @@
+{
+  "behaviorTelemetry": {
+    "version": 1,
+    "present": true,
+    "captureStatus": "not-started",
+    "normalizationStatus": "not-started",
+    "bindingStatus": "not-started",
+    "channels": [],
+    "artifacts": [
+      "run/behavior-telemetry-notes.md",
+      "run/telemetry-profile.json"
+    ]
+  }
+}

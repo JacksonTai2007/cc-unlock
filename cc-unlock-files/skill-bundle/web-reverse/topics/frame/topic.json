@@ -1,0 +1,95 @@
+{
+  "key": "frame",
+  "label": "Frame / iframe",
+  "maturity": "closed-loop",
+  "routeTrack": "frame",
+  "signals": [
+    "iframe",
+    "frame",
+    "postMessage",
+    "cross-frame"
+  ],
+  "protocol": "references/frame-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/frame.json",
+  "taskInit": {
+    "aliases": [
+      "frames"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "frames.present",
+    "versionPath": "frames.version",
+    "artifactsPath": "frames.artifacts",
+    "minArtifacts": 1,
+    "requiredValues": [
+      {
+        "path": "frames.artifact",
+        "equals": "run/frame-notes.md"
+      }
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "frames.present",
+    "requiredArtifacts": [
+      "run/frame-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "frames.present=true but frameTreeStatus is still not-started",
+        "path": "frames.frameTreeStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "frames.present=true but frame artifacts are still placeholders",
+        "touchedAny": [
+          "run/frame-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-frame-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/frame-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "target frame",
+    "run/frame-notes.md"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/frame",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

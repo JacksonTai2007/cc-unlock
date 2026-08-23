@@ -1,0 +1,13 @@
+{
+  "loader_pattern": "",
+  "entry_call_pattern": "",
+  "dispatcher_pattern": "",
+  "handler_table_pattern": "",
+  "bytecode_carrier_pattern": "",
+  "dynamic_param_extractors": [],
+  "env_profile": "pc-chrome",
+  "graphics_profile": "fixed-webgl-min",
+  "time_strategy": "captured",
+  "random_strategy": "captured",
+  "notes": []
+}

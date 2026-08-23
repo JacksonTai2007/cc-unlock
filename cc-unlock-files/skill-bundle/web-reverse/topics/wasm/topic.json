@@ -1,0 +1,178 @@
+{
+  "key": "wasm",
+  "label": "WASM runtime",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "wasm",
+  "signals": [
+    "instantiate",
+    "instantiateStreaming",
+    "glue",
+    "memory"
+  ],
+  "protocol": "references/wasm-runtime-playbook.md",
+  "extendedProtocols": [
+    "references/wasm-binary-analysis-playbook.md",
+    "references/wasm-jsvmp-bridge-playbook.md",
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/wasm.json",
+  "taskInit": {
+    "aliases": [
+      "wasm-analysis"
+    ],
+    "baseProtectionTier": "T5",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "jsvmp"
+        ],
+        "tier": "T6"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "wasmAnalysis.present",
+    "versionPath": "wasmAnalysis.version",
+    "artifactsPath": "wasmAnalysis.artifacts",
+    "minArtifacts": 4,
+    "requiredValues": [
+      {
+        "path": "runtime.wasmPresent",
+        "equals": true
+      }
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "wasmAnalysis.present",
+    "requiredArtifacts": [
+      "run/wasm-analysis.wat",
+      "run/wasm-runtime-hook-template.js",
+      "run/wasm-imports-exports.json",
+      "run/wasm-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "wasmAnalysis.present=true but wasm artifacts are still placeholders",
+        "touchedAny": [
+          "run/wasm-analysis.wat",
+          "run/wasm-imports-exports.json",
+          "run/wasm-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "wasmAnalysis.present=true but loaderStatus and hookStatus are both not-started",
+        "checks": [
+          {
+            "path": "wasmAnalysis.loaderStatus",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "path": "wasmAnalysis.hookStatus",
+            "disallow": [
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-wasm-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/wasm-analysis.wat",
+    "artifacts/tasks/_TEMPLATE/run/wasm-runtime-hook-template.js",
+    "artifacts/tasks/_TEMPLATE/run/wasm-imports-exports.json",
+    "artifacts/tasks/_TEMPLATE/run/wasm-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "WASM",
+    "imports / exports",
+    "run/wasm-analysis.wat"
+  ],
+  "synthetic": {
+    "id": "synthetic-wasm",
+    "extensions": [
+      "--wasm"
+    ],
+    "taskSeed": [
+      {
+        "path": "runtime.wasmPresent",
+        "value": true
+      },
+      {
+        "path": "wasmAnalysis.loaderStatus",
+        "value": "located"
+      },
+      {
+        "path": "wasmAnalysis.hookStatus",
+        "value": "instrumented"
+      },
+      {
+        "path": "wasmAnalysis.glueType",
+        "value": "custom"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/wasm-analysis.wat",
+        "text": "(module)\n"
+      },
+      {
+        "path": "run/wasm-runtime-hook-template.js",
+        "text": "export function hookWasm() { return true; }\n"
+      },
+      {
+        "path": "run/wasm-imports-exports.json",
+        "json": {
+          "imports": [
+            "env.memory"
+          ],
+          "exports": [
+            "sign"
+          ]
+        }
+      },
+      {
+        "path": "run/wasm-notes.md",
+        "text": "# wasm\n\nloader observed\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/wasm"
+}

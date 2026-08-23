@@ -1,0 +1,299 @@
+{
+  "key": "jsvmp",
+  "label": "JS-VMP / custom VM",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "jsvmp",
+  "signals": [
+    "dispatcher",
+    "opcode",
+    "bytecode",
+    "handler table"
+  ],
+  "protocol": "references/vmp-playbook.md",
+  "extendedProtocols": [
+    "references/vm-generic-reverse-template.md",
+    "references/vmp-semantic-lifting-playbook.md",
+    "references/vmp-advanced-playbook.md",
+    "references/vmp-dynamic-bytecode-playbook.md",
+    "references/wasm-jsvmp-bridge-playbook.md",
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/vm.json",
+  "taskInit": {
+    "aliases": [
+      "vm"
+    ],
+    "baseProtectionTier": "T4",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "wasm"
+        ],
+        "tier": "T6"
+      },
+      {
+        "withTopics": [
+          "media-drm"
+        ],
+        "tier": "T7"
+      }
+    ],
+    "crossTopicSignals": {
+      "wasm": "WASM/JSVMP hybrid bytecode bridge",
+      "media-drm": "VM-hosted media decryption",
+      "anti-debug": "VM anti-debug trigger before bytecode entry",
+      "anti-tamper": "VM integrity check before dispatch",
+      "ast-deobfuscation": "control flow flattening → VM bytecode",
+      "signature": "VM-hosted signer dispatcher",
+      "env": "VM internal env conformance checks"
+    }
+  },
+  "taskSemantics": {
+    "presentPath": "vm.present",
+    "versionPath": "vm.version",
+    "artifactsPath": "vm.artifacts",
+    "minArtifacts": 5,
+    "arrayPaths": [
+      "vm.triageNotes",
+      "vm.traceSignals",
+      "vm.envReadSignals",
+      "vm.handlerClusters"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "vm.present",
+    "requiredArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/vm-trace.jsonl",
+      "run/dispatcher-map.md",
+      "run/vm-decode-notes.md",
+      "run/vm-handler-clusters.md",
+      "run/vm-env-reads.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "vm.present=true but boundaryStatus is still not-started",
+        "path": "vm.boundaryStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but dispatcherStatus is still not-started",
+        "path": "vm.dispatcherStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but traceStatus is still not-started",
+        "path": "vm.traceStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but envReadStatus is still not-started",
+        "path": "vm.envReadStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but bytecodeLifecycleStatus is still not-started",
+        "path": "vm.bytecodeLifecycleStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but nestingStatus is still not-started",
+        "path": "vm.nestingStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "vm.present=true but no vm-opcodes/dispatcher-map/handler-clusters artifact was updated",
+        "touchedAny": [
+          "run/vm-opcodes.txt",
+          "run/dispatcher-map.md",
+          "run/vm-handler-clusters.md"
+        ]
+      },
+      {
+        "message": "vm.present=true but vm-env-reads artifact was not updated",
+        "touchedAny": [
+          "run/vm-env-reads.json"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-vm-generic-template-workflow.mjs",
+    "scripts/cases/web-jsvmp-devirtualization-workflow.mjs",
+    "scripts/cases/web-vm-wasm-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/vm-trace-template.js",
+    "artifacts/tasks/_TEMPLATE/run/vm-trace.jsonl",
+    "artifacts/tasks/_TEMPLATE/run/vm-opcodes.txt",
+    "artifacts/tasks/_TEMPLATE/run/dispatcher-map.md",
+    "artifacts/tasks/_TEMPLATE/run/vm-decode-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/vm-handler-clusters.md",
+    "artifacts/tasks/_TEMPLATE/run/vm-env-reads.json",
+    "artifacts/tasks/_TEMPLATE/run/vm-bytecode-lifecycle.md",
+    "artifacts/tasks/_TEMPLATE/run/vm-nesting-map.md",
+    "artifacts/tasks/_TEMPLATE/run/vm-env-trace-template.js",
+    "artifacts/tasks/_TEMPLATE/run/vm-template-profile.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "VM boundary",
+    "opcode",
+    "run/vm-opcodes.txt",
+    "run/dispatcher-map.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-jsvmp",
+    "extensions": [
+      "--vm"
+    ],
+    "taskSeed": [
+      {
+        "path": "vm.boundaryStatus",
+        "value": "located"
+      },
+      {
+        "path": "vm.dispatcherStatus",
+        "value": "located"
+      },
+      {
+        "path": "vm.traceStatus",
+        "value": "captured"
+      },
+      {
+        "path": "vm.envReadStatus",
+        "value": "captured"
+      },
+      {
+        "path": "vm.bytecodeLifecycleStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "vm.nestingStatus",
+        "value": "single-layer"
+      },
+      {
+        "path": "vm.opcodeCoverage",
+        "value": "35%"
+      },
+      {
+        "path": "vm.envReadSignals",
+        "value": [
+          "navigator.userAgent",
+          "screen.width"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/vm-opcodes.txt",
+        "text": "0x01 -> PUSH\n0x02 -> CALL\n"
+      },
+      {
+        "path": "run/vm-trace.jsonl",
+        "text": "{\"pc\":0,\"opcode\":\"0x01\"}\n"
+      },
+      {
+        "path": "run/dispatcher-map.md",
+        "text": "# dispatcher\n\n- 0x01 -> handler_push\n"
+      },
+      {
+        "path": "run/vm-decode-notes.md",
+        "text": "# vm decode\n\nboundary located\n"
+      },
+      {
+        "path": "run/vm-handler-clusters.md",
+        "text": "# clusters\n\n- arithmetic\n"
+      },
+      {
+        "path": "run/vm-env-reads.json",
+        "json": {
+          "readPoints": [
+            {
+              "property": "navigator.userAgent",
+              "pc": "0x10",
+              "opcode": "0x21",
+              "handler": "handler_env",
+              "count": 1,
+              "notes": "synthetic"
+            }
+          ],
+          "transformChains": [],
+          "consumeTargets": [],
+          "swapMatrix": [],
+          "unknowns": []
+        }
+      },
+      {
+        "path": "run/vm-bytecode-lifecycle.md",
+        "text": "# vm bytecode lifecycle\n\n- carrier: synthetic\n"
+      },
+      {
+        "path": "run/vm-nesting-map.md",
+        "text": "# vm nesting map\n\n| Layer | Boundary | Dispatcher | Bytecode Source | Goal | Notes |\n|---|---|---|---|---|---|\n| L1 | synthetic | synthetic | synthetic | synthetic | synthetic |\n"
+      },
+      {
+        "path": "run/vm-template-profile.json",
+        "json": {
+          "loader_pattern": "synthetic-loader",
+          "entry_call_pattern": "synthetic-entry",
+          "dispatcher_pattern": "synthetic-dispatcher",
+          "handler_table_pattern": "synthetic-handlers",
+          "bytecode_carrier_pattern": "synthetic-carrier",
+          "dynamic_param_extractors": [],
+          "env_profile": "pc-chrome",
+          "graphics_profile": "fixed-webgl-min",
+          "time_strategy": "captured",
+          "random_strategy": "captured",
+          "notes": [
+            "synthetic"
+          ]
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e",
+    "check:algo-selfcheck"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/jsvmp"
+}

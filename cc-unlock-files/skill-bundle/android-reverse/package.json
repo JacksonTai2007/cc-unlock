@@ -1,0 +1,39 @@
+{
+  "name": "android-reverse-skill-framework",
+  "private": true,
+  "version": "0.3.1",
+  "description": "android-reverse 用户交付版的本地检查、任务闭环与知识沉淀命令",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node tools/qa/check-all.mjs",
+    "smoke": "node tools/qa/check-smoke-scenarios.mjs",
+    "smoke:quick": "node tools/qa/check-smoke-scenarios.mjs --quick",
+    "test": "npm run check && npm run smoke",
+    "release:check": "npm run test",
+    "check:skill-contract": "node tools/qa/check-skill-contract.mjs",
+    "check:framework-layout": "node tools/qa/check-framework-layout.mjs",
+    "check:template": "node tools/qa/check-template.mjs",
+    "check:task-read-performance": "node tools/qa/check-task-read-performance.mjs",
+    "check:workflow-gates": "node tools/qa/check-workflow-gates.mjs",
+    "check:repair-regressions": "node tools/qa/check-repair-regressions.mjs",
+    "check:topic-manifests": "node tools/qa/check-topic-manifests.mjs",
+    "check:maturity-evidence": "node tools/qa/check-maturity-evidence.mjs",
+    "check:capability-coverage": "node tools/qa/check-capability-coverage.mjs",
+    "check:operating-contracts": "node tools/qa/check-operating-contracts.mjs",
+    "check:deliverables": "node tools/qa/check-deliverables.mjs",
+    "check:case-topic-alignment": "node tools/qa/check-case-topic-alignment.mjs",
+    "lint:cases": "node tools/qa/lint-cases.mjs",
+    "build:topics": "node tools/topic/generate-topic-docs.mjs",
+    "task:init": "node tools/task/task-init.mjs",
+    "task:start": "node tools/task/task-start.mjs",
+    "task:migrate": "node tools/task/task-migrate.mjs",
+    "task:sync": "node tools/task/task-sync.mjs",
+    "task:record": "node tools/task/task-record-attempt.mjs",
+    "task:baseline": "node tools/task/task-baseline.mjs",
+    "task:verify": "node tools/task/task-verify.mjs",
+    "task:advance": "node tools/task/task-advance.mjs",
+    "task:close": "node tools/task/task-close.mjs"
+  }
+}

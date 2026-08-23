@@ -1,0 +1,111 @@
+{
+  "id": "ui-license-crackme",
+  "title": "UI license crackme with anti-debug and config-backed validation",
+  "summary": "围绕 UI 事件、许可证字段、反调试门与 solver/patch 路线的交互式演练。",
+  "difficulty": "intermediate-advanced",
+  "topics": [
+    "static-triage",
+    "ui-runtime",
+    "dotnet",
+    "anti-analysis",
+    "config-recovery"
+  ],
+  "taskInit": {
+    "protectionTier": "T2",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "ui-license-crackme sample",
+      "binaryPath": "samples/ui-license-crackme.exe"
+    },
+    "objective": "恢复 UI 验证触发链、许可证字段和校验逻辑，确认 anti-debug 门，并输出稳定的 solver 或最小 patch 路线。",
+    "requirements": {
+      "deliverables": [
+        "message flow",
+        "ui runtime notes",
+        "dotnet notes",
+        "config schema",
+        "solver 或 patch 方案"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分析",
+        "UI 消息跟踪",
+        ".NET 事件处理分析",
+        "最小 patch / solver"
+      ],
+      "outOfScope": [
+        "通用破解分发",
+        "对第三方软件实施未授权持久化修改"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] UI license crackme / anti-debug / config-backed validation",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": true,
+      "loader": "standard"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+dnSpy",
+      "spawnStrategy": "launch-and-interact",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/ui-license-crackme.exe",
+      "targetProcessNames": [
+        "ui-license-crackme.exe"
+      ],
+      "targetModuleNames": [
+        "user32.dll",
+        "clr.dll"
+      ],
+      "targetKeywords": [
+        "wndproc",
+        "dialogproc",
+        "license",
+        "anti-debug"
+      ],
+      "targetFunctionNames": [
+        "DispatchMessageW",
+        "GetDlgItemTextW",
+        "IsDebuggerPresent"
+      ]
+    },
+    "successCriteria": [
+      "确认 UI 事件到校验函数的调用链",
+      "恢复许可证字段与至少一个关键校验条件",
+      "确认 anti-debug 触发位置与影响",
+      "输出稳定的 solver 或最小 patch 路线",
+      "给出一次本地验收结果"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "WndProc / DialogProc",
+        ".NET 按钮事件处理器",
+        "license blob parser",
+        "anti-debug gate"
+      ],
+      "evidenceGoals": [
+        "消息流与触发点",
+        "许可证字段与算法边界",
+        "最小 patch 点或 solver 输入/输出"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-ui-runtime-workflow.mjs",
+        "scripts/cases/win-dotnet-workflow.mjs",
+        "scripts/cases/win-anti-analysis-workflow.mjs",
+        "scripts/cases/win-config-recovery-workflow.mjs"
+      ]
+    }
+  }
+}

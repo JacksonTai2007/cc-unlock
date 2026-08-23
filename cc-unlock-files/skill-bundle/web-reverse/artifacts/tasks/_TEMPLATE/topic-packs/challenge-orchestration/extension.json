@@ -1,0 +1,14 @@
+{
+  "challengeOrchestration": {
+    "version": 1,
+    "present": true,
+    "routeStatus": "not-started",
+    "challengeType": "unknown",
+    "tokenCarrierStatus": "not-started",
+    "decisionPoints": [],
+    "artifacts": [
+      "run/challenge-route-notes.md",
+      "run/challenge-state-machine.json"
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "key": "java-api",
+  "label": "Java API / client / endpoint extraction",
+  "maturity": "closed-loop",
+  "routeTrack": "java-api",
+  "signals": [
+    "retrofit",
+    "okhttp",
+    "volley",
+    "baseurl",
+    "api",
+    "endpoint"
+  ],
+  "protocol": "references/java-api-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/java-api.json",
+  "taskInit": {
+    "aliases": [
+      "api",
+      "endpoint"
+    ],
+    "baseProtectionTier": "A1"
+  },
+  "taskSemantics": {
+    "presentPath": "javaApi.present",
+    "artifactsPath": "javaApi.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "javaApi.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "javaApi.present",
+    "requiredArtifacts": [
+      "run/api-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "javaApi.present=true but status is still not-started",
+        "path": "javaApi.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "javaApi.present=true but keyFindings is still empty",
+        "path": "javaApi.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "javaApi.present=true but api-map is still placeholder",
+        "touchedAny": [
+          "run/api-map.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-java-api-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/api-map.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Java API",
+    "run/api-map.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/java-api"
+}

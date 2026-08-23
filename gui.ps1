@@ -1,4 +1,4 @@
-﻿# cc-unlock v8.0.6 GUI - PowerShell WinForms
+﻿# cc-unlock v8.0.7 GUI - PowerShell WinForms
 # Sidebar navigation + version detection + i18n (zh/en)
 
 param([switch]$NoConsole)
@@ -88,10 +88,9 @@ $script:S = @{
     dp_loop       = @{ zh = 'Loop Engine'; en = 'Loop Engine' }
     dp_custom     = @{ zh = '自定义路径:'; en = 'Custom path:' }
     dp_browse     = @{ zh = '浏览...';   en = 'Browse...' }
-    dp_options    = @{ zh = '选项';     en = 'OPTIONS' }
-    dp_opt_set    = @{ zh = '部署 settings.json (bypassPermissions)'; en = 'Deploy settings.json (bypassPermissions)' }
-    dp_opt_skill  = @{ zh = '部署技能 (loop-sec.md)'; en = 'Deploy skill (loop-sec.md)' }
-    dp_opt_codex  = @{ zh = '部署 Codex 配置'; en = 'Deploy Codex config' }
+    dp_codex_sec  = @{ zh = 'CODEX';       en = 'CODEX' }
+    dp_codex_dep  = @{ zh = '部署 Codex'; en = 'Deploy Codex' }
+    dp_codex_uni  = @{ zh = '卸载 Codex'; en = 'Uninstall Codex' }
     dp_deploy_sel = @{ zh = '部署选中';   en = 'Deploy Selected' }
     dp_deploy_all = @{ zh = '全部部署';   en = 'Deploy All' }
     dp_uninst_sel = @{ zh = '卸载选中';   en = 'Uninstall Selected' }
@@ -116,12 +115,12 @@ $script:S = @{
     ab_title      = @{ zh = '关于 cc-unlock'; en = 'About cc-unlock' }
     ab_version    = @{ zh = 'cc-unlock 版本'; en = 'cc-unlock Version' }
     ab_desc_title = @{ zh = '描述';     en = 'DESCRIPTION' }
-    ab_desc       = @{ zh = 'Loop Engineering 自递归任务执行引擎 + 安全研究授权上下文自动部署工具'; en = 'Loop Engineering self-recursive task engine + security research authorization auto-deployer' }
+    ab_desc       = @{ zh = '网络安全学院辅导工具 — Loop Engineering 自递归执行引擎 + 全课程技能框架'; en = 'Cybersecurity academy tutor — Loop Engineering self-recursive engine + full curriculum skill frameworks' }
     ab_feat_title = @{ zh = '功能';     en = 'FEATURES' }
-    ab_feat1      = @{ zh = '- 记忆注入 (20 memory files)'; en = '- Memory injection (20 memory files)' }
-    ab_feat2      = @{ zh = '- CLAUDE.md 策略对齐 + 反拒答协议'; en = '- CLAUDE.md policy alignment + anti-refusal protocol' }
-    ab_feat3      = @{ zh = '- Loop Engineering 技能自动触发'; en = '- Loop Engineering skill auto-trigger' }
-    ab_feat4      = @{ zh = '- Codex 系统提示词部署'; en = '- Codex system prompt deployment' }
+    ab_feat1      = @{ zh = '- 学员记忆注入 (academy memory bundle)'; en = '- Learner memory injection (academy memory bundle)' }
+    ab_feat2      = @{ zh = '- CLAUDE.md 全课程辅导策略'; en = '- CLAUDE.md full curriculum tutoring policy' }
+    ab_feat3      = @{ zh = '- Loop Engineering 自递归执行 + 3 技能框架 (android/web/win-reverse)'; en = '- Loop Engineering self-recursive + 3 skill frameworks (android/web/win-reverse)' }
+    ab_feat4      = @{ zh = '- Codex 系统提示词 + 记忆部署'; en = '- Codex system prompt + memory deployment' }
     ab_feat5      = @{ zh = '- settings.json 权限配置'; en = '- settings.json permission config' }
     ab_target     = @{ zh = '支持平台';   en = 'Supported Platforms' }
     ab_target_v   = @{ zh = 'Claude Code + OpenAI Codex'; en = 'Claude Code + OpenAI Codex' }
@@ -250,10 +249,22 @@ function Remove-Settings-Surgical {
 
 function Get-MemoryDir([string]$ProjectName) { return Join-Path $CLAUDE_PROJECTS "$ProjectName\memory" }
 
+# UTF-8 (BOM-tolerant) line read. Bare Get-Content reads with the system ANSI codepage
+# (e.g. cp936) and corrupts non-ASCII bytes — CJK project paths in config.toml — on the
+# read/rewrite round-trip. Reading as UTF-8 preserves them.
+function Read-Utf8Lines($FilePath) {
+    $raw = $null
+    try { $raw = [System.IO.File]::ReadAllText($FilePath, $UTF8NoBOM) } catch { return @() }
+    if ([string]::IsNullOrEmpty($raw)) { return @() }
+    $raw = ($raw -replace "`r`n", "`n").TrimEnd("`n")
+    if ([string]::IsNullOrEmpty($raw)) { return @() }
+    return @($raw -split "`n")
+}
+
 function Set-InstructionsFile($ConfigPath) {
     $line = 'model_instructions_file = "system-prompt.md"'
     if (!(Test-Path $ConfigPath)) { return (Write-Utf8NoBom $ConfigPath ($line + "`n")) }
-    $existing = @(Get-Content $ConfigPath -ErrorAction SilentlyContinue)
+    $existing = Read-Utf8Lines $ConfigPath
     $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $content = (@($line) + $kept) -join "`n"
     if (!$content.EndsWith("`n")) { $content += "`n" }
@@ -262,7 +273,7 @@ function Set-InstructionsFile($ConfigPath) {
 
 function Remove-InstructionsFile($ConfigPath) {
     if (!(Test-Path $ConfigPath)) { return 'absent' }
-    $existing = @(Get-Content $ConfigPath -ErrorAction SilentlyContinue)
+    $existing = Read-Utf8Lines $ConfigPath
     $kept = @($existing | Where-Object { $_ -notmatch '^\s*model_instructions_file\s*=' })
     $hasContent = ($kept | Where-Object { $_ -match '\S' }).Count -gt 0
     if ($hasContent) {
@@ -341,7 +352,7 @@ function LogInfo($msg)   { Log "  $msg" $CLR_SUBTEXT }
 function LogHeader($msg) { Log "`r`n--- $msg ---" $CLR_BLUE }
 
 # === Core Operations ===
-function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath, [bool]$doSettings, [bool]$doSkill, [bool]$doCodex) {
+function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath) {
     $memDir = Get-MemoryDir $ProjectName
     if (!(Test-Path $memDir)) { New-Item -ItemType Directory -Path $memDir -Force | Out-Null }
     LogHeader "Claude Code: $ProjectName"
@@ -362,19 +373,28 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath, [bool]
         $cDst = Join-Path $WorkspacePath 'CLAUDE.md'
         if ((Test-Path $cSrc) -and (Copy-Safe $cSrc $cDst)) { LogOk "CLAUDE.md -> workspace" } else { LogFail "CLAUDE.md" }
     }
-    if ($doSkill -and $WorkspacePath -and (Test-Path $WorkspacePath)) {
+    if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
+        $skillDir = Join-Path $WorkspacePath '.claude\skills'
+        if (!(Test-Path $skillDir)) { New-Item -ItemType Directory -Path $skillDir -Force | Out-Null }
         $skillSrc = Join-Path $SKILL_BUNDLE 'loop-sec.md'
         if (Test-Path $skillSrc) {
-            $skillDir = Join-Path $WorkspacePath '.claude\skills'
-            if (!(Test-Path $skillDir)) { New-Item -ItemType Directory -Path $skillDir -Force | Out-Null }
             $skillDst = Join-Path $skillDir 'loop-sec.md'
             if (Copy-Safe $skillSrc $skillDst) { LogOk "loop-sec.md -> .claude/skills/" } else { LogFail "loop-sec.md" }
         }
+        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+            $sdSrc = Join-Path $SKILL_BUNDLE $sd
+            if (Test-Path $sdSrc) {
+                $sdDst = Join-Path $skillDir $sd
+                try {
+                    if (Test-Path $sdDst) { Remove-Item $sdDst -Recurse -Force -ErrorAction SilentlyContinue }
+                    Copy-Item $sdSrc $sdDst -Recurse -Force -ErrorAction Stop
+                    $count = @(Get-ChildItem $sdDst -Recurse -File -ErrorAction SilentlyContinue).Count
+                    LogOk "$sd ($count files) -> .claude/skills/"
+                } catch { LogFail "$sd" }
+            }
+        }
     }
-    if ($doSettings) {
-        Deploy-Settings-Merged
-    }
-    if ($doCodex) { Deploy-CodexConfig }
+    Deploy-Settings-Merged
     foreach ($f in @('CLAUDE.md', 'system-prompt.md')) {
         $p = Join-Path $CLAUDE_DIR $f
         if (Test-Path $p) { Remove-Item $p -Force -ErrorAction SilentlyContinue; LogInfo "Cleaned legacy $f from ~/.claude/" }
@@ -395,9 +415,13 @@ function Uninstall-FromWorkspace([string]$ProjectName, [string]$WorkspacePath) {
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
         if (Test-Path $claudePath) { Remove-Item $claudePath -Force -ErrorAction SilentlyContinue; LogOk "Removed CLAUDE.md" }
-        $skillPath = Join-Path $WorkspacePath '.claude\skills\loop-sec.md'
-        if (Test-Path $skillPath) { Remove-Item $skillPath -Force -ErrorAction SilentlyContinue; LogOk "Removed loop-sec.md" }
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
+        $skillPath = Join-Path $skillDir 'loop-sec.md'
+        if (Test-Path $skillPath) { Remove-Item $skillPath -Force -ErrorAction SilentlyContinue; LogOk "Removed loop-sec.md" }
+        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+            $sdPath = Join-Path $skillDir $sd
+            if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed $sd" }
+        }
         if ((Test-Path $skillDir) -and (@(Get-ChildItem $skillDir -ErrorAction SilentlyContinue).Count -eq 0)) { Remove-Item $skillDir -Force -ErrorAction SilentlyContinue }
     }
     Remove-Settings-Surgical
@@ -490,7 +514,33 @@ function Deploy-CodexConfig {
     }
     $cfg = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
+    Deploy-CodexSkills
     Deploy-CodexMemory
+}
+
+function Deploy-CodexSkills {
+    LogHeader "Codex Skills"
+    $codexSkillDir = Join-Path $CODEX_DIR 'skills'
+    if (!(Test-Path $codexSkillDir)) { New-Item -ItemType Directory -Path $codexSkillDir -Force | Out-Null }
+    $skillSrc = Join-Path $SKILL_BUNDLE 'loop-sec.md'
+    if (Test-Path $skillSrc) {
+        $loopDir = Join-Path $codexSkillDir 'loop-sec'
+        if (!(Test-Path $loopDir)) { New-Item -ItemType Directory -Path $loopDir -Force | Out-Null }
+        $dst = Join-Path $loopDir 'SKILL.md'
+        if (Copy-Safe $skillSrc $dst) { LogOk "loop-sec/SKILL.md -> .codex/skills/" } else { LogFail "loop-sec/SKILL.md" }
+    }
+    foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+        $sdSrc = Join-Path $SKILL_BUNDLE $sd
+        if (Test-Path $sdSrc) {
+            $sdDst = Join-Path $codexSkillDir $sd
+            try {
+                if (Test-Path $sdDst) { Remove-Item $sdDst -Recurse -Force -ErrorAction SilentlyContinue }
+                Copy-Item $sdSrc $sdDst -Recurse -Force -ErrorAction Stop
+                $count = @(Get-ChildItem $sdDst -Recurse -File -ErrorAction SilentlyContinue).Count
+                LogOk "$sd ($count files) -> .codex/skills/"
+            } catch { LogFail "$sd" }
+        }
+    }
 }
 
 function Uninstall-CodexConfig {
@@ -504,7 +554,20 @@ function Uninstall-CodexConfig {
         'removed' { LogOk "Removed config.toml" }
         'kept'    { LogInfo "config.toml (kept other settings)" }
     }
+    Uninstall-CodexSkills
     Uninstall-CodexMemory
+}
+
+function Uninstall-CodexSkills {
+    $codexSkillDir = Join-Path $CODEX_DIR 'skills'
+    if (!(Test-Path $codexSkillDir)) { return }
+    LogHeader "Codex Skills"
+    $loopDir = Join-Path $codexSkillDir 'loop-sec'
+    if (Test-Path $loopDir) { Remove-Item $loopDir -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed .codex/skills/loop-sec/" }
+    foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+        $sdPath = Join-Path $codexSkillDir $sd
+        if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed .codex/skills/$sd/" }
+    }
 }
 
 function Verify-Workspace([string]$ProjectName, [string]$WorkspacePath) {
@@ -537,6 +600,13 @@ function Verify-Workspace([string]$ProjectName, [string]$WorkspacePath) {
         $sp = Join-Path $WorkspacePath '.claude\skills\loop-sec.md'
         if (Test-Path $sp) { $sz = (Get-Item $sp).Length; LogOk "loop-sec.md ($sz bytes)" }
         else { LogInfo "loop-sec.md not deployed" }
+        foreach ($sd in @('android-reverse', 'web-reverse', 'win-reverse')) {
+            $sdPath = Join-Path $WorkspacePath ".claude\skills\$sd"
+            if (Test-Path $sdPath) {
+                $count = @(Get-ChildItem $sdPath -Recurse -File -ErrorAction SilentlyContinue).Count
+                LogOk "$sd ($count files)"
+            } else { LogInfo "$sd not deployed" }
+        }
     }
 }
 
@@ -546,8 +616,9 @@ function Get-Workspaces {
     if (!(Test-Path $CLAUDE_PROJECTS)) { return $result }
     foreach ($d in (Get-ChildItem $CLAUDE_PROJECTS -Directory -ErrorAction SilentlyContinue)) {
         $memDir = Get-MemoryDir $d.Name
-        # v7 sentinel(engineer-profile.md) 或 v6 legacy sentinel(security-research-lab.md) 都视为已部署
-        $deployed = (Test-Path (Join-Path $memDir 'engineer-profile.md')) -or `
+        # v8.0.7 sentinel(learner-profile.md) 或 legacy sentinels 都视为已部署
+        $deployed = (Test-Path (Join-Path $memDir 'learner-profile.md')) -or `
+                    (Test-Path (Join-Path $memDir 'engineer-profile.md')) -or `
                     (Test-Path (Join-Path $memDir 'security-research-lab.md'))
         # 反解 workspace 到真实项目路径,读 CLAUDE.md,检查 Loop Engineering
         $hasLoop = $false
@@ -571,7 +642,7 @@ function Get-Workspaces {
 # ================================================================
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'cc-unlock v8.0.6 - Loop Engineering'
+$form.Text = 'cc-unlock v8.0.7 - Cybersecurity Academy'
 $form.Size = New-Object System.Drawing.Size(880, 620)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $CLR_BG
@@ -604,7 +675,7 @@ $lblSideTitle.BackColor = $CLR_SIDEBAR
 $sidebar.Controls.Add($lblSideTitle)
 
 $lblSideVer = New-Object System.Windows.Forms.Label
-$lblSideVer.Text = 'v8.0.6'
+$lblSideVer.Text = 'v8.0.7'
 $lblSideVer.Font = $fNavSub
 $lblSideVer.ForeColor = $CLR_SUBTEXT
 $lblSideVer.Location = New-Object System.Drawing.Point(18, 48)
@@ -736,7 +807,7 @@ $content.Controls.Add($pageOverview)
 
 # OV: Title
 $ovTitle = New-Object System.Windows.Forms.Label
-$ovTitle.Text = 'cc-unlock v8.0.6'
+$ovTitle.Text = 'cc-unlock v8.0.7'
 $ovTitle.Font = New-Object System.Drawing.Font($fontFamily, 18, [System.Drawing.FontStyle]::Bold)
 $ovTitle.ForeColor = $CLR_MAUVE
 $ovTitle.Location = New-Object System.Drawing.Point(25, 18)
@@ -744,7 +815,7 @@ $ovTitle.AutoSize = $true
 $pageOverview.Controls.Add($ovTitle)
 
 $ovSub = New-Object System.Windows.Forms.Label
-$ovSub.Text = 'Loop Engineering + Security Research Authorization'
+$ovSub.Text = 'Cybersecurity Academy Tutoring Tool'
 $ovSub.Font = $fBody
 $ovSub.ForeColor = $CLR_SUBTEXT
 $ovSub.Location = New-Object System.Drawing.Point(27, 52)
@@ -949,42 +1020,6 @@ $btnBrowse.Add_Click({
     if ($dlg.ShowDialog() -eq 'OK') { $txtPath.Text = $dlg.SelectedPath }
 })
 
-# DP: Options
-$dpLblOpt = New-Object System.Windows.Forms.Label
-$dpLblOpt.Font = $fSection
-$dpLblOpt.ForeColor = $CLR_SUBTEXT
-$dpLblOpt.Location = New-Object System.Drawing.Point(25, 258)
-$dpLblOpt.AutoSize = $true
-$pageDeploy.Controls.Add($dpLblOpt)
-Bind-T $dpLblOpt 'dp_options'
-
-$chkSettings = New-Object System.Windows.Forms.CheckBox
-$chkSettings.Checked = $true
-$chkSettings.ForeColor = $CLR_TEXT
-$chkSettings.Font = $fBody
-$chkSettings.Location = New-Object System.Drawing.Point(28, 278)
-$chkSettings.AutoSize = $true
-$pageDeploy.Controls.Add($chkSettings)
-Bind-T $chkSettings 'dp_opt_set'
-
-$chkSkill = New-Object System.Windows.Forms.CheckBox
-$chkSkill.Checked = $true
-$chkSkill.ForeColor = $CLR_TEXT
-$chkSkill.Font = $fBody
-$chkSkill.Location = New-Object System.Drawing.Point(28, 300)
-$chkSkill.AutoSize = $true
-$pageDeploy.Controls.Add($chkSkill)
-Bind-T $chkSkill 'dp_opt_skill'
-
-$chkCodex = New-Object System.Windows.Forms.CheckBox
-$chkCodex.Checked = $true
-$chkCodex.ForeColor = $CLR_TEXT
-$chkCodex.Font = $fBody
-$chkCodex.Location = New-Object System.Drawing.Point(330, 300)
-$chkCodex.AutoSize = $true
-$pageDeploy.Controls.Add($chkCodex)
-Bind-T $chkCodex 'dp_opt_codex'
-
 # DP: Action Buttons
 function New-ActionButton([string]$key, [int]$x, [int]$y, [int]$w, [System.Drawing.Color]$bg) {
     $btn = New-Object System.Windows.Forms.Button
@@ -1002,7 +1037,16 @@ function New-ActionButton([string]$key, [int]$x, [int]$y, [int]$w, [System.Drawi
     return $btn
 }
 
-$btnY = 328
+# DP: Claude Code section label
+$dpLblCC = New-Object System.Windows.Forms.Label
+$dpLblCC.Text = 'CLAUDE CODE'
+$dpLblCC.Font = $fSection
+$dpLblCC.ForeColor = $CLR_SUBTEXT
+$dpLblCC.Location = New-Object System.Drawing.Point(25, 258)
+$dpLblCC.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblCC)
+
+$btnY = 278
 $btnDeploySel  = New-ActionButton 'dp_deploy_sel'  25  $btnY 120 $CLR_BTN_GREEN
 $btnDeployAll  = New-ActionButton 'dp_deploy_all'  153 $btnY 110 $CLR_BTN_GREEN
 $btnUninstSel  = New-ActionButton 'dp_uninst_sel'  271 $btnY 120 $CLR_BTN_RED
@@ -1010,18 +1054,30 @@ $btnUninstAll  = New-ActionButton 'dp_uninst_all'  399 $btnY 110 $CLR_BTN_RED
 $btnVerify     = New-ActionButton 'dp_verify'      517 $btnY 75  $CLR_BTN
 $btnRefresh    = New-ActionButton 'dp_refresh'     600 $btnY 70  $CLR_BTN
 
+# DP: Codex Section (independent)
+$dpLblCodex = New-Object System.Windows.Forms.Label
+$dpLblCodex.Font = $fSection
+$dpLblCodex.ForeColor = $CLR_SUBTEXT
+$dpLblCodex.Location = New-Object System.Drawing.Point(25, 318)
+$dpLblCodex.AutoSize = $true
+$pageDeploy.Controls.Add($dpLblCodex)
+Bind-T $dpLblCodex 'dp_codex_sec'
+
+$btnCodexDeploy = New-ActionButton 'dp_codex_dep' 25  338 120 $CLR_BTN_GREEN
+$btnCodexUninst = New-ActionButton 'dp_codex_uni' 153 338 120 $CLR_BTN_RED
+
 # DP: Log
 $dpLblLog = New-Object System.Windows.Forms.Label
 $dpLblLog.Font = $fSection
 $dpLblLog.ForeColor = $CLR_SUBTEXT
-$dpLblLog.Location = New-Object System.Drawing.Point(25, 368)
+$dpLblLog.Location = New-Object System.Drawing.Point(25, 378)
 $dpLblLog.AutoSize = $true
 $pageDeploy.Controls.Add($dpLblLog)
 Bind-T $dpLblLog 'dp_log'
 
 $logBox = New-Object System.Windows.Forms.RichTextBox
-$logBox.Location = New-Object System.Drawing.Point(25, 388)
-$logBox.Size = New-Object System.Drawing.Size(645, 175)
+$logBox.Location = New-Object System.Drawing.Point(25, 398)
+$logBox.Size = New-Object System.Drawing.Size(645, 165)
 $logBox.BackColor = $CLR_SURFACE
 $logBox.ForeColor = $CLR_TEXT
 $logBox.BorderStyle = 'None'
@@ -1036,7 +1092,7 @@ $btnDeploySel.Add_Click({
     $logBox.Clear()
     if ($txtPath.Text -and (Test-Path $txtPath.Text)) {
         $projName = ConvertTo-ClaudeProjectPath $txtPath.Text
-        Deploy-ToWorkspace $projName $txtPath.Text $chkSettings.Checked $chkSkill.Checked $chkCodex.Checked
+        Deploy-ToWorkspace $projName $txtPath.Text
         Log ("`r`n" + (T 'dp_done')) $CLR_MAUVE
         Refresh-WorkspaceList; return
     }
@@ -1044,7 +1100,7 @@ $btnDeploySel.Add_Click({
     if ($checked.Count -eq 0) { LogWarn (T 'dp_no_sel'); return }
     foreach ($item in $checked) {
         $wsPath = Resolve-WorkspacePath $item.Text
-        Deploy-ToWorkspace $item.Text $wsPath $chkSettings.Checked $chkSkill.Checked $chkCodex.Checked
+        Deploy-ToWorkspace $item.Text $wsPath
     }
     Log ("`r`n" + (T 'dp_done')) $CLR_MAUVE
     Refresh-WorkspaceList
@@ -1055,7 +1111,7 @@ $btnDeployAll.Add_Click({
     $count = 0
     foreach ($item in $listView.Items) {
         $wsPath = Resolve-WorkspacePath $item.Text
-        Deploy-ToWorkspace $item.Text $wsPath $chkSettings.Checked $chkSkill.Checked $chkCodex.Checked
+        Deploy-ToWorkspace $item.Text $wsPath
         $count++
     }
     if ($count -eq 0) { LogWarn (T 'dp_no_sel'); return }
@@ -1071,7 +1127,6 @@ $btnUninstSel.Add_Click({
         $wsPath = Resolve-WorkspacePath $item.Text
         Uninstall-FromWorkspace $item.Text $wsPath
     }
-    Uninstall-CodexConfig
     Log ("`r`n" + (T 'dp_done')) $CLR_MAUVE
     Refresh-WorkspaceList
 })
@@ -1087,7 +1142,6 @@ $btnUninstAll.Add_Click({
             $count++
         }
     }
-    Uninstall-CodexConfig
     $sp = Join-Path $CLAUDE_DIR 'settings.json'
     if (Test-Path $sp) {
         $c = Get-Content $sp -Raw -ErrorAction SilentlyContinue
@@ -1115,7 +1169,7 @@ $btnVerify.Add_Click({
     if (Test-Path $CODEX_DIR) {
         LogHeader "Codex"
         foreach ($c in @(
-            @{ File = 'system-prompt.md'; Pattern = 'Loop Engineering|cc-unlock|UNRESTRICTED' },
+            @{ File = 'system-prompt.md'; Pattern = 'Loop Engineering|cc-unlock|cybersecurity academy' },
             @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
         )) {
             $p = Join-Path $CODEX_DIR $c.File
@@ -1129,6 +1183,19 @@ $btnVerify.Add_Click({
 })
 
 $btnRefresh.Add_Click({ $logBox.Clear(); Refresh-WorkspaceList; LogInfo (T 'dp_refreshed') })
+
+# DP: Codex Button Handlers
+$btnCodexDeploy.Add_Click({
+    $logBox.Clear()
+    Deploy-CodexConfig
+    Log ("`r`n" + (T 'dp_done')) $CLR_MAUVE
+})
+
+$btnCodexUninst.Add_Click({
+    $logBox.Clear()
+    Uninstall-CodexConfig
+    Log ("`r`n" + (T 'dp_done')) $CLR_MAUVE
+})
 
 # ======================== PAGE: SETTINGS ========================
 $pageSettings = New-Object System.Windows.Forms.Panel
@@ -1239,7 +1306,7 @@ Bind-T $abTitle 'ab_title'
 $abInfoCard = New-Card 25 75 645 155 $pageAbout
 
 $abRowVer   = New-InfoRow (T 'ab_version') 18 15 170 $abInfoCard
-$abRowVer.Value.Text = '6.0'
+$abRowVer.Value.Text = '8.0.7'
 $abRowVer.Value.ForeColor = $CLR_MAUVE
 
 $abRowCC    = New-InfoRow (T 'ov_cc_ver') 18 45 170 $abInfoCard

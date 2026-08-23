@@ -1,0 +1,2 @@
+# opcode, handler, operand_width, stack_delta, regs_read, regs_write, control_flow, category, confidence, notes
+# 0x00, vmHandler0, 0, +0, [], [], fallthrough, control, low, placeholder

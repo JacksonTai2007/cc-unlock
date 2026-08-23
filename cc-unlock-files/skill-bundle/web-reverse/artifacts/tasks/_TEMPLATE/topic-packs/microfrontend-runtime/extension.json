@@ -1,0 +1,14 @@
+{
+  "microfrontendRuntime": {
+    "version": 1,
+    "present": true,
+    "loaderStatus": "not-started",
+    "shareScopeStatus": "not-started",
+    "sandboxStatus": "not-started",
+    "subapps": [],
+    "artifacts": [
+      "run/runtime-map.json",
+      "run/remote-deps.md"
+    ]
+  }
+}

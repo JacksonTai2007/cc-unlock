@@ -1,0 +1,282 @@
+{
+  "key": "worker",
+  "label": "Worker / Service Worker",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "worker",
+  "signals": [
+    "worker",
+    "service worker",
+    "postMessage",
+    "Blob",
+    "createObjectURL",
+    "importScripts",
+    "workbox",
+    "fetch event",
+    "navigation preload",
+    "clients.claim",
+    "skipWaiting"
+  ],
+  "protocol": "references/worker-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/worker.json",
+  "taskInit": {
+    "aliases": [
+      "workers"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [],
+    "crossTopicSignals": {
+      "wasm": "WASM instantiated inside Worker",
+      "frame": "Worker ↔ frame message bridge",
+      "cross-context-coordination": "multi-Worker orchestration",
+      "signature": "Worker-hosted signer",
+      "media-drm": "Worker-hosted decryption pipeline"
+    }
+  },
+  "taskSemantics": {
+    "presentPath": "workers.present",
+    "versionPath": "workers.version",
+    "artifactsPath": "workers.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "workers.types",
+      "workers.roles",
+      "workers.creationSources",
+      "workers.dynamicOutputFields"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "workers.present",
+    "requiredArtifacts": [
+      "run/worker-notes.md",
+      "run/worker-inspector-template.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "workers.present=true but mappingStatus is still not-started",
+        "path": "workers.mappingStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "workers.present=true but worker types are still empty",
+        "path": "workers.types",
+        "minLength": 1
+      },
+      {
+        "message": "workers.present=true but worker artifacts are still placeholders",
+        "touchedAny": [
+          "run/worker-notes.md",
+          "run/worker-inspector-template.js"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "workers.present=true but role / message status is still unknown",
+        "checks": [
+          {
+            "path": "workers.roles",
+            "minLength": 1
+          },
+          {
+            "path": "workers.messageStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      },
+      {
+        "message": "workers.present=true but service worker fetch/cache status is still unknown",
+        "checks": [
+          {
+            "path": "workers.serviceWorkerRoleStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "workers.fetchInterceptionStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ],
+    "phaseGuards": [
+      {
+        "minPhase": "Patch",
+        "requirementsAny": [
+          {
+            "message": "phase={phase} and workers.present=true but fetchInterceptionStatus / cacheRoutingStatus is still not recorded",
+            "checks": [
+              {
+                "path": "workers.fetchInterceptionStatus",
+                "disallow": [
+                  "unknown",
+                  "not-started"
+                ]
+              },
+              {
+                "path": "workers.cacheRoutingStatus",
+                "disallow": [
+                  "unknown",
+                  "not-started"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-worker-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/worker-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/worker-inspector-template.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "worker 类型与脚本 URL",
+    "Blob 来源与创建点",
+    "main thread -> worker -> output -> request field",
+    "worker 在整体链路中的职责",
+    "service worker fetch/caching 角色",
+    "run/worker-notes.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-worker",
+    "extensions": [
+      "--worker",
+      "--storage"
+    ],
+    "taskSeed": [
+      {
+        "path": "workers.types",
+        "value": [
+          "service-worker",
+          "dedicated-worker"
+        ]
+      },
+      {
+        "path": "workers.mappingStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "workers.messageStatus",
+        "value": "captured"
+      },
+      {
+        "path": "workers.roles",
+        "value": [
+          "fetch-routing",
+          "signed-payload"
+        ]
+      },
+      {
+        "path": "workers.creationSources",
+        "value": [
+          "blob-createObjectURL",
+          "serviceWorker.register"
+        ]
+      },
+      {
+        "path": "workers.blobSourceStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "workers.requestFieldMappingStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "workers.dynamicOutputFields",
+        "value": [
+          "signed_payload"
+        ]
+      },
+      {
+        "path": "workers.serviceWorkerRoleStatus",
+        "value": "intercepts-fetch"
+      },
+      {
+        "path": "workers.fetchInterceptionStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "workers.cacheRoutingStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "workers.rebuildBoundaryStatus",
+        "value": "scoped"
+      },
+      {
+        "path": "storageAnalysis.snapshotStatus",
+        "value": "captured"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/worker-notes.md",
+        "text": "# worker notes\n\n- service worker: Workbox fetch routing\n- dedicated worker: signed payload message pump\n"
+      },
+      {
+        "path": "run/worker-inspector-template.js",
+        "text": "export const workerRoles = ['service-worker', 'dedicated-worker'];\n"
+      },
+      {
+        "path": "run/storage-snapshot.json",
+        "json": {
+          "cacheStorage": [
+            "runtime-v1"
+          ],
+          "indexedDB": [],
+          "localStorage": []
+        }
+      },
+      {
+        "path": "run/storage-notes.md",
+        "text": "# storage notes\n\n- CacheStorage: runtime-v1 managed by service worker route\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/worker",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

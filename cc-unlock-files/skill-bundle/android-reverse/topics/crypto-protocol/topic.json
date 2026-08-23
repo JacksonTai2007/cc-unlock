@@ -1,0 +1,95 @@
+{
+  "key": "crypto-protocol",
+  "label": "Crypto / protocol / signature recovery",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "crypto-protocol",
+  "signals": [
+    "hmac",
+    "aes",
+    "token",
+    "protobuf",
+    "signature"
+  ],
+  "protocol": "references/crypto-protocol-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/crypto-protocol.json",
+  "taskInit": {
+    "aliases": [
+      "protocol"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "cryptoProtocol.present",
+    "versionPath": "cryptoProtocol.version",
+    "artifactsPath": "cryptoProtocol.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "cryptoProtocol.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "cryptoProtocol.present",
+    "requiredArtifacts": [
+      "run/protocol-notes.md",
+      "run/crypto-fixtures.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "cryptoProtocol.present=true but status is still not-started",
+        "path": "cryptoProtocol.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "cryptoProtocol.present=true but keyFindings is still empty",
+        "path": "cryptoProtocol.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "cryptoProtocol.present=true but protocol-notes are still placeholder",
+        "touchedAny": [
+          "run/protocol-notes.md"
+        ]
+      },
+      {
+        "message": "cryptoProtocol.present=true but crypto-fixtures are still placeholder",
+        "touchedAny": [
+          "run/crypto-fixtures.json"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-crypto-protocol-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/protocol-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/crypto-fixtures.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "协议",
+    "密码",
+    "run/protocol-notes.md",
+    "run/crypto-fixtures.json"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/crypto-protocol"
+}
+

@@ -1,0 +1,14 @@
+{
+  "nativeNetwork": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/network-stack-notes.md",
+      "run/cert-pinning-bypass.js"
+    ]
+  }
+}

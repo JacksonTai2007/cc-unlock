@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v8.0.6 — Verify deployment
+# cc-unlock v8.0.7 — Verify deployment
 set -e
 
 CLAUDE_DIR="$HOME/.claude"
@@ -9,7 +9,7 @@ MEMORY_FILE="engineer-profile.md"
 
 echo ""
 echo "============================================"
-echo "  cc-unlock v8.0.6 - Verify Deployment"
+echo "  cc-unlock v8.0.7 - Verify Deployment"
 echo "============================================"
 echo ""
 

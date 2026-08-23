@@ -1,0 +1,22 @@
+{
+  "workers": {
+    "version": 2,
+    "present": true,
+    "types": [],
+    "roles": [],
+    "creationSources": [],
+    "mappingStatus": "not-started",
+    "messageStatus": "not-started",
+    "blobSourceStatus": "not-started",
+    "requestFieldMappingStatus": "not-started",
+    "dynamicOutputFields": [],
+    "serviceWorkerRoleStatus": "not-started",
+    "fetchInterceptionStatus": "not-started",
+    "cacheRoutingStatus": "not-started",
+    "rebuildBoundaryStatus": "not-started",
+    "artifacts": [
+      "run/worker-notes.md",
+      "run/worker-inspector-template.js"
+    ]
+  }
+}

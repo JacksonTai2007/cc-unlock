@@ -1,6 +1,6 @@
 #!/bin/bash
-# cc-unlock v8.0.6 — macOS install
-# Memory-based security research authorization for Claude Code + Codex
+# cc-unlock v8.0.7 — macOS install
+# Memory-based cybersecurity academy tutoring for Claude Code + Codex
 #
 # 用法 | Usage:
 #   ./mac-install.sh                      交互菜单 | interactive menu

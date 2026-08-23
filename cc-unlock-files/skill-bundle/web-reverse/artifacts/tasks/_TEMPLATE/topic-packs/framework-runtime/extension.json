@@ -1,0 +1,18 @@
+{
+  "frameworkRuntime": {
+    "version": 1,
+    "present": true,
+    "runtimeKind": "unknown",
+    "loaderFamily": "unknown",
+    "payloadMode": "not-started",
+    "boundaryStatus": "not-started",
+    "hydrationStatus": "not-started",
+    "modulePreloadStatus": "not-started",
+    "islandBoundaryStatus": "not-started",
+    "payloadArtifacts": [],
+    "artifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-payload-map.json"
+    ]
+  }
+}

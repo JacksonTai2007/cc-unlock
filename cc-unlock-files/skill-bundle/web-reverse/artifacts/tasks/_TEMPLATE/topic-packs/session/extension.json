@@ -1,0 +1,12 @@
+{
+  "sessionLifecycle": {
+    "version": 1,
+    "present": true,
+    "bootstrapStatus": "not-started",
+    "tokenCarrier": "unknown",
+    "refreshStatus": "not-started",
+    "artifacts": [
+      "run/session-notes.md"
+    ]
+  }
+}

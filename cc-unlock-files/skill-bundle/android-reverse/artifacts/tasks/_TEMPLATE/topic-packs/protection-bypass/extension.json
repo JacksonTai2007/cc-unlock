@@ -1,0 +1,43 @@
+{
+  "protectionBypass": {
+    "version": 2,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "surfaceMatrix": {
+      "root": {
+        "status": "not-started",
+        "triggerStage": "unknown",
+        "artifact": "run/anti-root-bypass.js",
+        "notes": []
+      },
+      "frida": {
+        "status": "not-started",
+        "triggerStage": "unknown",
+        "artifact": "run/anti-frida-bypass.js",
+        "notes": []
+      },
+      "integrity": {
+        "status": "not-started",
+        "triggerStage": "unknown",
+        "artifact": "run/integrity-bypass.js",
+        "notes": []
+      },
+      "pinning": {
+        "status": "not-started",
+        "triggerStage": "unknown",
+        "artifact": "run/cert-pinning-bypass.js",
+        "notes": []
+      }
+    },
+    "artifacts": [
+      "run/anti-root-bypass.js",
+      "run/anti-frida-bypass.js",
+      "run/integrity-bypass.js",
+      "run/cert-pinning-bypass.js"
+    ]
+  }
+}
+

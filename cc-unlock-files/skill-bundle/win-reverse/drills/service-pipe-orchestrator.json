@@ -1,0 +1,113 @@
+{
+  "id": "service-pipe-orchestrator",
+  "title": "Service / NamedPipe orchestrator drill",
+  "summary": "围绕服务注册、命名管道控制面、配置存储与运行时事件采集的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "ipc-persistence",
+    "config-recovery",
+    "frida-hooking"
+  ],
+  "taskInit": {
+    "protectionTier": "T3",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "service pipe orchestrator sample",
+      "binaryPath": "samples/service-pipe-orchestrator.exe"
+    },
+    "objective": "恢复服务与管道控制面的启动/通信链、提取配置字段，并完成一次最小消息流验证。",
+    "requirements": {
+      "deliverables": [
+        "ipc persistence notes",
+        "ipc surface",
+        "persistence map",
+        "config schema",
+        "hook events"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "服务与 IPC 分析",
+        "配置恢复",
+        "最小消息流验证"
+      ],
+      "outOfScope": [
+        "真实系统持久化投送",
+        "外部主机控制"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Service / pipe control plane / config recovery",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": false,
+      "loader": "service-control-plane"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+Frida",
+      "spawnStrategy": "service-start-and-trace",
+      "privilegeLevel": "admin"
+    },
+    "accessRequirements": {
+      "adminRequired": true,
+      "interactiveUnlockRequired": false,
+      "driverSigningBypassRequired": false
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/service-pipe-orchestrator.exe",
+      "targetProcessNames": [
+        "service-pipe-orchestrator.exe",
+        "services.exe"
+      ],
+      "targetNamedObjects": [
+        "\\\\.\\pipe\\orchestrator-control"
+      ],
+      "targetKeywords": [
+        "ServiceMain",
+        "NamedPipe",
+        "config blob",
+        "service parameter"
+      ],
+      "targetFunctionNames": [
+        "StartServiceCtrlDispatcherW",
+        "CreateNamedPipeW",
+        "ConnectNamedPipe",
+        "RegOpenKeyExW"
+      ]
+    },
+    "successCriteria": [
+      "确认 launcher 到 use 的控制面全链",
+      "确认至少一条服务与 IPC 的真实交互路径",
+      "恢复主要配置字段",
+      "完成一次最小消息流验证"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "ServiceMain / service start",
+        "pipe server create / connect",
+        "registry/config load",
+        "Frida runtime event capture"
+      ],
+      "evidenceGoals": [
+        "IPC 面与持久化面证据",
+        "配置载体与字段语义",
+        "最小消息流事件"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-ipc-persistence-workflow.mjs",
+        "scripts/cases/win-config-recovery-workflow.mjs",
+        "scripts/cases/win-frida-hook-workflow.mjs"
+      ]
+    }
+  }
+}

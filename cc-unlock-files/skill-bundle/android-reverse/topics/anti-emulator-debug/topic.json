@@ -1,0 +1,85 @@
+{
+  "key": "anti-emulator-debug",
+  "label": "Anti-emulator / anti-debug / tracer bypass",
+  "maturity": "closed-loop",
+  "routeTrack": "anti-emulator-debug",
+  "signals": [
+    "emulator",
+    "debug",
+    "tracer",
+    "ro.kernel.qemu",
+    "isdebuggerconnected",
+    "ptrace"
+  ],
+  "protocol": "references/anti-emulator-debug-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/anti-emulator-debug.json",
+  "taskInit": {
+    "aliases": [
+      "anti-debug",
+      "emulator"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "antiEmulatorDebug.present",
+    "artifactsPath": "antiEmulatorDebug.artifact",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "antiEmulatorDebug.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "antiEmulatorDebug.present",
+    "requiredArtifacts": [
+      "run/anti-emulator-bypass.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "antiEmulatorDebug.present=true but status is still not-started",
+        "path": "antiEmulatorDebug.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "antiEmulatorDebug.present=true but keyFindings is still empty",
+        "path": "antiEmulatorDebug.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "antiEmulatorDebug.present=true but anti-emulator script is still placeholder",
+        "touchedAny": [
+          "run/anti-emulator-bypass.js"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-anti-emulator-debug-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/anti-emulator-bypass.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "模拟器",
+    "run/anti-emulator-bypass.js"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/anti-emulator-debug"
+}

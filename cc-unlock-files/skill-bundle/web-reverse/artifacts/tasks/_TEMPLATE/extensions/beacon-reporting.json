@@ -1,0 +1,14 @@
+{
+  "beaconReporting": {
+    "version": 1,
+    "present": true,
+    "lifecycleStatus": "not-started",
+    "reportingStatus": "not-started",
+    "fallbackStatus": "not-started",
+    "channels": [],
+    "artifacts": [
+      "run/beacon-log.jsonl",
+      "run/reporting-map.md"
+    ]
+  }
+}

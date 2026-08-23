@@ -1,0 +1,186 @@
+{
+  "key": "streaming-runtime",
+  "label": "Streaming runtime / incremental execution",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "streaming-runtime",
+  "signals": [
+    "ReadableStream",
+    "TransformStream",
+    "TextDecoderStream",
+    "incremental decode",
+    "stream pipeline"
+  ],
+  "protocol": "references/streaming-runtime-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/streaming-runtime.json",
+  "taskInit": {
+    "aliases": [
+      "stream-runtime",
+      "incremental-stream"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "protocol",
+          "dynamic-code"
+        ],
+        "tier": "T3"
+      },
+      {
+        "withTopics": [
+          "wasm"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "streamingRuntime.present",
+    "versionPath": "streamingRuntime.version",
+    "artifactsPath": "streamingRuntime.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "streamingRuntime.transforms"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "streamingRuntime.present",
+    "requiredArtifacts": [
+      "run/streaming-runtime-notes.md",
+      "run/stream-pipeline.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "streamingRuntime.present=true but pipelineStatus is still not-started",
+        "path": "streamingRuntime.pipelineStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "streamingRuntime.present=true but transforms is still empty",
+        "path": "streamingRuntime.transforms",
+        "minLength": 1
+      },
+      {
+        "message": "streamingRuntime.present=true but streaming artifacts are still placeholders",
+        "touchedAny": [
+          "run/streaming-runtime-notes.md",
+          "run/stream-pipeline.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "streamingRuntime.present=true but chunk boundary / sink status is still unknown",
+        "checks": [
+          {
+            "path": "streamingRuntime.chunkBoundaryStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "streamingRuntime.sinkStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-streaming-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/streaming-runtime-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/stream-pipeline.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "ReadableStream",
+    "TransformStream",
+    "run/streaming-runtime-notes.md",
+    "run/stream-pipeline.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-streaming-runtime",
+    "extensions": [
+      "--streaming-runtime"
+    ],
+    "taskSeed": [
+      {
+        "path": "streamingRuntime.pipelineStatus",
+        "value": "captured"
+      },
+      {
+        "path": "streamingRuntime.chunkBoundaryStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "streamingRuntime.sinkStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "streamingRuntime.transforms",
+        "value": [
+          "ReadableStream",
+          "TextDecoderStream",
+          "TransformStream"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/streaming-runtime-notes.md",
+        "text": "# streaming runtime notes\n\n- fetch body -> TextDecoderStream -> TransformStream -> sink\n"
+      },
+      {
+        "path": "run/stream-pipeline.json",
+        "json": {
+          "source": "fetch body",
+          "transforms": [
+            "TextDecoderStream",
+            "TransformStream"
+          ],
+          "sink": "challenge parser"
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/streaming-runtime",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

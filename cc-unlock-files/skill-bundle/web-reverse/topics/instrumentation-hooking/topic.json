@@ -1,0 +1,193 @@
+{
+  "key": "instrumentation-hooking",
+  "label": "Instrumentation / hooking / trace",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "instrumentation-hooking",
+  "signals": [
+    "fetch",
+    "XHR",
+    "WebSocket",
+    "sendBeacon",
+    "eval",
+    "Function",
+    "postMessage",
+    "cookie setter"
+  ],
+  "protocol": "references/instrumentation.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/instrumentation-hooking.json",
+  "taskInit": {
+    "aliases": [
+      "hooking",
+      "trace-injection"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "anti-debug",
+          "anti-tamper"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "instrumentationHooking.present",
+    "versionPath": "instrumentationHooking.version",
+    "artifactsPath": "instrumentationHooking.artifacts",
+    "minArtifacts": 4,
+    "arrayPaths": [
+      "instrumentationHooking.hookSurfaces"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "instrumentationHooking.present",
+    "requiredArtifacts": [
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/hook-events.jsonl",
+      "run/hook-safety-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "instrumentationHooking.present=true but coverageStatus is still not-started",
+        "path": "instrumentationHooking.coverageStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "instrumentationHooking.present=true but hookSurfaces is still empty",
+        "path": "instrumentationHooking.hookSurfaces",
+        "minLength": 1
+      },
+      {
+        "message": "instrumentationHooking.present=true but hooking artifacts are still placeholders",
+        "touchedAny": [
+          "run/preload.js",
+          "run/runtime-hooks.js",
+          "run/hook-events.jsonl",
+          "run/hook-safety-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "instrumentationHooking.present=true but injection stage / safety is still unknown",
+        "checks": [
+          {
+            "path": "instrumentationHooking.injectionStage",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "instrumentationHooking.safetyStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-instrumentation-hooking-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/preload.js",
+    "artifacts/tasks/_TEMPLATE/run/runtime-hooks.js",
+    "artifacts/tasks/_TEMPLATE/run/hook-events.jsonl",
+    "artifacts/tasks/_TEMPLATE/run/hook-safety-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "run/preload.js",
+    "run/runtime-hooks.js",
+    "run/hook-events.jsonl",
+    "run/hook-safety-notes.md"
+  ],
+  "synthetic": {
+    "id": "synthetic-instrumentation-hooking",
+    "extensions": [
+      "--instrumentation-hooking"
+    ],
+    "taskSeed": [
+      {
+        "path": "instrumentationHooking.present",
+        "value": true
+      },
+      {
+        "path": "instrumentationHooking.coverageStatus",
+        "value": "full"
+      },
+      {
+        "path": "instrumentationHooking.hookSurfaces",
+        "value": [
+          "document.cookie",
+          "fetch",
+          "XMLHttpRequest"
+        ]
+      },
+      {
+        "path": "instrumentationHooking.injectionStage",
+        "value": "preload"
+      },
+      {
+        "path": "instrumentationHooking.safetyStatus",
+        "value": "safe"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/preload.js",
+        "text": "// preload hook script\nconsole.log('preload hook active');\n"
+      },
+      {
+        "path": "run/runtime-hooks.js",
+        "text": "// runtime hooks\nconsole.log('runtime hooks active');\n"
+      },
+      {
+        "path": "run/hook-events.jsonl",
+        "text": "{\"event\": \"cookie-set\", \"target\": \"document.cookie\"}\n"
+      },
+      {
+        "path": "run/hook-safety-notes.md",
+        "text": "# Hook Safety Notes\n\n- document.cookie: safe\n- fetch: safe\n"
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/instrumentation-hooking",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

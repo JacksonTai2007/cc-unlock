@@ -1,0 +1,6 @@
+{"timestamp":"2026-04-17T02:10:00.000Z","type":"session_meta","payload":{"id":"bad-fixture","cwd":"e:\\逆向\\AI_Web_Skill\\a_bogus2","originator":"fixture"}}
+{"timestamp":"2026-04-17T02:10:01.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"这是一个新的 Web 前端逆向任务。打开页面后通知我登录。目标是本地生成 a_bogus 并请求成功。"}]}}
+{"timestamp":"2026-04-17T02:10:02.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"我会先在浏览器里建立基线并继续分析。"}]}}
+{"timestamp":"2026-04-17T02:10:03.000Z","type":"response_item","payload":{"type":"function_call","name":"mcp__js_reverse__search_in_sources","arguments":"{\"query\":\"a_bogus\"}","call_id":"call_1"}}
+{"timestamp":"2026-04-17T02:10:04.000Z","type":"event_msg","payload":{"type":"mcp_tool_call_end","invocation":{"tool":"search_in_sources"}}}
+{"timestamp":"2026-04-17T02:10:05.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"已成功。已将会话参数保存到本地：E:\\逆向\\AI_Web_Skill\\a_bogus2\\douyin_state.json；已完成纯 NodeJS 脚本：E:\\逆向\\AI_Web_Skill\\a_bogus2\\douyin_pure_node_search.js。a_bogus 路由会 200 + 空 body，但 X-Bogus 路由可稳定返回完整数据。"}]}}

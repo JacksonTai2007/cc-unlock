@@ -1,0 +1,16 @@
+{
+  "astDeobfuscation": {
+    "version": 1,
+    "present": true,
+    "transformStatus": "not-started",
+    "runtimeEvidenceStatus": "not-started",
+    "semanticConfidence": "unknown",
+    "obfuscationFamilies": [],
+    "artifacts": [
+      "run/before.js",
+      "run/after.js",
+      "run/deobf-rules.md",
+      "run/ast-transform.mjs"
+    ]
+  }
+}

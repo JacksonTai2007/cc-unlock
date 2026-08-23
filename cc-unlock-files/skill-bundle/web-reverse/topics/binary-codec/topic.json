@@ -1,0 +1,189 @@
+{
+  "key": "binary-codec",
+  "label": "Binary codec / schema reconstruction",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "binary-codec",
+  "signals": [
+    "protobuf",
+    "msgpack",
+    "cbor",
+    "flatbuffers",
+    "varint"
+  ],
+  "protocol": "references/binary-codec-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/binary-codec.json",
+  "taskInit": {
+    "aliases": [
+      "binarycodec",
+      "protobuf-msgpack"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "protocol"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "wasm",
+          "compression-stream"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "binaryCodec.present",
+    "versionPath": "binaryCodec.version",
+    "artifactsPath": "binaryCodec.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "binaryCodec.messageTypes"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "binaryCodec.present",
+    "requiredArtifacts": [
+      "run/binary-codec-notes.md",
+      "run/binary-samples.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "binaryCodec.present=true but decodeStatus is still not-started",
+        "path": "binaryCodec.decodeStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "binaryCodec.present=true but messageTypes is still empty",
+        "path": "binaryCodec.messageTypes",
+        "minLength": 1
+      },
+      {
+        "message": "binaryCodec.present=true but binary codec artifacts are still placeholders",
+        "touchedAny": [
+          "run/binary-codec-notes.md",
+          "run/binary-samples.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "binaryCodec.present=true but codecFamily / schemaStatus is still unknown",
+        "checks": [
+          {
+            "path": "binaryCodec.codecFamily",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "binaryCodec.schemaStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-binary-codec-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/binary-codec-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/binary-samples.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "protobuf",
+    "msgpack",
+    "run/binary-codec-notes.md",
+    "run/binary-samples.json"
+  ],
+  "synthetic": {
+    "id": "synthetic-binary-codec",
+    "extensions": [
+      "--binary-codec"
+    ],
+    "taskSeed": [
+      {
+        "path": "binaryCodec.codecFamily",
+        "value": "protobuf"
+      },
+      {
+        "path": "binaryCodec.decodeStatus",
+        "value": "captured"
+      },
+      {
+        "path": "binaryCodec.schemaStatus",
+        "value": "reconstructed"
+      },
+      {
+        "path": "binaryCodec.sampleStatus",
+        "value": "captured"
+      },
+      {
+        "path": "binaryCodec.messageTypes",
+        "value": [
+          "AuthRequest"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/binary-codec-notes.md",
+        "text": "# binary codec notes\n\n- codec: protobuf\n- message: AuthRequest\n"
+      },
+      {
+        "path": "run/binary-samples.json",
+        "json": {
+          "codecFamily": "protobuf",
+          "sampleKinds": [
+            "request",
+            "response"
+          ],
+          "messageTypes": [
+            "AuthRequest"
+          ]
+        }
+      }
+    ]
+  },
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/binary-codec",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

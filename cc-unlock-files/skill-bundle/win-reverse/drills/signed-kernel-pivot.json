@@ -1,0 +1,128 @@
+{
+  "id": "signed-kernel-pivot",
+  "title": "Signed driver + userland broker + TLS pivot",
+  "summary": "围绕已签名驱动、用户态代理服务、配置与 TLS 边界的联动恢复演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "driver",
+    "anti-analysis",
+    "frida-hooking",
+    "tls-network",
+    "config-recovery"
+  ],
+  "taskInit": {
+    "protectionTier": "T3",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": true
+  },
+  "taskInput": {
+    "target": {
+      "value": "signed-kernel-pivot sample set",
+      "binaryPath": "samples/signed-kernel-pivot/service.exe"
+    },
+    "objective": "恢复用户态代理与驱动之间的 IOCTL 协议，确认 TLS/C2 发包边界，提取配置和关键字段，并完成一次本地重放。",
+    "requirements": {
+      "deliverables": [
+        "driver dispatch map",
+        "kernel ioctl map",
+        "userland hook notes",
+        "config schema",
+        "protocol replay 示例"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": true
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分析",
+        "WinDbg/IDA 协同",
+        "用户态 hook",
+        "本地服务/注册表检查",
+        "协议重放"
+      ],
+      "outOfScope": [
+        "未授权驱动投递",
+        "绕过系统安全策略落地到第三方主机"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Signed driver / broker service / TLS pivot",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": false,
+      "kernelMode": true,
+      "loader": "scm-service"
+    },
+    "debugSession": {
+      "mode": "hybrid",
+      "debugger": "WinDbg+IDA+Frida",
+      "spawnStrategy": "service-start-and-attach",
+      "privilegeLevel": "admin"
+    },
+    "accessRequirements": {
+      "adminRequired": true,
+      "interactiveUnlockRequired": false
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/signed-kernel-pivot/service.exe",
+      "targetProcessNames": [
+        "service.exe"
+      ],
+      "targetDriverNames": [
+        "pivotdrv.sys"
+      ],
+      "targetServiceNames": [
+        "PivotBroker"
+      ],
+      "targetModuleNames": [
+        "pivotdrv.sys",
+        "schannel.dll",
+        "winhttp.dll"
+      ],
+      "targetKeywords": [
+        "driverentry",
+        "ioctl",
+        "registry",
+        "tls"
+      ],
+      "targetFunctionNames": [
+        "DriverEntry",
+        "DeviceIoControl",
+        "ZwSetValueKey",
+        "WinHttpSendRequest"
+      ]
+    },
+    "successCriteria": [
+      "确认 DriverEntry、主 dispatch 和关键 IOCTL 编号",
+      "建立用户态 broker 与内核态设备交互的证据链",
+      "确认 TLS/网络边界与拦截点",
+      "恢复服务/注册表配置字段",
+      "至少完成一次协议重放或请求构造验收"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "DriverEntry",
+        "IRP_MJ_DEVICE_CONTROL",
+        "用户态 DeviceIoControl broker",
+        "Schannel / WinHTTP 边界",
+        "服务配置或注册表加载逻辑"
+      ],
+      "evidenceGoals": [
+        "dispatch / ioctl map",
+        "broker <-> driver 交互参数",
+        "网络边界与发送前参数",
+        "配置字段与持久化路径"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-driver-workflow.mjs",
+        "scripts/cases/win-frida-hook-workflow.mjs",
+        "scripts/cases/win-tls-network-workflow.mjs",
+        "scripts/cases/win-config-recovery-workflow.mjs"
+      ]
+    }
+  }
+}

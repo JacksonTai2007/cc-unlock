@@ -1,0 +1,88 @@
+{
+  "key": "so-runtime-evidence",
+  "label": "SO Runtime Evidence (encrypted/packed SO dump-fix, anonymous RX/memfd execution, crash syscall attribution)",
+  "maturity": "guided",
+  "routeTrack": "so-runtime-evidence",
+  "signals": [
+    "encrypted so",
+    "packed so",
+    "self-decrypt",
+    "runtime rebuild",
+    "anonymous rx",
+    "memfd",
+    "anon exec",
+    "crash pc lr",
+    "sigkill",
+    "sigsegv",
+    "sigtrap",
+    "brk",
+    "direct syscall",
+    "dump fix",
+    "call_constructors",
+    "init_array crash",
+    "so 闪退"
+  ],
+  "protocol": "references/so-runtime-evidence-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/so-runtime-evidence.json",
+  "taskInit": {
+    "aliases": [
+      "sre",
+      "so-runtime"
+    ],
+    "baseProtectionTier": "A4"
+  },
+  "taskSemantics": {
+    "presentPath": "sre.present",
+    "artifactsPath": "sre.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "sre.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "sre.present",
+    "requiredArtifacts": [
+      "run/so-runtime-evidence-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "sre.present=true but status is still not-started",
+        "path": "sre.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "sre.present=true but keyFindings is still empty",
+        "path": "sre.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "sre.present=true but so-runtime-evidence-notes is still placeholder",
+        "touchedAny": [
+          "run/so-runtime-evidence-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-so-runtime-evidence-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/so-runtime-evidence-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "SO Runtime Evidence",
+    "run/so-runtime-evidence-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/so-runtime-evidence"
+}

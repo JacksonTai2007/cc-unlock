@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v8.0.6 — macOS uninstall
+# cc-unlock v8.0.7 — macOS uninstall
 #
 # 用法 | Usage:
 #   ./mac-uninstall.sh                      交互菜单 | interactive menu

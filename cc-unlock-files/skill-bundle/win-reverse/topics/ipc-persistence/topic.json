@@ -1,0 +1,110 @@
+{
+  "key": "ipc-persistence",
+  "label": "IPC / service / task / WMI persistence",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "ipc-persistence",
+  "signals": [
+    "service",
+    "schtasks",
+    "wmi",
+    "namedpipe",
+    "rpc",
+    "alpc"
+  ],
+  "protocol": "references/ipc-persistence-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/ipc-persistence.json",
+  "taskInit": {
+    "aliases": [
+      "ipc",
+      "persistence"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "loader-injection"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "anti-analysis"
+        ],
+        "tier": "T2"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "ipcPersistence.present",
+    "versionPath": "ipcPersistence.version",
+    "artifactsPath": "ipcPersistence.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "ipcPersistence.keyFindings",
+      "ipcPersistence.carriers",
+      "ipcPersistence.triggerPoints"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "ipcPersistence.present",
+    "requiredArtifacts": [
+      "run/ipc-persistence-notes.md",
+      "run/ipc-surface.md",
+      "run/persistence-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "ipcPersistence.present=true but status is still not-started",
+        "path": "ipcPersistence.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "ipcPersistence.present=true but keyFindings is still empty",
+        "path": "ipcPersistence.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "ipcPersistence.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/ipc-persistence-notes.md",
+          "run/ipc-surface.md",
+          "run/persistence-map.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-ipc-persistence-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/ipc-persistence-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/ipc-surface.md",
+    "artifacts/tasks/_TEMPLATE/run/persistence-map.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "NamedPipe",
+    "ServiceMain",
+    "run/ipc-surface.md",
+    "run/persistence-map.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/ipc-persistence"
+}

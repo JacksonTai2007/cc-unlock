@@ -1,0 +1,147 @@
+{
+  "key": "ast-deobfuscation",
+  "label": "AST deobfuscation / semantic recovery",
+  "maturity": "closed-loop",
+  "routeTrack": "ast-deobfuscation",
+  "signals": [
+    "while(true)+switch",
+    "string array",
+    "_0x",
+    "eval(pack)",
+    "rotator",
+    "dispatcher object",
+    "control flow flattening",
+    "string array rotator",
+    "dead code injection",
+    "hexadecimal string literals",
+    "self-defending",
+    "console output disabled"
+  ],
+  "protocol": "references/ast-deobfuscation.md",
+  "extendedProtocols": [
+    "references/control-flow-flattening-playbook.md",
+    "references/string-array-deobfuscation-playbook.md",
+    "references/dead-code-elimination-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/ast-deobfuscation.json",
+  "taskInit": {
+    "aliases": [
+      "ast-deobf",
+      "semantic-recovery"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "dynamic-code"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "astDeobfuscation.present",
+    "versionPath": "astDeobfuscation.version",
+    "artifactsPath": "astDeobfuscation.artifacts",
+    "minArtifacts": 4,
+    "arrayPaths": [
+      "astDeobfuscation.obfuscationFamilies"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "astDeobfuscation.present",
+    "requiredArtifacts": [
+      "run/before.js",
+      "run/after.js",
+      "run/deobf-rules.md",
+      "run/ast-transform.mjs"
+    ],
+    "requirementsAll": [
+      {
+        "message": "astDeobfuscation.present=true but transformStatus is still not-started",
+        "path": "astDeobfuscation.transformStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "astDeobfuscation.present=true but obfuscationFamilies is still empty",
+        "path": "astDeobfuscation.obfuscationFamilies",
+        "minLength": 1
+      },
+      {
+        "message": "astDeobfuscation.present=true but AST artifacts are still placeholders",
+        "touchedAny": [
+          "run/before.js",
+          "run/after.js",
+          "run/deobf-rules.md",
+          "run/ast-transform.mjs"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "astDeobfuscation.present=true but runtime evidence / confidence is still unknown",
+        "checks": [
+          {
+            "path": "astDeobfuscation.runtimeEvidenceStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "astDeobfuscation.semanticConfidence",
+            "disallow": [
+              "unknown"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-ast-deobfuscation-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/before.js",
+    "artifacts/tasks/_TEMPLATE/run/after.js",
+    "artifacts/tasks/_TEMPLATE/run/deobf-rules.md",
+    "artifacts/tasks/_TEMPLATE/run/ast-transform.mjs"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "run/before.js",
+    "run/after.js",
+    "run/deobf-rules.md",
+    "run/ast-transform.mjs"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/ast-deobfuscation"
+}

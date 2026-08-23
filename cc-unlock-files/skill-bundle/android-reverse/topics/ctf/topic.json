@@ -1,0 +1,83 @@
+{
+  "key": "ctf",
+  "label": "Android CTF / crackme / solver extraction",
+  "maturity": "guided",
+  "routeTrack": "ctf",
+  "signals": [
+    "ctf",
+    "crackme",
+    "flag",
+    "solver",
+    "challenge"
+  ],
+  "protocol": "references/ctf-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/ctf.json",
+  "taskInit": {
+    "aliases": [
+      "crackme",
+      "flag"
+    ],
+    "baseProtectionTier": "A2"
+  },
+  "taskSemantics": {
+    "presentPath": "ctf.present",
+    "artifactsPath": "ctf.artifact",
+    "arrayPaths": [
+      "ctf.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "ctf.present",
+    "requiredArtifacts": [
+      "run/solver-template.py"
+    ],
+    "requirementsAll": [
+      {
+        "message": "ctf.present=true but status is still not-started",
+        "path": "ctf.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "ctf.present=true but keyFindings is still empty",
+        "path": "ctf.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "ctf.present=true but solver template is still placeholder",
+        "touchedAny": [
+          "run/solver-template.py"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-ctf-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/solver-template.py"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "CTF",
+    "run/solver-template.py"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/ctf"
+}

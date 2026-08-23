@@ -1,0 +1,4 @@
+interface:
+  display_name: "Windows 逆向"
+  short_description: "PE/.NET/壳/抗分析/注入/异常链/IPC/内存取证 task-local 续跑"
+  default_prompt: "先按 bootstrap 和 workflow 建立 task-local。先检查当前 workspace 是否已有 history data files；若没有，先运行 `task-start` / `task-init` 创建任务目录；新任务最少先收集 `target / objective / requirements / boundaries`，再裁定 `architecture / wow64 / managed / protectionTier`。若命中 `mixed-mode-interop`、`ipc-persistence`、`exception-runtime`、`memory-forensics`，先补读对应 playbook。若当前没有真实样本而是要模拟真实高级 Windows 逆向场景，则优先运行 `task:drill` 生成多专题演练任务。若已存在，则按 `task.json -> route-state.json -> route-plan/clues/progress -> task-sync -> task-advance` 续跑。说明与 `report.md` 统一使用中文；`execution.status=ready-to-continue` 时继续执行 `nextExecutableAction`。"

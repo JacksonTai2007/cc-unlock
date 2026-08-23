@@ -1,0 +1,105 @@
+{
+  "key": "anti-analysis",
+  "label": "Anti-debug / anti-vm / anti-tamper",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "anti-analysis",
+  "signals": [
+    "debugger",
+    "timing",
+    "vm",
+    "checksum",
+    "exception",
+    "etw"
+  ],
+  "protocol": "references/anti-obf.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/anti-analysis.json",
+  "taskInit": {
+    "aliases": [
+      "anti-debug"
+    ],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": ["protection-bypass"],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "antiAnalysis.present",
+    "versionPath": "antiAnalysis.version",
+    "artifactsPath": "antiAnalysis.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "antiAnalysis.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "antiAnalysis.present",
+    "requiredArtifacts": [
+      "run/anti-analysis-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "antiAnalysis.present=true but status is still not-started",
+        "path": "antiAnalysis.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "antiAnalysis.present=true but keyFindings is still empty",
+        "path": "antiAnalysis.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "antiAnalysis.present=true but notes are still placeholders",
+        "touchedAny": [
+          "run/anti-analysis-notes.md"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "antiAnalysis requires either a hook script or a static bypass report",
+        "checks": [
+          { "touchedAny": ["run/anti-analysis-hook.js"] },
+          { "touchedAny": ["run/anti-analysis-bypass-report.md"] }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-anti-analysis-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/anti-analysis-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/anti-analysis-hook.js",
+    "artifacts/tasks/_TEMPLATE/run/anti-analysis-bypass-report.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "反调试",
+    "检测面",
+    "run/anti-analysis-notes.md",
+    "run/anti-analysis-hook.js",
+    "run/anti-analysis-bypass-report.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/anti-analysis"
+}

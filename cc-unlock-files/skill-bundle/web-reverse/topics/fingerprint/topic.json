@@ -1,0 +1,299 @@
+{
+  "key": "fingerprint",
+  "label": "指纹 / 自动化检测画像",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "fingerprint",
+  "signals": [
+    "fingerprint",
+    "anti-bot",
+    "webdriver",
+    "userAgentData",
+    "canvas",
+    "webgl",
+    "audio",
+    "fonts",
+    "timezone",
+    "screen",
+    "navigator"
+  ],
+  "protocol": "references/fingerprint-playbook.md",
+  "extendedProtocols": [
+    "references/fingerprint-deep-vectors-playbook.md",
+    "references/env-as-algorithm-input-playbook.md",
+    "references/tls-http-fingerprint-playbook.md",
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/fingerprint.json",
+  "taskInit": {
+    "aliases": [
+      "browser-fingerprint",
+      "bot-detection"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "env"
+        ],
+        "tier": "T3"
+      },
+      {
+        "withTopics": [
+          "session",
+          "protocol"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "fingerprint.present",
+    "versionPath": "fingerprint.version",
+    "artifactsPath": "fingerprint.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "fingerprint.vectors",
+      "fingerprint.networkFields",
+      "fingerprint.detectorFamilies",
+      "fingerprint.automationMarkers",
+      "fingerprint.executionContexts",
+      "fingerprint.patchScope"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "fingerprint.present",
+    "requiredArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-notes.md",
+      "run/fingerprint-inspector-template.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "fingerprint.present=true but profileStatus is still not-started",
+        "path": "fingerprint.profileStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "fingerprint.present=true but fingerprint.vectors is still empty",
+        "path": "fingerprint.vectors",
+        "minLength": 1
+      },
+      {
+        "message": "fingerprint.present=true but fingerprint artifacts are still template placeholders",
+        "touchedAny": [
+          "run/fingerprint-profile.json",
+          "run/fingerprint-notes.md",
+          "run/fingerprint-inspector-template.js"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "fingerprint.present=true but networkBindingStatus / overrideStrategy is still unknown",
+        "checks": [
+          {
+            "path": "fingerprint.networkBindingStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "fingerprint.overrideStrategy",
+            "disallow": [
+              "unknown",
+              "not-decided"
+            ]
+          }
+        ]
+      }
+    ],
+    "phaseGuards": [
+      {
+        "minPhase": "Patch",
+        "requirementsAll": [
+          {
+            "message": "phase={phase} and fingerprint.present=true but probeOrderStatus is still unknown",
+            "path": "fingerprint.probeOrderStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "message": "phase={phase} and fingerprint.present=true but automationLeakStatus is still unknown",
+            "path": "fingerprint.automationLeakStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ],
+        "requirementsAny": [
+          {
+            "message": "phase={phase} and fingerprint.present=true but patchScope / overrideStrategy is still not recorded",
+            "checks": [
+              {
+                "path": "fingerprint.patchScope",
+                "minLength": 1
+              },
+              {
+                "path": "fingerprint.overrideStrategy",
+                "disallow": [
+                  "unknown",
+                  "not-decided"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-fingerprint-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/fingerprint-profile.json",
+    "artifacts/tasks/_TEMPLATE/run/fingerprint-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/fingerprint-inspector-template.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "fingerprint",
+    "webdriver",
+    "userAgentData",
+    "run/fingerprint-profile.json",
+    "run/fingerprint-inspector-template.js"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/fingerprint",
+  "synthetic": {
+    "id": "synthetic-fingerprint",
+    "extensions": [
+      "--fingerprint"
+    ],
+    "taskSeed": [
+      {
+        "path": "fingerprint.profileStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "fingerprint.probeOrderStatus",
+        "value": "recorded"
+      },
+      {
+        "path": "fingerprint.automationLeakStatus",
+        "value": "recorded"
+      },
+      {
+        "path": "fingerprint.networkBindingStatus",
+        "value": "header-query-mapped"
+      },
+      {
+        "path": "fingerprint.overrideStrategy",
+        "value": "selective-patch"
+      },
+      {
+        "path": "fingerprint.vectors",
+        "value": [
+          "canvas",
+          "webgl",
+          "navigator",
+          "fonts",
+          "timezone"
+        ]
+      },
+      {
+        "path": "fingerprint.detectorFamilies",
+        "value": [
+          "generic-fingerprint",
+          "automation-leaks"
+        ]
+      },
+      {
+        "path": "fingerprint.automationMarkers",
+        "value": [
+          "webdriver",
+          "plugins-mismatch"
+        ]
+      },
+      {
+        "path": "fingerprint.patchScope",
+        "value": [
+          "navigator.webdriver",
+          "navigator.plugins"
+        ]
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/fingerprint-profile.json",
+        "json": {
+          "probeOrder": [
+            "navigator",
+            "screen",
+            "canvas",
+            "webgl",
+            "fonts",
+            "timezone"
+          ],
+          "genericVectors": [
+            "userAgent",
+            "platform",
+            "hardwareConcurrency",
+            "deviceMemory"
+          ],
+          "automationLeaks": [
+            "webdriver",
+            "chrome.runtime"
+          ],
+          "networkBinding": {
+            "header": "x-fingerprint",
+            "query": "fp"
+          },
+          "overrideStrategy": "selective-patch"
+        }
+      },
+      {
+        "path": "run/fingerprint-notes.md",
+        "text": "# fingerprint notes\n\n- probe order: navigator -> screen -> canvas -> webgl -> fonts -> timezone\n- automation leaks: webdriver, chrome.runtime\n- network binding: x-fingerprint(header), fp(query)\n- override strategy: selective-patch\n"
+      },
+      {
+        "path": "run/fingerprint-inspector-template.js",
+        "text": "export function inspectFingerprint() { return { webdriver: navigator.webdriver, canvas: true, webgl: true }; }\n"
+      }
+    ]
+  }
+}

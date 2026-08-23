@@ -1,0 +1,15 @@
+{
+  "splitDelivery": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/split-delivery-notes.md",
+      "run/split-layout.json"
+    ]
+  }
+}
+

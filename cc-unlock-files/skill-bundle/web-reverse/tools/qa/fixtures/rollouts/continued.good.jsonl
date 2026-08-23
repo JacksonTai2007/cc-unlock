@@ -1,0 +1,4 @@
+{"timestamp":"2026-04-11T08:22:40.000Z","type":"response_item","payload":{"type":"function_call","name":"shell_command","arguments":"{\"command\":\"echo next\"}","call_id":"call_good_1"}}
+{"timestamp":"2026-04-11T08:22:40.200Z","type":"response_item","payload":{"type":"function_call_output","call_id":"call_good_1","output":"next"}}
+{"timestamp":"2026-04-11T08:22:57.054Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"已继续执行 nextExecutableAction，并拿到新的文件与验证结果。"}]}}
+{"timestamp":"2026-04-11T08:23:01.248Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-good-001"}}

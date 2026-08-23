@@ -1,0 +1,82 @@
+{
+  "key": "hook-injection",
+  "label": "Hook framework internals / injection methods",
+  "maturity": "guided",
+  "routeTrack": "hook-injection",
+  "signals": [
+    "hook",
+    "injection",
+    "plt hook",
+    "got hook",
+    "inline hook",
+    "artmethod",
+    "zygisk",
+    "ptrace",
+    "frida internals",
+    "dobby",
+    "bhook"
+  ],
+  "protocol": "references/hook-injection-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/hook-injection.json",
+  "taskInit": {
+    "aliases": [
+      "hook",
+      "inject"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "hook.present",
+    "artifactsPath": "hook.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "hook.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "hook.present",
+    "requiredArtifacts": [
+      "run/hook-injection-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "hook.present=true but status is still not-started",
+        "path": "hook.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "hook.present=true but keyFindings is still empty",
+        "path": "hook.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "hook.present=true but hook-injection-notes is still placeholder",
+        "touchedAny": [
+          "run/hook-injection-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-hook-injection-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/topic-packs/hook-injection/run/hook-injection-notes.md"
+  ],
+  "qaFiles": [],
+  "outputNeedles": [
+    "Hook Injection",
+    "run/hook-injection-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:deliverables",
+    "check:operating-contracts"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/hook-injection"
+}

@@ -1,0 +1,97 @@
+{
+  "key": "framework-runtime",
+  "label": "Framework runtime / Flutter / Hermes / Unity",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "framework-runtime",
+  "signals": [
+    "flutter",
+    "libapp.so",
+    "hermes",
+    "index.android.bundle",
+    "unity",
+    "libil2cpp.so"
+  ],
+  "protocol": "references/framework-runtime-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/framework-runtime.json",
+  "taskInit": {
+    "aliases": [
+      "runtime"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "frameworkRuntime.present",
+    "versionPath": "frameworkRuntime.version",
+    "artifactsPath": "frameworkRuntime.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "frameworkRuntime.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "frameworkRuntime.present",
+    "requiredArtifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-runtime-map.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "frameworkRuntime.present=true but status is still not-started",
+        "path": "frameworkRuntime.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "frameworkRuntime.present=true but keyFindings is still empty",
+        "path": "frameworkRuntime.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "frameworkRuntime.present=true but framework-runtime notes are still placeholder",
+        "touchedAny": [
+          "run/framework-runtime-notes.md"
+        ]
+      },
+      {
+        "message": "frameworkRuntime.present=true but framework-runtime map is still placeholder",
+        "touchedAny": [
+          "run/framework-runtime-map.json"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-framework-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/framework-runtime-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/framework-runtime-map.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Flutter",
+    "Hermes",
+    "Unity",
+    "run/framework-runtime-notes.md",
+    "run/framework-runtime-map.json"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/framework-runtime"
+}
+

@@ -1,0 +1,91 @@
+{
+  "key": "static-triage",
+  "label": "Static triage / manifest / packaging",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "static-triage",
+  "signals": [
+    "manifest",
+    "exported",
+    "permission",
+    "component",
+    "asset",
+    "resource"
+  ],
+  "protocol": "references/static-triage-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/static-triage.json",
+  "taskInit": {
+    "aliases": [
+      "apk-triage"
+    ],
+    "baseProtectionTier": "A0"
+  },
+  "taskSemantics": {
+    "presentPath": "staticTriage.present",
+    "versionPath": "staticTriage.version",
+    "artifactsPath": "staticTriage.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "staticTriage.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "staticTriage.present",
+    "requiredArtifacts": [
+      "run/static-triage-notes.md",
+      "run/component-map.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "staticTriage.present=true but status is still not-started",
+        "path": "staticTriage.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "staticTriage.present=true but keyFindings is still empty",
+        "path": "staticTriage.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "staticTriage.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/static-triage-notes.md",
+          "run/component-map.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-apk-triage-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/static-triage-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/component-map.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Manifest",
+    "组件",
+    "run/static-triage-notes.md",
+    "run/component-map.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/static-triage"
+}
+

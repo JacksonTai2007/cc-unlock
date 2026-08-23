@@ -1,0 +1,217 @@
+{
+  "key": "challenge-orchestration",
+  "label": "Challenge routing / token orchestration",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "challenge-orchestration",
+  "signals": [
+    "challenge token",
+    "captcha",
+    "turnstile",
+    "risk route",
+    "silent challenge"
+  ],
+  "protocol": "references/challenge-orchestration-playbook.md",
+  "extendedProtocols": [
+    "references/captcha-slider-playbook.md",
+    "references/commercial-protection-playbook.md",
+    "references/browser-controlled-reuse-playbook.md",
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/challenge-orchestration.json",
+  "taskInit": {
+    "aliases": [
+      "challenge-routing",
+      "captcha-flow"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "fingerprint"
+        ],
+        "tier": "T4"
+      },
+      {
+        "withTopics": [
+          "session",
+          "protocol"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "challengeOrchestration.present",
+    "versionPath": "challengeOrchestration.version",
+    "artifactsPath": "challengeOrchestration.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "challengeOrchestration.decisionPoints"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "challengeOrchestration.present",
+    "requiredArtifacts": [
+      "run/challenge-route-notes.md",
+      "run/challenge-state-machine.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "challengeOrchestration.present=true but routeStatus is still not-started",
+        "path": "challengeOrchestration.routeStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "challengeOrchestration.present=true but decisionPoints is still empty",
+        "path": "challengeOrchestration.decisionPoints",
+        "minLength": 1
+      },
+      {
+        "message": "challengeOrchestration.present=true but challenge artifacts are still placeholders",
+        "touchedAny": [
+          "run/challenge-route-notes.md",
+          "run/challenge-state-machine.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "challengeOrchestration.present=true but challenge type / token carrier is still unknown",
+        "checks": [
+          {
+            "path": "challengeOrchestration.challengeType",
+            "disallow": [
+              "unknown"
+            ]
+          },
+          {
+            "path": "challengeOrchestration.tokenCarrierStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-challenge-orchestration-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/challenge-route-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/challenge-state-machine.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "challenge token",
+    "captcha",
+    "run/challenge-route-notes.md",
+    "run/challenge-state-machine.json"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression",
+    "check:synthetic-e2e",
+    "check:algo-selfcheck"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/challenge-orchestration",
+  "synthetic": {
+    "id": "synthetic-challenge-orchestration",
+    "extensions": [
+      "--challenge-orchestration"
+    ],
+    "taskSeed": [
+      {
+        "path": "challengeOrchestration.routeStatus",
+        "value": "mapped"
+      },
+      {
+        "path": "challengeOrchestration.challengeType",
+        "value": "silent-captcha-fallback"
+      },
+      {
+        "path": "challengeOrchestration.tokenCarrierStatus",
+        "value": "cookie-header-mapped"
+      },
+      {
+        "path": "challengeOrchestration.decisionPoints",
+        "value": [
+          "risk-score",
+          "device-trust",
+          "behavior-score"
+        ]
+      },
+      {
+        "path": "challengeOrchestration.refreshPolicy",
+        "value": "on-session-expiry"
+      }
+    ],
+    "artifactSeeds": [
+      {
+        "path": "run/challenge-route-notes.md",
+        "text": "# challenge route notes\n\n- silent challenge -> visible captcha -> refresh route\n- decision points: risk-score, device-trust, behavior-score\n- token carrier: cookie + header\n- refresh: on-session-expiry\n"
+      },
+      {
+        "path": "run/challenge-state-machine.json",
+        "json": {
+          "states": [
+            "initial",
+            "silent-challenge",
+            "visible-captcha",
+            "refresh",
+            "success"
+          ],
+          "transitions": [
+            {
+              "from": "initial",
+              "to": "silent-challenge",
+              "guard": "risk-score"
+            },
+            {
+              "from": "silent-challenge",
+              "to": "visible-captcha",
+              "guard": "device-trust-fail"
+            },
+            {
+              "from": "silent-challenge",
+              "to": "success",
+              "guard": "device-trust-pass"
+            }
+          ],
+          "tokenCarrier": [
+            "cookie",
+            "header"
+          ],
+          "refreshPolicy": "on-session-expiry"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "id": "reflective-c2-dll",
+  "title": "Reflective DLL / manual-map beacon chain",
+  "summary": "围绕 reflective DLL、manual map、crypto/TLS 参数与 beacon 重放的攻击链恢复演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "packer-unpack",
+    "anti-analysis",
+    "loader-injection",
+    "frida-hooking",
+    "tls-network",
+    "config-recovery"
+  ],
+  "taskInit": {
+    "protectionTier": "T3",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": true
+  },
+  "taskInput": {
+    "target": {
+      "value": "reflective-c2-dll sample",
+      "binaryPath": "samples/reflective-c2-dll.exe"
+    },
+    "objective": "确认 reflective / manual-map 装载路径、抓取运行时解密与网络参数、恢复配置字段，并完成一次 beacon 构造或 replay 验收。",
+    "requirements": {
+      "deliverables": [
+        "unpack notes",
+        "loader-injection notes",
+        "hook events",
+        "tls/network notes",
+        "config schema",
+        "protocol replay 示例"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": true
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分析",
+        "内存装载链恢复",
+        "Frida / API hook",
+        "本地协议重放"
+      ],
+      "outOfScope": [
+        "真实远控联机",
+        "外部受害主机投递"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] Reflective DLL / manual-map / beacon chain",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": false,
+      "loader": "reflective-manual-map"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "x64dbg+Frida",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/reflective-c2-dll.exe",
+      "targetProcessNames": [
+        "reflective-c2-dll.exe",
+        "dllhost.exe"
+      ],
+      "targetModuleNames": [
+        "ws2_32.dll",
+        "crypt32.dll",
+        "advapi32.dll"
+      ],
+      "targetNetworkIndicators": [
+        "/task",
+        "/beacon",
+        "https"
+      ],
+      "targetKeywords": [
+        "reflective dll",
+        "manual map",
+        "stager",
+        "config blob"
+      ],
+      "targetFunctionNames": [
+        "VirtualProtect",
+        "LdrLoadDll",
+        "InternetConnectW",
+        "BCryptDecrypt"
+      ]
+    },
+    "successCriteria": [
+      "确认 reflective/manual-map 真实路径",
+      "确认远端映像与入口切换节点",
+      "捕获关键解密或会话参数",
+      "恢复主要配置字段",
+      "至少完成一次 beacon 构造或 replay 验收"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "解包后 stub / reflective loader",
+        "remote map / section copy",
+        "BCryptDecrypt / 配置明文边界",
+        "socket / TLS send 边界"
+      ],
+      "evidenceGoals": [
+        "装载链与远端映像证据",
+        "crypto / TLS 参数",
+        "配置字段与 beacon 格式"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-packer-unpack-workflow.mjs",
+        "scripts/cases/win-loader-injection-workflow.mjs",
+        "scripts/cases/win-frida-hook-workflow.mjs",
+        "scripts/cases/win-tls-network-workflow.mjs",
+        "scripts/cases/win-config-recovery-workflow.mjs"
+      ]
+    }
+  }
+}

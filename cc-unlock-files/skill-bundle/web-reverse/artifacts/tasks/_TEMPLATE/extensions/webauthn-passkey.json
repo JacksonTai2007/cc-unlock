@@ -1,0 +1,14 @@
+{
+  "webauthnPasskey": {
+    "version": 1,
+    "present": true,
+    "ceremonyStatus": "not-started",
+    "challengeStatus": "not-started",
+    "authenticatorStatus": "not-started",
+    "ceremonies": [],
+    "artifacts": [
+      "run/credential-flow.md",
+      "run/request-response-samples.json"
+    ]
+  }
+}

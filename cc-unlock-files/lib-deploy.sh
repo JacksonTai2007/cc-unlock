@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v8.0.6 — shared deploy/uninstall library for macOS & Linux
+# cc-unlock v8.0.7 — shared deploy/uninstall library for macOS & Linux
 # 与 Windows deploy.ps1 功能对齐的共享实现，供 mac/linux 的 install/uninstall 封装脚本调用。
 # Shared implementation mirroring Windows deploy.ps1, sourced by the mac/linux wrappers.
 #
@@ -21,7 +21,7 @@ CODEX_DIR="$HOME/.codex"
 MEMORY_SENTINEL="engineer-profile.md"
 INDEX_FILE="MEMORY.md"
 CLAUDE_MD="CLAUDE.md"
-MARKER="Security Research Workstation"
+MARKER="Cybersecurity Academy Workstation"
 SETTINGS_MARKER1="bypassPermissions"
 SETTINGS_MARKER2="skipDangerousModePermissionPrompt"
 
@@ -36,9 +36,9 @@ encode_path() {
 banner() {
     echo ""
     echo "============================================"
-    echo "  cc-unlock v8.0.6"
-    echo "  Memory-based security research authorization"
-    echo "  基于 memory 的安全研究授权配置"
+    echo "  cc-unlock v8.0.7"
+    echo "  Memory-based cybersecurity academy tutoring"
+    echo "  基于 memory 的网络安全学院辅导配置"
     echo "============================================"
     echo ""
 }

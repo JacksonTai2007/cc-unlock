@@ -1,0 +1,142 @@
+{
+  "key": "anti-tamper",
+  "label": "Integrity / Trusted Types / hook resistance",
+  "maturity": "closed-loop",
+  "routeTrack": "anti-tamper",
+  "signals": [
+    "integrity",
+    "self-check",
+    "Trusted Types",
+    "CSP",
+    "SRI",
+    "hook seal"
+  ],
+  "protocol": "references/anti-tamper-playbook.md",
+  "extendedProtocols": [
+    "references/composite-protection-playbook.md",
+    "references/websearch-escalation-playbook.md"
+  ],
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/anti-tamper.json",
+  "taskInit": {
+    "aliases": [
+      "integrity-check",
+      "trusted-types"
+    ],
+    "baseProtectionTier": "T3",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "anti-debug",
+          "dynamic-code"
+        ],
+        "tier": "T4"
+      },
+      {
+        "withTopics": [
+          "env"
+        ],
+        "tier": "T4"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "antiTamper.present",
+    "versionPath": "antiTamper.version",
+    "artifactsPath": "antiTamper.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "antiTamper.surfaces"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "antiTamper.present",
+    "requiredArtifacts": [
+      "run/anti-tamper-notes.md",
+      "run/integrity-surface.json"
+    ],
+    "requirementsAll": [
+      {
+        "message": "antiTamper.present=true but integrityStatus is still not-started",
+        "path": "antiTamper.integrityStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "antiTamper.present=true but surfaces is still empty",
+        "path": "antiTamper.surfaces",
+        "minLength": 1
+      },
+      {
+        "message": "antiTamper.present=true but anti-tamper artifacts are still placeholders",
+        "touchedAny": [
+          "run/anti-tamper-notes.md",
+          "run/integrity-surface.json"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "antiTamper.present=true but sink protection / hook resistance is still unknown",
+        "checks": [
+          {
+            "path": "antiTamper.sinkProtectionStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "antiTamper.hookResistanceStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-anti-tamper-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/anti-tamper-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/integrity-surface.json"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Trusted Types",
+    "CSP",
+    "run/anti-tamper-notes.md",
+    "run/integrity-surface.json"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency",
+    "check:eval-regression"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/anti-tamper"
+}

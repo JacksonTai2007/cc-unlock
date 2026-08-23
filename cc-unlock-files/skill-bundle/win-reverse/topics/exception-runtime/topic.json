@@ -1,0 +1,112 @@
+{
+  "key": "exception-runtime",
+  "label": "TLS callback / SEH / VEH / startup chain",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "exception-runtime",
+  "signals": [
+    "seh",
+    "veh",
+    "tlscallback",
+    "unhandledexceptionfilter",
+    "cfg",
+    "cet"
+  ],
+  "protocol": "references/exception-runtime-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/exception-runtime.json",
+  "taskInit": {
+    "aliases": [
+      "seh-veh",
+      "tls-callback"
+    ],
+    "baseProtectionTier": "T1",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "anti-analysis"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "packer-unpack"
+        ],
+        "tier": "T2"
+      },
+      {
+        "withTopics": [
+          "protection-bypass"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "exceptionRuntime.present",
+    "versionPath": "exceptionRuntime.version",
+    "artifactsPath": "exceptionRuntime.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "exceptionRuntime.keyFindings",
+      "exceptionRuntime.entryEdges"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "exceptionRuntime.present",
+    "requiredArtifacts": [
+      "run/exception-runtime-notes.md",
+      "run/startup-chain.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "exceptionRuntime.present=true but status is still not-started",
+        "path": "exceptionRuntime.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "exceptionRuntime.present=true but keyFindings is still empty",
+        "path": "exceptionRuntime.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "exceptionRuntime.present=true but artifacts are still placeholders",
+        "touchedAny": [
+          "run/exception-runtime-notes.md",
+          "run/startup-chain.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/win-exception-runtime-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/exception-runtime-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/startup-chain.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "TLS callback",
+    "SEH",
+    "run/exception-runtime-notes.md",
+    "run/startup-chain.md"
+  ],
+  "owner": "win-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/exception-runtime"
+}

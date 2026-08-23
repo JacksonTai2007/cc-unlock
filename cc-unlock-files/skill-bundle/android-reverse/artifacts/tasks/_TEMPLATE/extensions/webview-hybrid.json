@@ -1,0 +1,11 @@
+{
+  "webview": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifact": "run/webview-bridge-notes.md"
+  }
+}

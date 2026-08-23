@@ -1,0 +1,14 @@
+{
+  "dotnetAnalysis": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/dotnet-notes.md",
+      "run/il-patch-notes.md"
+    ]
+  }
+}

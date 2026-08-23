@@ -1,0 +1,96 @@
+{
+  "key": "source-map",
+  "label": "Source map recovery",
+  "maturity": "closed-loop",
+  "routeTrack": "source-map",
+  "signals": [
+    "source map",
+    "sourceMappingURL",
+    "hidden source map",
+    "bundle"
+  ],
+  "protocol": "references/source-map-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/source-map.json",
+  "taskInit": {
+    "aliases": [],
+    "baseProtectionTier": "T0",
+    "combinationProtectionTiers": []
+  },
+  "taskSemantics": {
+    "presentPath": "sourceMap.present",
+    "versionPath": "sourceMap.version",
+    "artifactsPath": "sourceMap.artifacts",
+    "minArtifacts": 2,
+    "requiredValues": [
+      {
+        "path": "sourceMap.artifact",
+        "equals": "run/source-map-notes.md"
+      }
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "sourceMap.present",
+    "requiredArtifacts": [
+      "run/source-map-notes.md",
+      "run/source-map-recover-template.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "sourceMap.present=true but mapStatus is still not-started",
+        "path": "sourceMap.mapStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "sourceMap.present=true but source-map artifacts are still placeholders",
+        "touchedAny": [
+          "run/source-map-notes.md",
+          "run/source-map-recover-template.js"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-source-map-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/source-map-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/source-map-recover-template.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "source map",
+    "run/source-map-notes.md"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/source-map",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

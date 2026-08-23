@@ -1,0 +1,85 @@
+{
+  "key": "native-so",
+  "label": "Native SO / ELF / symbol / crypto constant analysis",
+  "maturity": "closed-loop",
+  "routeTrack": "native-so",
+  "signals": [
+    "elf",
+    "symbol",
+    "rva",
+    "so",
+    "crypto constant",
+    "syscall"
+  ],
+  "protocol": "references/native-so-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/native-so.json",
+  "taskInit": {
+    "aliases": [
+      "native",
+      "so"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "native.present",
+    "artifactsPath": "native.artifacts",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "native.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "native.present",
+    "requiredArtifacts": [
+      "run/native-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "native.present=true but status is still not-started",
+        "path": "native.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "native.present=true but keyFindings is still empty",
+        "path": "native.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "native.present=true but native-notes is still placeholder",
+        "touchedAny": [
+          "run/native-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-native-so-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/native-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Native SO",
+    "run/native-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/native-so"
+}

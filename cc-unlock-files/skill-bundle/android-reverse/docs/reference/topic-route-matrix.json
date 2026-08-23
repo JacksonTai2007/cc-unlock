@@ -1,0 +1,3591 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-11T07:22:18.057Z",
+  "source": "topics/*/topic.json",
+  "topics": [
+    {
+      "key": "crypto-protocol",
+      "label": "Crypto / protocol / signature recovery",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "crypto-protocol",
+      "signals": [
+        "hmac",
+        "aes",
+        "token",
+        "protobuf",
+        "signature"
+      ],
+      "protocol": "references/crypto-protocol-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/crypto-protocol.json",
+      "taskInit": {
+        "aliases": [
+          "protocol"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "cryptoProtocol.present",
+        "versionPath": "cryptoProtocol.version",
+        "artifactsPath": "cryptoProtocol.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "cryptoProtocol.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "cryptoProtocol.present",
+        "requiredArtifacts": [
+          "run/protocol-notes.md",
+          "run/crypto-fixtures.json"
+        ],
+        "requirementsAll": [
+          {
+            "message": "cryptoProtocol.present=true but status is still not-started",
+            "path": "cryptoProtocol.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "cryptoProtocol.present=true but keyFindings is still empty",
+            "path": "cryptoProtocol.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "cryptoProtocol.present=true but protocol-notes are still placeholder",
+            "touchedAny": [
+              "run/protocol-notes.md"
+            ]
+          },
+          {
+            "message": "cryptoProtocol.present=true but crypto-fixtures are still placeholder",
+            "touchedAny": [
+              "run/crypto-fixtures.json"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-crypto-protocol-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/protocol-notes.md",
+        "artifacts/tasks/_TEMPLATE/run/crypto-fixtures.json"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "协议",
+        "密码",
+        "run/protocol-notes.md",
+        "run/crypto-fixtures.json"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/crypto-protocol",
+      "requiredSignals": [
+        "hmac",
+        "aes",
+        "token",
+        "protobuf",
+        "signature"
+      ],
+      "requiredArtifacts": [
+        "run/protocol-notes.md",
+        "run/crypto-fixtures.json"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "cryptoProtocol.present",
+          "equals": true
+        },
+        {
+          "message": "cryptoProtocol.present=true but status is still not-started",
+          "path": "cryptoProtocol.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "cryptoProtocol.present=true but keyFindings is still empty",
+          "path": "cryptoProtocol.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/crypto-fixtures.json",
+        "run/protocol-notes.md"
+      ]
+    },
+    {
+      "key": "dex-loader",
+      "label": "Dex loader / shell / dynamic code",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "dex-loader",
+      "signals": [
+        "dexclassloader",
+        "inmemorydexclassloader",
+        "stub application",
+        "shell",
+        "libdexhelper",
+        "bangcle",
+        "dump"
+      ],
+      "protocol": "references/dex-loader-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/dex-loader.json",
+      "taskInit": {
+        "aliases": [
+          "shell"
+        ],
+        "baseProtectionTier": "A5",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "dexLoader.present",
+        "versionPath": "dexLoader.version",
+        "artifactsPath": "dexLoader.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "dexLoader.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "dexLoader.present",
+        "requiredArtifacts": [
+          "run/class-loader-trace.js",
+          "run/dex-loader-dump-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "dexLoader.present=true but status is still not-started",
+            "path": "dexLoader.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "dexLoader.present=true but keyFindings is still empty",
+            "path": "dexLoader.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "dexLoader.present=true but class-loader trace is still placeholder",
+            "touchedAny": [
+              "run/class-loader-trace.js"
+            ]
+          },
+          {
+            "message": "dexLoader.present=true but dex-loader dump notes are still placeholder",
+            "touchedAny": [
+              "run/dex-loader-dump-notes.md"
+            ]
+          }
+        ],
+        "requirementsAny": [
+          {
+            "message": "bangcle-libdexhelper route selected but unpackStrategy is missing",
+            "checks": [
+              {
+                "path": "dexLoader.shellFamily",
+                "disallow": [
+                  "bangcle-libdexhelper"
+                ]
+              },
+              {
+                "path": "dexLoader.unpackStrategy",
+                "truthy": true
+              }
+            ]
+          },
+          {
+            "message": "bangcle-libdexhelper route selected but unpack evidence is missing",
+            "checks": [
+              {
+                "path": "dexLoader.shellFamily",
+                "disallow": [
+                  "bangcle-libdexhelper"
+                ]
+              },
+              {
+                "touchedAny": [
+                  "run/bangcle-libdexhelper-evidence.md",
+                  "run/unpack-evidence.json"
+                ]
+              }
+            ]
+          },
+          {
+            "message": "bangcle-libdexhelper route selected but ELF unpack evidence refs are missing",
+            "checks": [
+              {
+                "path": "dexLoader.shellFamily",
+                "disallow": [
+                  "bangcle-libdexhelper"
+                ]
+              },
+              {
+                "path": "dexLoader.elfUnpackEvidenceRefs",
+                "minLength": 1
+              }
+            ]
+          },
+          {
+            "message": "bangcle-libdexhelper route selected but inner ELF refs are missing",
+            "checks": [
+              {
+                "path": "dexLoader.shellFamily",
+                "disallow": [
+                  "bangcle-libdexhelper"
+                ]
+              },
+              {
+                "path": "dexLoader.innerElfRefs",
+                "minLength": 1
+              }
+            ]
+          },
+          {
+            "message": "bangcle-libdexhelper route selected but DEX validation refs are missing",
+            "checks": [
+              {
+                "path": "dexLoader.shellFamily",
+                "disallow": [
+                  "bangcle-libdexhelper"
+                ]
+              },
+              {
+                "path": "dexLoader.dexValidationRefs",
+                "minLength": 1
+              }
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-dex-loader-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/class-loader-trace.js",
+        "artifacts/tasks/_TEMPLATE/run/dex-loader-dump-notes.md",
+        "artifacts/tasks/_TEMPLATE/run/bangcle-libdexhelper-evidence.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "DexClassLoader",
+        "run/class-loader-trace.js",
+        "run/dex-loader-dump-notes.md",
+        "bangcle-libdexhelper"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/dex-loader",
+      "requiredSignals": [
+        "dexclassloader",
+        "inmemorydexclassloader",
+        "stub application",
+        "shell",
+        "libdexhelper",
+        "bangcle",
+        "dump"
+      ],
+      "requiredArtifacts": [
+        "run/class-loader-trace.js",
+        "run/dex-loader-dump-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "dexLoader.present",
+          "equals": true
+        },
+        {
+          "message": "dexLoader.present=true but status is still not-started",
+          "path": "dexLoader.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "dexLoader.present=true but keyFindings is still empty",
+          "path": "dexLoader.keyFindings",
+          "minLength": 1
+        },
+        {
+          "path": "dexLoader.shellFamily",
+          "disallow": [
+            "bangcle-libdexhelper"
+          ]
+        },
+        {
+          "path": "dexLoader.unpackStrategy",
+          "truthy": true
+        },
+        {
+          "path": "dexLoader.elfUnpackEvidenceRefs",
+          "minLength": 1
+        },
+        {
+          "path": "dexLoader.innerElfRefs",
+          "minLength": 1
+        },
+        {
+          "path": "dexLoader.dexValidationRefs",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/bangcle-libdexhelper-evidence.md",
+        "run/class-loader-trace-advanced.js",
+        "run/class-loader-trace.js",
+        "run/dex-loader-dump-notes.md"
+      ]
+    },
+    {
+      "key": "framework-runtime",
+      "label": "Framework runtime / Flutter / Hermes / Unity",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "framework-runtime",
+      "signals": [
+        "flutter",
+        "libapp.so",
+        "hermes",
+        "index.android.bundle",
+        "unity",
+        "libil2cpp.so"
+      ],
+      "protocol": "references/framework-runtime-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/framework-runtime.json",
+      "taskInit": {
+        "aliases": [
+          "runtime"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "frameworkRuntime.present",
+        "versionPath": "frameworkRuntime.version",
+        "artifactsPath": "frameworkRuntime.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "frameworkRuntime.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "frameworkRuntime.present",
+        "requiredArtifacts": [
+          "run/framework-runtime-notes.md",
+          "run/framework-runtime-map.json"
+        ],
+        "requirementsAll": [
+          {
+            "message": "frameworkRuntime.present=true but status is still not-started",
+            "path": "frameworkRuntime.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "frameworkRuntime.present=true but keyFindings is still empty",
+            "path": "frameworkRuntime.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "frameworkRuntime.present=true but framework-runtime notes are still placeholder",
+            "touchedAny": [
+              "run/framework-runtime-notes.md"
+            ]
+          },
+          {
+            "message": "frameworkRuntime.present=true but framework-runtime map is still placeholder",
+            "touchedAny": [
+              "run/framework-runtime-map.json"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-framework-runtime-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/framework-runtime-notes.md",
+        "artifacts/tasks/_TEMPLATE/run/framework-runtime-map.json"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Flutter",
+        "Hermes",
+        "Unity",
+        "run/framework-runtime-notes.md",
+        "run/framework-runtime-map.json"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/framework-runtime",
+      "requiredSignals": [
+        "flutter",
+        "libapp.so",
+        "hermes",
+        "index.android.bundle",
+        "unity",
+        "libil2cpp.so"
+      ],
+      "requiredArtifacts": [
+        "run/framework-runtime-notes.md",
+        "run/framework-runtime-map.json"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "frameworkRuntime.present",
+          "equals": true
+        },
+        {
+          "message": "frameworkRuntime.present=true but status is still not-started",
+          "path": "frameworkRuntime.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "frameworkRuntime.present=true but keyFindings is still empty",
+          "path": "frameworkRuntime.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/framework-runtime-map.json",
+        "run/framework-runtime-notes.md"
+      ]
+    },
+    {
+      "key": "jni-bridge",
+      "label": "JNI bridge / RegisterNatives mapping",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "jni-bridge",
+      "signals": [
+        "jni_onload",
+        "registernatives",
+        "system.loadlibrary",
+        "java_",
+        "native"
+      ],
+      "protocol": "references/jni-bridge-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/jni-bridge.json",
+      "taskInit": {
+        "aliases": [
+          "jni"
+        ],
+        "baseProtectionTier": "A4",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "jniBridge.present",
+        "versionPath": "jniBridge.version",
+        "artifactsPath": "jniBridge.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "jniBridge.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "jniBridge.present",
+        "requiredArtifacts": [
+          "run/register-natives-trace.js",
+          "run/jni-bridge-map.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "jniBridge.present=true but status is still not-started",
+            "path": "jniBridge.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "jniBridge.present=true but keyFindings is still empty",
+            "path": "jniBridge.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "jniBridge.present=true but artifacts are still placeholders",
+            "touchedAny": [
+              "run/register-natives-trace.js",
+              "run/jni-bridge-map.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-jni-bridge-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/register-natives-trace.js",
+        "artifacts/tasks/_TEMPLATE/run/jni-bridge-map.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "JNI",
+        "RegisterNatives",
+        "run/register-natives-trace.js",
+        "run/jni-bridge-map.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/jni-bridge",
+      "requiredSignals": [
+        "jni_onload",
+        "registernatives",
+        "system.loadlibrary",
+        "java_",
+        "native"
+      ],
+      "requiredArtifacts": [
+        "run/register-natives-trace.js",
+        "run/jni-bridge-map.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "jniBridge.present",
+          "equals": true
+        },
+        {
+          "message": "jniBridge.present=true but status is still not-started",
+          "path": "jniBridge.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "jniBridge.present=true but keyFindings is still empty",
+          "path": "jniBridge.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/jni-bridge-map.md",
+        "run/register-natives-trace-advanced.js",
+        "run/register-natives-trace.js"
+      ]
+    },
+    {
+      "key": "protection-bypass",
+      "label": "Protection bypass / root / frida / integrity / pinning",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "protection-bypass",
+      "signals": [
+        "rootbeer",
+        "frida detection",
+        "ptrace",
+        "play integrity",
+        "safetynet",
+        "certificatepinner"
+      ],
+      "protocol": "references/integrity-pinning-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/protection-bypass.json",
+      "taskInit": {
+        "aliases": [
+          "bypass"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "protectionBypass.present",
+        "versionPath": "protectionBypass.version",
+        "artifactsPath": "protectionBypass.artifacts",
+        "minArtifacts": 4,
+        "arrayPaths": [
+          "protectionBypass.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "protectionBypass.present",
+        "requiredArtifacts": [
+          "run/anti-root-bypass.js",
+          "run/anti-frida-bypass.js",
+          "run/integrity-bypass.js",
+          "run/cert-pinning-bypass.js"
+        ],
+        "requirementsAll": [
+          {
+            "message": "protectionBypass.present=true but status is still not-started",
+            "path": "protectionBypass.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "protectionBypass.present=true but keyFindings is still empty",
+            "path": "protectionBypass.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "protectionBypass.present=true but root surface is still not-started",
+            "path": "protectionBypass.surfaceMatrix.root.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "protectionBypass.present=true but frida surface is still not-started",
+            "path": "protectionBypass.surfaceMatrix.frida.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "protectionBypass.present=true but integrity surface is still not-started",
+            "path": "protectionBypass.surfaceMatrix.integrity.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "protectionBypass.present=true but pinning surface is still not-started",
+            "path": "protectionBypass.surfaceMatrix.pinning.status",
+            "disallow": [
+              "not-started"
+            ]
+          }
+        ],
+        "requirementsAny": [
+          {
+            "message": "root surface must be marked not-applicable or touch run/anti-root-bypass.js",
+            "checks": [
+              {
+                "path": "protectionBypass.surfaceMatrix.root.status",
+                "equals": "not-applicable"
+              },
+              {
+                "touchedAny": [
+                  "run/anti-root-bypass.js"
+                ]
+              }
+            ]
+          },
+          {
+            "message": "frida surface must be marked not-applicable or touch run/anti-frida-bypass.js",
+            "checks": [
+              {
+                "path": "protectionBypass.surfaceMatrix.frida.status",
+                "equals": "not-applicable"
+              },
+              {
+                "touchedAny": [
+                  "run/anti-frida-bypass.js"
+                ]
+              }
+            ]
+          },
+          {
+            "message": "integrity surface must be marked not-applicable or touch run/integrity-bypass.js",
+            "checks": [
+              {
+                "path": "protectionBypass.surfaceMatrix.integrity.status",
+                "equals": "not-applicable"
+              },
+              {
+                "touchedAny": [
+                  "run/integrity-bypass.js"
+                ]
+              }
+            ]
+          },
+          {
+            "message": "pinning surface must be marked not-applicable or touch run/cert-pinning-bypass.js",
+            "checks": [
+              {
+                "path": "protectionBypass.surfaceMatrix.pinning.status",
+                "equals": "not-applicable"
+              },
+              {
+                "touchedAny": [
+                  "run/cert-pinning-bypass.js"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-protection-bypass-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/anti-root-bypass.js",
+        "artifacts/tasks/_TEMPLATE/run/anti-frida-bypass.js",
+        "artifacts/tasks/_TEMPLATE/run/integrity-bypass.js",
+        "artifacts/tasks/_TEMPLATE/run/cert-pinning-bypass.js"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Root",
+        "Frida",
+        "Integrity",
+        "Pinning",
+        "run/anti-root-bypass.js",
+        "run/anti-frida-bypass.js",
+        "run/integrity-bypass.js",
+        "run/cert-pinning-bypass.js"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/protection-bypass",
+      "requiredSignals": [
+        "rootbeer",
+        "frida detection",
+        "ptrace",
+        "play integrity",
+        "safetynet",
+        "certificatepinner"
+      ],
+      "requiredArtifacts": [
+        "run/anti-root-bypass.js",
+        "run/anti-frida-bypass.js",
+        "run/integrity-bypass.js",
+        "run/cert-pinning-bypass.js"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "protectionBypass.present",
+          "equals": true
+        },
+        {
+          "message": "protectionBypass.present=true but status is still not-started",
+          "path": "protectionBypass.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "protectionBypass.present=true but keyFindings is still empty",
+          "path": "protectionBypass.keyFindings",
+          "minLength": 1
+        },
+        {
+          "message": "protectionBypass.present=true but root surface is still not-started",
+          "path": "protectionBypass.surfaceMatrix.root.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "protectionBypass.present=true but frida surface is still not-started",
+          "path": "protectionBypass.surfaceMatrix.frida.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "protectionBypass.present=true but integrity surface is still not-started",
+          "path": "protectionBypass.surfaceMatrix.integrity.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "protectionBypass.present=true but pinning surface is still not-started",
+          "path": "protectionBypass.surfaceMatrix.pinning.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "path": "protectionBypass.surfaceMatrix.root.status",
+          "equals": "not-applicable"
+        },
+        {
+          "path": "protectionBypass.surfaceMatrix.frida.status",
+          "equals": "not-applicable"
+        },
+        {
+          "path": "protectionBypass.surfaceMatrix.integrity.status",
+          "equals": "not-applicable"
+        },
+        {
+          "path": "protectionBypass.surfaceMatrix.pinning.status",
+          "equals": "not-applicable"
+        }
+      ],
+      "taskPackFiles": [
+        "run/anti-frida-bypass-advanced.js",
+        "run/anti-frida-bypass.js",
+        "run/anti-root-bypass-advanced.js",
+        "run/anti-root-bypass.js",
+        "run/cert-pinning-bypass-advanced.js",
+        "run/cert-pinning-bypass.js",
+        "run/integrity-bypass-advanced.js",
+        "run/integrity-bypass.js"
+      ]
+    },
+    {
+      "key": "runtime-hooking",
+      "label": "Frida runtime capture / Java + Native",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "runtime-hooking",
+      "signals": [
+        "frida",
+        "java.use",
+        "interceptor",
+        "hexdump",
+        "hook"
+      ],
+      "protocol": "references/frida-java-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/runtime-hooking.json",
+      "taskInit": {
+        "aliases": [
+          "frida-hook"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "runtimeHooking.present",
+        "versionPath": "runtimeHooking.version",
+        "artifactsPath": "runtimeHooking.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "runtimeHooking.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "runtimeHooking.present",
+        "requiredArtifacts": [
+          "run/frida-java-template.js",
+          "run/frida-native-template.js"
+        ],
+        "requirementsAll": [
+          {
+            "message": "runtimeHooking.present=true but status is still not-started",
+            "path": "runtimeHooking.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "runtimeHooking.present=true but keyFindings is still empty",
+            "path": "runtimeHooking.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "runtimeHooking.present=true but frida-java-template is still placeholder",
+            "touchedAny": [
+              "run/frida-java-template.js"
+            ]
+          },
+          {
+            "message": "runtimeHooking.present=true but frida-native-template is still placeholder",
+            "touchedAny": [
+              "run/frida-native-template.js"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-runtime-hook-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/frida-java-template.js",
+        "artifacts/tasks/_TEMPLATE/run/frida-native-template.js"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Frida",
+        "run/frida-java-template.js",
+        "run/frida-native-template.js"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/runtime-hooking",
+      "requiredSignals": [
+        "frida",
+        "java.use",
+        "interceptor",
+        "hexdump",
+        "hook"
+      ],
+      "requiredArtifacts": [
+        "run/frida-java-template.js",
+        "run/frida-native-template.js"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "runtimeHooking.present",
+          "equals": true
+        },
+        {
+          "message": "runtimeHooking.present=true but status is still not-started",
+          "path": "runtimeHooking.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "runtimeHooking.present=true but keyFindings is still empty",
+          "path": "runtimeHooking.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/frida-java-template-advanced.js",
+        "run/frida-java-template.js",
+        "run/frida-native-template-advanced.js",
+        "run/frida-native-template.js"
+      ]
+    },
+    {
+      "key": "split-delivery",
+      "label": "Split delivery / APKS / AAB",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "split-delivery",
+      "signals": [
+        "apks",
+        "aab",
+        "split apk",
+        "dynamic feature",
+        "asset pack"
+      ],
+      "protocol": "references/split-delivery-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/split-delivery.json",
+      "taskInit": {
+        "aliases": [
+          "split"
+        ],
+        "baseProtectionTier": "A2",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "splitDelivery.present",
+        "versionPath": "splitDelivery.version",
+        "artifactsPath": "splitDelivery.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "splitDelivery.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "splitDelivery.present",
+        "requiredArtifacts": [
+          "run/split-delivery-notes.md",
+          "run/split-layout.json"
+        ],
+        "requirementsAll": [
+          {
+            "message": "splitDelivery.present=true but status is still not-started",
+            "path": "splitDelivery.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "splitDelivery.present=true but keyFindings is still empty",
+            "path": "splitDelivery.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "splitDelivery.present=true but split-delivery artifacts are still placeholders",
+            "touchedAny": [
+              "run/split-delivery-notes.md",
+              "run/split-layout.json"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-split-delivery-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/split-delivery-notes.md",
+        "artifacts/tasks/_TEMPLATE/run/split-layout.json"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "split",
+        "run/split-delivery-notes.md",
+        "run/split-layout.json"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/split-delivery",
+      "requiredSignals": [
+        "apks",
+        "aab",
+        "split apk",
+        "dynamic feature",
+        "asset pack"
+      ],
+      "requiredArtifacts": [
+        "run/split-delivery-notes.md",
+        "run/split-layout.json"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "splitDelivery.present",
+          "equals": true
+        },
+        {
+          "message": "splitDelivery.present=true but status is still not-started",
+          "path": "splitDelivery.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "splitDelivery.present=true but keyFindings is still empty",
+          "path": "splitDelivery.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/split-delivery-notes.md",
+        "run/split-layout.json"
+      ]
+    },
+    {
+      "key": "static-triage",
+      "label": "Static triage / manifest / packaging",
+      "maturity": "synthetic-e2e",
+      "routeTrack": "static-triage",
+      "signals": [
+        "manifest",
+        "exported",
+        "permission",
+        "component",
+        "asset",
+        "resource"
+      ],
+      "protocol": "references/static-triage-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/static-triage.json",
+      "taskInit": {
+        "aliases": [
+          "apk-triage"
+        ],
+        "baseProtectionTier": "A0",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "staticTriage.present",
+        "versionPath": "staticTriage.version",
+        "artifactsPath": "staticTriage.artifacts",
+        "minArtifacts": 2,
+        "arrayPaths": [
+          "staticTriage.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "staticTriage.present",
+        "requiredArtifacts": [
+          "run/static-triage-notes.md",
+          "run/component-map.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "staticTriage.present=true but status is still not-started",
+            "path": "staticTriage.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "staticTriage.present=true but keyFindings is still empty",
+            "path": "staticTriage.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "staticTriage.present=true but artifacts are still placeholders",
+            "touchedAny": [
+              "run/static-triage-notes.md",
+              "run/component-map.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-apk-triage-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/static-triage-notes.md",
+        "artifacts/tasks/_TEMPLATE/run/component-map.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Manifest",
+        "组件",
+        "run/static-triage-notes.md",
+        "run/component-map.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/static-triage",
+      "requiredSignals": [
+        "manifest",
+        "exported",
+        "permission",
+        "component",
+        "asset",
+        "resource"
+      ],
+      "requiredArtifacts": [
+        "run/static-triage-notes.md",
+        "run/component-map.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "staticTriage.present",
+          "equals": true
+        },
+        {
+          "message": "staticTriage.present=true but status is still not-started",
+          "path": "staticTriage.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "staticTriage.present=true but keyFindings is still empty",
+          "path": "staticTriage.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/component-map.md",
+        "run/static-triage-notes.md"
+      ]
+    },
+    {
+      "key": "anti-emulator-debug",
+      "label": "Anti-emulator / anti-debug / tracer bypass",
+      "maturity": "closed-loop",
+      "routeTrack": "anti-emulator-debug",
+      "signals": [
+        "emulator",
+        "debug",
+        "tracer",
+        "ro.kernel.qemu",
+        "isdebuggerconnected",
+        "ptrace"
+      ],
+      "protocol": "references/anti-emulator-debug-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/anti-emulator-debug.json",
+      "taskInit": {
+        "aliases": [
+          "anti-debug",
+          "emulator"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "antiEmulatorDebug.present",
+        "artifactsPath": "antiEmulatorDebug.artifact",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "antiEmulatorDebug.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "antiEmulatorDebug.present",
+        "requiredArtifacts": [
+          "run/anti-emulator-bypass.js"
+        ],
+        "requirementsAll": [
+          {
+            "message": "antiEmulatorDebug.present=true but status is still not-started",
+            "path": "antiEmulatorDebug.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "antiEmulatorDebug.present=true but keyFindings is still empty",
+            "path": "antiEmulatorDebug.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "antiEmulatorDebug.present=true but anti-emulator script is still placeholder",
+            "touchedAny": [
+              "run/anti-emulator-bypass.js"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-anti-emulator-debug-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/anti-emulator-bypass.js"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "模拟器",
+        "run/anti-emulator-bypass.js"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/anti-emulator-debug",
+      "requiredSignals": [
+        "emulator",
+        "debug",
+        "tracer",
+        "ro.kernel.qemu",
+        "isdebuggerconnected",
+        "ptrace"
+      ],
+      "requiredArtifacts": [
+        "run/anti-emulator-bypass.js"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "antiEmulatorDebug.present",
+          "equals": true
+        },
+        {
+          "message": "antiEmulatorDebug.present=true but status is still not-started",
+          "path": "antiEmulatorDebug.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "antiEmulatorDebug.present=true but keyFindings is still empty",
+          "path": "antiEmulatorDebug.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/anti-emulator-bypass.js"
+      ]
+    },
+    {
+      "key": "art-runtime",
+      "label": "ART runtime / OAT / VDEX / inline / deopt",
+      "maturity": "closed-loop",
+      "routeTrack": "art-runtime",
+      "signals": [
+        "oat",
+        "vdex",
+        "odex",
+        "inline",
+        "deopt",
+        "zygote"
+      ],
+      "protocol": "references/art-runtime-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/art-runtime.json",
+      "taskInit": {
+        "aliases": [
+          "art",
+          "deopt"
+        ],
+        "baseProtectionTier": "A4",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "artRuntime.present",
+        "artifactsPath": "artRuntime.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "artRuntime.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "artRuntime.present",
+        "requiredArtifacts": [
+          "run/art-runtime-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "artRuntime.present=true but status is still not-started",
+            "path": "artRuntime.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "artRuntime.present=true but keyFindings is still empty",
+            "path": "artRuntime.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "artRuntime.present=true but art-runtime notes are still placeholders",
+            "touchedAny": [
+              "run/art-runtime-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-art-runtime-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/art-runtime-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "ART Runtime",
+        "run/art-runtime-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/art-runtime",
+      "requiredSignals": [
+        "oat",
+        "vdex",
+        "odex",
+        "inline",
+        "deopt",
+        "zygote"
+      ],
+      "requiredArtifacts": [
+        "run/art-runtime-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "artRuntime.present",
+          "equals": true
+        },
+        {
+          "message": "artRuntime.present=true but status is still not-started",
+          "path": "artRuntime.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "artRuntime.present=true but keyFindings is still empty",
+          "path": "artRuntime.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/art-runtime-notes.md"
+      ]
+    },
+    {
+      "key": "call-flow",
+      "label": "Call flow / Activity / ViewModel / Repository tracing",
+      "maturity": "closed-loop",
+      "routeTrack": "call-flow",
+      "signals": [
+        "activity",
+        "fragment",
+        "viewmodel",
+        "repository",
+        "onclick",
+        "observer"
+      ],
+      "protocol": "references/call-flow-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/call-flow.json",
+      "taskInit": {
+        "aliases": [
+          "flow",
+          "viewmodel"
+        ],
+        "baseProtectionTier": "A1",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "callFlow.present",
+        "artifactsPath": "callFlow.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "callFlow.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "callFlow.present",
+        "requiredArtifacts": [
+          "run/call-chain.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "callFlow.present=true but status is still not-started",
+            "path": "callFlow.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "callFlow.present=true but keyFindings is still empty",
+            "path": "callFlow.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "callFlow.present=true but call-chain is still placeholder",
+            "touchedAny": [
+              "run/call-chain.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-call-flow-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/call-chain.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "调用链",
+        "run/call-chain.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/call-flow",
+      "requiredSignals": [
+        "activity",
+        "fragment",
+        "viewmodel",
+        "repository",
+        "onclick",
+        "observer"
+      ],
+      "requiredArtifacts": [
+        "run/call-chain.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "callFlow.present",
+          "equals": true
+        },
+        {
+          "message": "callFlow.present=true but status is still not-started",
+          "path": "callFlow.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "callFlow.present=true but keyFindings is still empty",
+          "path": "callFlow.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/call-chain.md"
+      ]
+    },
+    {
+      "key": "java-api",
+      "label": "Java API / client / endpoint extraction",
+      "maturity": "closed-loop",
+      "routeTrack": "java-api",
+      "signals": [
+        "retrofit",
+        "okhttp",
+        "volley",
+        "baseurl",
+        "api",
+        "endpoint"
+      ],
+      "protocol": "references/java-api-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/java-api.json",
+      "taskInit": {
+        "aliases": [
+          "api",
+          "endpoint"
+        ],
+        "baseProtectionTier": "A1",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "javaApi.present",
+        "artifactsPath": "javaApi.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "javaApi.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "javaApi.present",
+        "requiredArtifacts": [
+          "run/api-map.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "javaApi.present=true but status is still not-started",
+            "path": "javaApi.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "javaApi.present=true but keyFindings is still empty",
+            "path": "javaApi.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "javaApi.present=true but api-map is still placeholder",
+            "touchedAny": [
+              "run/api-map.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-java-api-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/api-map.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Java API",
+        "run/api-map.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/java-api",
+      "requiredSignals": [
+        "retrofit",
+        "okhttp",
+        "volley",
+        "baseurl",
+        "api",
+        "endpoint"
+      ],
+      "requiredArtifacts": [
+        "run/api-map.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "javaApi.present",
+          "equals": true
+        },
+        {
+          "message": "javaApi.present=true but status is still not-started",
+          "path": "javaApi.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "javaApi.present=true but keyFindings is still empty",
+          "path": "javaApi.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/api-map.md"
+      ]
+    },
+    {
+      "key": "native-network",
+      "label": "Native network / Cronet / BoringSSL / QUIC",
+      "maturity": "closed-loop",
+      "routeTrack": "native-network",
+      "signals": [
+        "cronet",
+        "boringssl",
+        "ssl_ctx",
+        "x509",
+        "quic",
+        "native tls"
+      ],
+      "protocol": "references/native-network-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/native-network.json",
+      "taskInit": {
+        "aliases": [
+          "cronet",
+          "tls"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "nativeNetwork.present",
+        "artifactsPath": "nativeNetwork.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "nativeNetwork.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "nativeNetwork.present",
+        "requiredArtifacts": [
+          "run/network-stack-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "nativeNetwork.present=true but status is still not-started",
+            "path": "nativeNetwork.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "nativeNetwork.present=true but keyFindings is still empty",
+            "path": "nativeNetwork.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "nativeNetwork.present=true but network-stack notes are still placeholders",
+            "touchedAny": [
+              "run/network-stack-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-native-network-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/network-stack-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Native Network",
+        "run/network-stack-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/native-network",
+      "requiredSignals": [
+        "cronet",
+        "boringssl",
+        "ssl_ctx",
+        "x509",
+        "quic",
+        "native tls"
+      ],
+      "requiredArtifacts": [
+        "run/network-stack-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "nativeNetwork.present",
+          "equals": true
+        },
+        {
+          "message": "nativeNetwork.present=true but status is still not-started",
+          "path": "nativeNetwork.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "nativeNetwork.present=true but keyFindings is still empty",
+          "path": "nativeNetwork.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/network-stack-notes.md"
+      ]
+    },
+    {
+      "key": "native-so",
+      "label": "Native SO / ELF / symbol / crypto constant analysis",
+      "maturity": "closed-loop",
+      "routeTrack": "native-so",
+      "signals": [
+        "elf",
+        "symbol",
+        "rva",
+        "so",
+        "crypto constant",
+        "syscall"
+      ],
+      "protocol": "references/native-so-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/native-so.json",
+      "taskInit": {
+        "aliases": [
+          "native",
+          "so"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "native.present",
+        "artifactsPath": "native.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "native.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "native.present",
+        "requiredArtifacts": [
+          "run/native-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "native.present=true but status is still not-started",
+            "path": "native.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "native.present=true but keyFindings is still empty",
+            "path": "native.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "native.present=true but native-notes is still placeholder",
+            "touchedAny": [
+              "run/native-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-native-so-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/native-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Native SO",
+        "run/native-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/native-so",
+      "requiredSignals": [
+        "elf",
+        "symbol",
+        "rva",
+        "so",
+        "crypto constant",
+        "syscall"
+      ],
+      "requiredArtifacts": [
+        "run/native-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "native.present",
+          "equals": true
+        },
+        {
+          "message": "native.present=true but status is still not-started",
+          "path": "native.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "native.present=true but keyFindings is still empty",
+          "path": "native.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/native-notes.md"
+      ]
+    },
+    {
+      "key": "smali-patching",
+      "label": "Smali patch / rebuild / resign / install verify",
+      "maturity": "closed-loop",
+      "routeTrack": "smali-patching",
+      "signals": [
+        "smali",
+        "patch",
+        "rebuild",
+        "resign",
+        "apktool",
+        "install verify"
+      ],
+      "protocol": "references/smali-patching-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/smali-patching.json",
+      "taskInit": {
+        "aliases": [
+          "smali",
+          "patch"
+        ],
+        "baseProtectionTier": "A2",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "smaliPatch.present",
+        "artifactsPath": "smaliPatch.artifact",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "smaliPatch.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "smaliPatch.present",
+        "requiredArtifacts": [
+          "run/smali-patch-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "smaliPatch.present=true but status is still not-started",
+            "path": "smaliPatch.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "smaliPatch.present=true but keyFindings is still empty",
+            "path": "smaliPatch.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "smaliPatch.present=true but smali patch notes are still placeholders",
+            "touchedAny": [
+              "run/smali-patch-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-smali-patching-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/smali-patch-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "smali",
+        "run/smali-patch-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/smali-patching",
+      "requiredSignals": [
+        "smali",
+        "patch",
+        "rebuild",
+        "resign",
+        "apktool",
+        "install verify"
+      ],
+      "requiredArtifacts": [
+        "run/smali-patch-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "smaliPatch.present",
+          "equals": true
+        },
+        {
+          "message": "smaliPatch.present=true but status is still not-started",
+          "path": "smaliPatch.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "smaliPatch.present=true but keyFindings is still empty",
+          "path": "smaliPatch.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/smali-patch-notes.md"
+      ]
+    },
+    {
+      "key": "storage-ipc",
+      "label": "Storage / IPC / provider / binder evidence",
+      "maturity": "closed-loop",
+      "routeTrack": "storage-ipc",
+      "signals": [
+        "sharedpreferences",
+        "sqlite",
+        "room",
+        "mmkv",
+        "contentprovider",
+        "binder"
+      ],
+      "protocol": "references/storage-ipc-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/storage-ipc.json",
+      "taskInit": {
+        "aliases": [
+          "storage",
+          "ipc"
+        ],
+        "baseProtectionTier": "A1",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "storageIpc.present",
+        "artifactsPath": "storageIpc.artifact",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "storageIpc.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "storageIpc.present",
+        "requiredArtifacts": [
+          "run/storage-ipc-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "storageIpc.present=true but status is still not-started",
+            "path": "storageIpc.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "storageIpc.present=true but keyFindings is still empty",
+            "path": "storageIpc.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "storageIpc.present=true but storage-ipc notes are still placeholders",
+            "touchedAny": [
+              "run/storage-ipc-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-storage-ipc-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/storage-ipc-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "Storage / IPC",
+        "run/storage-ipc-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/storage-ipc",
+      "requiredSignals": [
+        "sharedpreferences",
+        "sqlite",
+        "room",
+        "mmkv",
+        "contentprovider",
+        "binder"
+      ],
+      "requiredArtifacts": [
+        "run/storage-ipc-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "storageIpc.present",
+          "equals": true
+        },
+        {
+          "message": "storageIpc.present=true but status is still not-started",
+          "path": "storageIpc.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "storageIpc.present=true but keyFindings is still empty",
+          "path": "storageIpc.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/storage-ipc-notes.md"
+      ]
+    },
+    {
+      "key": "webview-hybrid",
+      "label": "WebView / hybrid bridge / JS-Native boundary",
+      "maturity": "closed-loop",
+      "routeTrack": "webview-hybrid",
+      "signals": [
+        "webview",
+        "addjavascriptinterface",
+        "evaluatejavascript",
+        "hybrid",
+        "webchromeclient"
+      ],
+      "protocol": "references/webview-hybrid-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/webview-hybrid.json",
+      "taskInit": {
+        "aliases": [
+          "webview",
+          "hybrid"
+        ],
+        "baseProtectionTier": "A2",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "webview.present",
+        "artifactsPath": "webview.artifact",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "webview.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "webview.present",
+        "requiredArtifacts": [
+          "run/webview-bridge-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "webview.present=true but status is still not-started",
+            "path": "webview.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "webview.present=true but keyFindings is still empty",
+            "path": "webview.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "webview.present=true but webview notes are still placeholders",
+            "touchedAny": [
+              "run/webview-bridge-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-webview-hybrid-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/webview-bridge-notes.md"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "WebView",
+        "run/webview-bridge-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/webview-hybrid",
+      "requiredSignals": [
+        "webview",
+        "addjavascriptinterface",
+        "evaluatejavascript",
+        "hybrid",
+        "webchromeclient"
+      ],
+      "requiredArtifacts": [
+        "run/webview-bridge-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "webview.present",
+          "equals": true
+        },
+        {
+          "message": "webview.present=true but status is still not-started",
+          "path": "webview.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "webview.present=true but keyFindings is still empty",
+          "path": "webview.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/webview-bridge-notes.md"
+      ]
+    },
+    {
+      "key": "ctf",
+      "label": "Android CTF / crackme / solver extraction",
+      "maturity": "guided",
+      "routeTrack": "ctf",
+      "signals": [
+        "ctf",
+        "crackme",
+        "flag",
+        "solver",
+        "challenge"
+      ],
+      "protocol": "references/ctf-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/ctf.json",
+      "taskInit": {
+        "aliases": [
+          "crackme",
+          "flag"
+        ],
+        "baseProtectionTier": "A2",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "ctf.present",
+        "artifactsPath": "ctf.artifact",
+        "arrayPaths": [
+          "ctf.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "ctf.present",
+        "requiredArtifacts": [
+          "run/solver-template.py"
+        ],
+        "requirementsAll": [
+          {
+            "message": "ctf.present=true but status is still not-started",
+            "path": "ctf.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "ctf.present=true but keyFindings is still empty",
+            "path": "ctf.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "ctf.present=true but solver template is still placeholder",
+            "touchedAny": [
+              "run/solver-template.py"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-ctf-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/solver-template.py"
+      ],
+      "qaFiles": [
+        {
+          "path": "tools/task/validation.mjs",
+          "needles": [
+            "evaluateTopicFormalValidation",
+            "evaluateTopicPhaseGuards"
+          ]
+        }
+      ],
+      "outputNeedles": [
+        "CTF",
+        "run/solver-template.py"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:operating-contracts",
+        "check:deliverables"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/ctf",
+      "requiredSignals": [
+        "ctf",
+        "crackme",
+        "flag",
+        "solver",
+        "challenge"
+      ],
+      "requiredArtifacts": [
+        "run/solver-template.py"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "ctf.present",
+          "equals": true
+        },
+        {
+          "message": "ctf.present=true but status is still not-started",
+          "path": "ctf.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "ctf.present=true but keyFindings is still empty",
+          "path": "ctf.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/solver-template.py"
+      ]
+    },
+    {
+      "key": "deobfuscation",
+      "label": "OLLVM / FLA / BR / SUB / BCF / deobfuscation",
+      "maturity": "guided",
+      "routeTrack": "deobfuscation",
+      "signals": [
+        "ollvm",
+        "fla",
+        "control flow flattening",
+        "bogus control flow",
+        "bcf",
+        "instruction substitution",
+        "mba",
+        "dispatcher",
+        "deobfuscation",
+        "arkari",
+        "blackobfuscator",
+        "hikari",
+        "goron",
+        "blr obfuscation"
+      ],
+      "protocol": "references/deobfuscation-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/deobfuscation.json",
+      "taskInit": {
+        "aliases": [
+          "deobf",
+          "ollvm"
+        ],
+        "baseProtectionTier": "A4",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "deobfuscation.present",
+        "artifactsPath": "deobfuscation.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "deobfuscation.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "deobfuscation.present",
+        "requiredArtifacts": [
+          "run/deobfuscation-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "deobfuscation.present=true but status is still not-started",
+            "path": "deobfuscation.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "deobfuscation.present=true but keyFindings is still empty",
+            "path": "deobfuscation.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "deobfuscation.present=true but deobfuscation-notes is still placeholder",
+            "touchedAny": [
+              "run/deobfuscation-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-deobfuscation-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-state-machine-template.py",
+        "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-angr-template.py",
+        "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/fla-unicorn-template.py",
+        "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/br-patch-template.py",
+        "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation/run/bcf-bss-patch-template.py"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Deobfuscation",
+        "run/deobfuscation-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/deobfuscation",
+      "requiredSignals": [
+        "ollvm",
+        "fla",
+        "control flow flattening",
+        "bogus control flow",
+        "bcf",
+        "instruction substitution",
+        "mba",
+        "dispatcher",
+        "deobfuscation",
+        "arkari",
+        "blackobfuscator",
+        "hikari",
+        "goron",
+        "blr obfuscation"
+      ],
+      "requiredArtifacts": [
+        "run/deobfuscation-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "deobfuscation.present",
+          "equals": true
+        },
+        {
+          "message": "deobfuscation.present=true but status is still not-started",
+          "path": "deobfuscation.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "deobfuscation.present=true but keyFindings is still empty",
+          "path": "deobfuscation.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/bcf-bss-patch-template.py",
+        "run/br-patch-template.py",
+        "run/fla-angr-template.py",
+        "run/fla-state-machine-template.py",
+        "run/fla-unicorn-template.py",
+        "topic-packs/deobfuscation/run/fla-state-machine-template.py",
+        "topic-packs/deobfuscation/run/fla-angr-template.py",
+        "topic-packs/deobfuscation/run/fla-unicorn-template.py",
+        "topic-packs/deobfuscation/run/br-patch-template.py",
+        "topic-packs/deobfuscation/run/bcf-bss-patch-template.py"
+      ]
+    },
+    {
+      "key": "device-fingerprint",
+      "label": "Device fingerprint / risk control / Play Integrity",
+      "maturity": "guided",
+      "routeTrack": "device-fingerprint",
+      "signals": [
+        "device fingerprint",
+        "risk control",
+        "play integrity",
+        "key attestation",
+        "safetynet",
+        "device id",
+        "android id",
+        "imei",
+        "risk engine",
+        "warlock"
+      ],
+      "protocol": "references/device-fingerprint-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/device-fingerprint.json",
+      "taskInit": {
+        "aliases": [
+          "fingerprint",
+          "risk"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "fingerprint.present",
+        "artifactsPath": "fingerprint.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "fingerprint.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "fingerprint.present",
+        "requiredArtifacts": [
+          "run/device-fingerprint-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "fingerprint.present=true but status is still not-started",
+            "path": "fingerprint.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "fingerprint.present=true but keyFindings is still empty",
+            "path": "fingerprint.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "fingerprint.present=true but device-fingerprint-notes is still placeholder",
+            "touchedAny": [
+              "run/device-fingerprint-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-device-fingerprint-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/device-fingerprint/run/device-fingerprint-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Device Fingerprint",
+        "run/device-fingerprint-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/device-fingerprint",
+      "requiredSignals": [
+        "device fingerprint",
+        "risk control",
+        "play integrity",
+        "key attestation",
+        "safetynet",
+        "device id",
+        "android id",
+        "imei",
+        "risk engine",
+        "warlock"
+      ],
+      "requiredArtifacts": [
+        "run/device-fingerprint-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "fingerprint.present",
+          "equals": true
+        },
+        {
+          "message": "fingerprint.present=true but status is still not-started",
+          "path": "fingerprint.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "fingerprint.present=true but keyFindings is still empty",
+          "path": "fingerprint.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/device-fingerprint-notes.md",
+        "topic-packs/device-fingerprint/run/device-fingerprint-notes.md"
+      ]
+    },
+    {
+      "key": "hook-injection",
+      "label": "Hook framework internals / injection methods",
+      "maturity": "guided",
+      "routeTrack": "hook-injection",
+      "signals": [
+        "hook",
+        "injection",
+        "plt hook",
+        "got hook",
+        "inline hook",
+        "artmethod",
+        "zygisk",
+        "ptrace",
+        "frida internals",
+        "dobby",
+        "bhook"
+      ],
+      "protocol": "references/hook-injection-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/hook-injection.json",
+      "taskInit": {
+        "aliases": [
+          "hook",
+          "inject"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "hook.present",
+        "artifactsPath": "hook.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "hook.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "hook.present",
+        "requiredArtifacts": [
+          "run/hook-injection-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "hook.present=true but status is still not-started",
+            "path": "hook.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "hook.present=true but keyFindings is still empty",
+            "path": "hook.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "hook.present=true but hook-injection-notes is still placeholder",
+            "touchedAny": [
+              "run/hook-injection-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-hook-injection-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/hook-injection/run/hook-injection-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Hook Injection",
+        "run/hook-injection-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/hook-injection",
+      "requiredSignals": [
+        "hook",
+        "injection",
+        "plt hook",
+        "got hook",
+        "inline hook",
+        "artmethod",
+        "zygisk",
+        "ptrace",
+        "frida internals",
+        "dobby",
+        "bhook"
+      ],
+      "requiredArtifacts": [
+        "run/hook-injection-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "hook.present",
+          "equals": true
+        },
+        {
+          "message": "hook.present=true but status is still not-started",
+          "path": "hook.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "hook.present=true but keyFindings is still empty",
+          "path": "hook.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/hook-injection-notes.md",
+        "topic-packs/hook-injection/run/hook-injection-notes.md"
+      ]
+    },
+    {
+      "key": "kernel-assisted-re",
+      "label": "Kernel-assisted reverse engineering (eBPF, HWBP, seccomp for app RE)",
+      "maturity": "guided",
+      "routeTrack": "kernel-assisted-re",
+      "signals": [
+        "ebpf",
+        "hardware breakpoint",
+        "hwbp",
+        "pte hook",
+        "seccomp",
+        "svc monitor",
+        "dex dump kernel",
+        "edbg",
+        "kernel module",
+        "kpm"
+      ],
+      "protocol": "references/kernel-assisted-re-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/kernel-assisted-re.json",
+      "taskInit": {
+        "aliases": [
+          "kernel",
+          "kre"
+        ],
+        "baseProtectionTier": "A5",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "kre.present",
+        "artifactsPath": "kre.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "kre.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "kre.present",
+        "requiredArtifacts": [
+          "run/kernel-assisted-re-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "kre.present=true but status is still not-started",
+            "path": "kre.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "kre.present=true but keyFindings is still empty",
+            "path": "kre.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "kre.present=true but kernel-assisted-re-notes is still placeholder",
+            "touchedAny": [
+              "run/kernel-assisted-re-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-kernel-assisted-re-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/kernel-assisted-re/run/kernel-assisted-re-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Kernel-Assisted RE",
+        "run/kernel-assisted-re-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/kernel-assisted-re",
+      "requiredSignals": [
+        "ebpf",
+        "hardware breakpoint",
+        "hwbp",
+        "pte hook",
+        "seccomp",
+        "svc monitor",
+        "dex dump kernel",
+        "edbg",
+        "kernel module",
+        "kpm"
+      ],
+      "requiredArtifacts": [
+        "run/kernel-assisted-re-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "kre.present",
+          "equals": true
+        },
+        {
+          "message": "kre.present=true but status is still not-started",
+          "path": "kre.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "kre.present=true but keyFindings is still empty",
+          "path": "kre.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/kernel-assisted-re-notes.md",
+        "topic-packs/kernel-assisted-re/run/kernel-assisted-re-notes.md"
+      ]
+    },
+    {
+      "key": "so-runtime-evidence",
+      "label": "SO Runtime Evidence (encrypted/packed SO dump-fix, anonymous RX/memfd execution, crash syscall attribution)",
+      "maturity": "guided",
+      "routeTrack": "so-runtime-evidence",
+      "signals": [
+        "encrypted so",
+        "packed so",
+        "self-decrypt",
+        "runtime rebuild",
+        "anonymous rx",
+        "memfd",
+        "anon exec",
+        "crash pc lr",
+        "sigkill",
+        "sigsegv",
+        "sigtrap",
+        "brk",
+        "direct syscall",
+        "dump fix",
+        "call_constructors",
+        "init_array crash",
+        "so 闪退"
+      ],
+      "protocol": "references/so-runtime-evidence-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/so-runtime-evidence.json",
+      "taskInit": {
+        "aliases": [
+          "sre",
+          "so-runtime"
+        ],
+        "baseProtectionTier": "A4",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "sre.present",
+        "artifactsPath": "sre.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "sre.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "sre.present",
+        "requiredArtifacts": [
+          "run/so-runtime-evidence-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "sre.present=true but status is still not-started",
+            "path": "sre.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "sre.present=true but keyFindings is still empty",
+            "path": "sre.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "sre.present=true but so-runtime-evidence-notes is still placeholder",
+            "touchedAny": [
+              "run/so-runtime-evidence-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-so-runtime-evidence-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/run/so-runtime-evidence-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "SO Runtime Evidence",
+        "run/so-runtime-evidence-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/so-runtime-evidence",
+      "requiredSignals": [
+        "encrypted so",
+        "packed so",
+        "self-decrypt",
+        "runtime rebuild",
+        "anonymous rx",
+        "memfd",
+        "anon exec",
+        "crash pc lr",
+        "sigkill",
+        "sigsegv",
+        "sigtrap",
+        "brk",
+        "direct syscall",
+        "dump fix",
+        "call_constructors",
+        "init_array crash",
+        "so 闪退"
+      ],
+      "requiredArtifacts": [
+        "run/so-runtime-evidence-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "sre.present",
+          "equals": true
+        },
+        {
+          "message": "sre.present=true but status is still not-started",
+          "path": "sre.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "sre.present=true but keyFindings is still empty",
+          "path": "sre.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/so-runtime-evidence-notes.md"
+      ]
+    },
+    {
+      "key": "stealth-hook",
+      "label": "Stealth Hook (Kernel-assisted zero-trace hooking via HWBP+PTE+DBI+GhostMem)",
+      "maturity": "guided",
+      "routeTrack": "stealth-hook",
+      "signals": [
+        "stealth hook",
+        "无痕 hook",
+        "kernel hook",
+        "hwbp",
+        "hardware breakpoint",
+        "硬件断点",
+        "pte hook",
+        "page table hook",
+        "uxn",
+        "dbi",
+        "dynamic binary instrumentation",
+        "指令重编译",
+        "ghost memory",
+        "幽灵内存",
+        "vma-less",
+        "maps hide",
+        "ptrace spoof",
+        "kpm",
+        "kernelpatch",
+        "apatch",
+        "xiaojianbang",
+        "lsplant stealth",
+        "artmethod stealth",
+        "anti-cheat bypass",
+        "crc bypass",
+        "text crc",
+        "反作弊",
+        "frida detected",
+        "frida 不上",
+        "ptrace detected",
+        "a6 hook",
+        "a7 hook",
+        "高对抗 hook"
+      ],
+      "protocol": "references/stealth-hook-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/stealth-hook.json",
+      "taskInit": {
+        "aliases": [
+          "stealth",
+          "shook"
+        ],
+        "baseProtectionTier": "A6",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "stealthHook.present",
+        "artifactsPath": "stealthHook.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "stealthHook.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "stealthHook.present",
+        "requiredArtifacts": [
+          "run/stealth-hook-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "stealthHook.present=true but status is still not-started",
+            "path": "stealthHook.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "stealthHook.present=true but keyFindings is still empty",
+            "path": "stealthHook.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "stealthHook.present=true but stealth-hook-notes is still placeholder",
+            "touchedAny": [
+              "run/stealth-hook-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-stealth-hook-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/stealth-hook/run/stealth-hook-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Stealth Hook",
+        "run/stealth-hook-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/stealth-hook",
+      "requiredSignals": [
+        "stealth hook",
+        "无痕 hook",
+        "kernel hook",
+        "hwbp",
+        "hardware breakpoint",
+        "硬件断点",
+        "pte hook",
+        "page table hook",
+        "uxn",
+        "dbi",
+        "dynamic binary instrumentation",
+        "指令重编译",
+        "ghost memory",
+        "幽灵内存",
+        "vma-less",
+        "maps hide",
+        "ptrace spoof",
+        "kpm",
+        "kernelpatch",
+        "apatch",
+        "xiaojianbang",
+        "lsplant stealth",
+        "artmethod stealth",
+        "anti-cheat bypass",
+        "crc bypass",
+        "text crc",
+        "反作弊",
+        "frida detected",
+        "frida 不上",
+        "ptrace detected",
+        "a6 hook",
+        "a7 hook",
+        "高对抗 hook"
+      ],
+      "requiredArtifacts": [
+        "run/stealth-hook-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "stealthHook.present",
+          "equals": true
+        },
+        {
+          "message": "stealthHook.present=true but status is still not-started",
+          "path": "stealthHook.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "stealthHook.present=true but keyFindings is still empty",
+          "path": "stealthHook.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/stealth-hook-notes.md",
+        "topic-packs/stealth-hook/run/stealth-hook-notes.md"
+      ]
+    },
+    {
+      "key": "trace-analysis",
+      "label": "Trace collection, slicing, taint analysis, and algorithm recovery",
+      "maturity": "guided",
+      "routeTrack": "trace-analysis",
+      "signals": [
+        "trace",
+        "trace-ui",
+        "trace-slice",
+        "taint",
+        "ltv-taint",
+        "gumtrace",
+        "qtrace",
+        "vmlifter",
+        "instruction trace",
+        "execution trace",
+        "algorithm recovery",
+        "semantic lift"
+      ],
+      "protocol": "references/trace-analysis-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/trace-analysis.json",
+      "taskInit": {
+        "aliases": [
+          "trace",
+          "trc"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "trace.present",
+        "artifactsPath": "trace.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "trace.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "trace.present",
+        "requiredArtifacts": [
+          "run/trace-analysis-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "trace.present=true but status is still not-started",
+            "path": "trace.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "trace.present=true but keyFindings is still empty",
+            "path": "trace.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "trace.present=true but trace-analysis-notes is still placeholder",
+            "touchedAny": [
+              "run/trace-analysis-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-trace-analysis-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/trace-analysis/run/trace-analysis-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Trace Analysis",
+        "run/trace-analysis-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/trace-analysis",
+      "requiredSignals": [
+        "trace",
+        "trace-ui",
+        "trace-slice",
+        "taint",
+        "ltv-taint",
+        "gumtrace",
+        "qtrace",
+        "vmlifter",
+        "instruction trace",
+        "execution trace",
+        "algorithm recovery",
+        "semantic lift"
+      ],
+      "requiredArtifacts": [
+        "run/trace-analysis-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "trace.present",
+          "equals": true
+        },
+        {
+          "message": "trace.present=true but status is still not-started",
+          "path": "trace.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "trace.present=true but keyFindings is still empty",
+          "path": "trace.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/trace-analysis-notes.md",
+        "topic-packs/trace-analysis/run/trace-analysis-notes.md"
+      ]
+    },
+    {
+      "key": "unidbg-simulation",
+      "label": "Unidbg / Unicorn / QBDI / angr simulation",
+      "maturity": "guided",
+      "routeTrack": "unidbg-simulation",
+      "signals": [
+        "unidbg",
+        "unicorn",
+        "qbdi",
+        "angr",
+        "emulation",
+        "simulation",
+        "environment patching",
+        "jni patch"
+      ],
+      "protocol": "references/unidbg-simulation-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/unidbg-simulation.json",
+      "taskInit": {
+        "aliases": [
+          "unidbg",
+          "emu"
+        ],
+        "baseProtectionTier": "A3",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "unidbg.present",
+        "artifactsPath": "unidbg.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "unidbg.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "unidbg.present",
+        "requiredArtifacts": [
+          "run/unidbg-simulation-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "unidbg.present=true but status is still not-started",
+            "path": "unidbg.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "unidbg.present=true but keyFindings is still empty",
+            "path": "unidbg.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "unidbg.present=true but unidbg-simulation-notes is still placeholder",
+            "touchedAny": [
+              "run/unidbg-simulation-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-unidbg-simulation-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/unidbg-simulation/run/unidbg-simulation-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "Unidbg Simulation",
+        "run/unidbg-simulation-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "medium",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/unidbg-simulation",
+      "requiredSignals": [
+        "unidbg",
+        "unicorn",
+        "qbdi",
+        "angr",
+        "emulation",
+        "simulation",
+        "environment patching",
+        "jni patch"
+      ],
+      "requiredArtifacts": [
+        "run/unidbg-simulation-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "unidbg.present",
+          "equals": true
+        },
+        {
+          "message": "unidbg.present=true but status is still not-started",
+          "path": "unidbg.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "unidbg.present=true but keyFindings is still empty",
+          "path": "unidbg.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/unidbg-simulation-notes.md",
+        "topic-packs/unidbg-simulation/run/unidbg-simulation-notes.md"
+      ]
+    },
+    {
+      "key": "vmp-analysis",
+      "label": "VMP / VM interpreter / opcode restoration",
+      "maturity": "guided",
+      "routeTrack": "vmp-analysis",
+      "signals": [
+        "vmp",
+        "vm interpreter",
+        "handler table",
+        "opcode mapping",
+        "bytecode restoration",
+        "dispatcher",
+        "virtual machine protection",
+        "dexprotector",
+        "liapp"
+      ],
+      "protocol": "references/vmp-analysis-playbook.md",
+      "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/vmp-analysis.json",
+      "taskInit": {
+        "aliases": [
+          "vmp",
+          "vm"
+        ],
+        "baseProtectionTier": "A5",
+        "combinationProtectionTiers": []
+      },
+      "taskSemantics": {
+        "presentPath": "vmp.present",
+        "artifactsPath": "vmp.artifacts",
+        "minArtifacts": 1,
+        "arrayPaths": [
+          "vmp.keyFindings"
+        ]
+      },
+      "formalValidation": {
+        "presentPath": "vmp.present",
+        "requiredArtifacts": [
+          "run/vmp-analysis-notes.md"
+        ],
+        "requirementsAll": [
+          {
+            "message": "vmp.present=true but status is still not-started",
+            "path": "vmp.status",
+            "disallow": [
+              "not-started"
+            ]
+          },
+          {
+            "message": "vmp.present=true but keyFindings is still empty",
+            "path": "vmp.keyFindings",
+            "minLength": 1
+          },
+          {
+            "message": "vmp.present=true but vmp-analysis-notes is still placeholder",
+            "touchedAny": [
+              "run/vmp-analysis-notes.md"
+            ]
+          }
+        ]
+      },
+      "caseFiles": [
+        "scripts/cases/android-vmp-analysis-workflow.mjs"
+      ],
+      "templateArtifacts": [
+        "artifacts/tasks/_TEMPLATE/topic-packs/vmp-analysis/run/vmp-analysis-notes.md"
+      ],
+      "qaFiles": [],
+      "outputNeedles": [
+        "VMP Analysis",
+        "run/vmp-analysis-notes.md"
+      ],
+      "owner": "android-reverse-core",
+      "riskLevel": "high",
+      "requiredChecks": [
+        "check:topic-manifests",
+        "check:capability-coverage",
+        "check:deliverables",
+        "check:operating-contracts"
+      ],
+      "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/vmp-analysis",
+      "requiredSignals": [
+        "vmp",
+        "vm interpreter",
+        "handler table",
+        "opcode mapping",
+        "bytecode restoration",
+        "dispatcher",
+        "virtual machine protection",
+        "dexprotector",
+        "liapp"
+      ],
+      "requiredArtifacts": [
+        "run/vmp-analysis-notes.md"
+      ],
+      "requiredTaskFlags": [
+        {
+          "path": "vmp.present",
+          "equals": true
+        },
+        {
+          "message": "vmp.present=true but status is still not-started",
+          "path": "vmp.status",
+          "disallow": [
+            "not-started"
+          ]
+        },
+        {
+          "message": "vmp.present=true but keyFindings is still empty",
+          "path": "vmp.keyFindings",
+          "minLength": 1
+        }
+      ],
+      "taskPackFiles": [
+        "run/vmp-analysis-notes.md",
+        "topic-packs/vmp-analysis/run/vmp-analysis-notes.md"
+      ]
+    }
+  ]
+}

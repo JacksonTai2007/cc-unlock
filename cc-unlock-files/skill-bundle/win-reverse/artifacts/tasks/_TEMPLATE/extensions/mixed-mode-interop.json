@@ -1,0 +1,18 @@
+{
+  "mixedModeInterop": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "bridgeEdges": [],
+    "hostTypes": [],
+    "artifacts": [
+      "run/mixed-mode-notes.md",
+      "run/bridge-map.md",
+      "run/interop-hook-template.js",
+      "run/interop-bridge-report.md"
+    ]
+  }
+}

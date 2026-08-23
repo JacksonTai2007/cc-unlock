@@ -1,0 +1,15 @@
+{
+  "frameworkRuntime": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-runtime-map.json"
+    ]
+  }
+}
+

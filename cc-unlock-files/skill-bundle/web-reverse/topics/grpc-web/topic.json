@@ -1,0 +1,136 @@
+{
+  "key": "grpc-web",
+  "label": "gRPC-Web / Connect-Web / protobuf over HTTP",
+  "maturity": "closed-loop",
+  "routeTrack": "grpc-web",
+  "signals": [
+    "application/grpc-web",
+    "x-grpc-web",
+    "grpc-status",
+    "proto",
+    "trailers"
+  ],
+  "protocol": "references/grpc-web-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/grpc-web.json",
+  "taskInit": {
+    "aliases": [
+      "connect-web",
+      "grpc"
+    ],
+    "baseProtectionTier": "T2",
+    "combinationProtectionTiers": [
+      {
+        "withTopics": [
+          "binary-codec",
+          "compression-stream"
+        ],
+        "tier": "T3"
+      }
+    ]
+  },
+  "taskSemantics": {
+    "presentPath": "grpcWeb.present",
+    "versionPath": "grpcWeb.version",
+    "artifactsPath": "grpcWeb.artifacts",
+    "minArtifacts": 3,
+    "arrayPaths": [
+      "grpcWeb.methods"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "grpcWeb.present",
+    "requiredArtifacts": [
+      "run/grpc-frame-notes.md",
+      "run/grpc-schema-map.md",
+      "run/grpc-replay.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "grpcWeb.present=true but frameStatus is still not-started",
+        "path": "grpcWeb.frameStatus",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "grpcWeb.present=true but methods is still empty",
+        "path": "grpcWeb.methods",
+        "minLength": 1
+      },
+      {
+        "message": "grpcWeb.present=true but gRPC-Web artifacts are still placeholders",
+        "touchedAny": [
+          "run/grpc-frame-notes.md",
+          "run/grpc-schema-map.md",
+          "run/grpc-replay.js"
+        ]
+      }
+    ],
+    "requirementsAny": [
+      {
+        "message": "grpcWeb.present=true but schema / trailer status is still unknown",
+        "checks": [
+          {
+            "path": "grpcWeb.schemaStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          },
+          {
+            "path": "grpcWeb.trailerStatus",
+            "disallow": [
+              "unknown",
+              "not-started"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/web-grpc-web-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/grpc-frame-notes.md",
+    "artifacts/tasks/_TEMPLATE/run/grpc-schema-map.md",
+    "artifacts/tasks/_TEMPLATE/run/grpc-replay.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    },
+    {
+      "path": "tools/qa/check-task-semantics.mjs",
+      "needles": [
+        "validateTopicSemantics",
+        "readTopicRegistry"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "grpc-status",
+    "run/grpc-frame-notes.md",
+    "run/grpc-schema-map.md",
+    "run/grpc-replay.js"
+  ],
+  "owner": "web-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:task-semantics",
+    "check:task-packs",
+    "check:capability-coverage",
+    "check:specialized-strength",
+    "check:deliverables",
+    "check:route-consistency"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/grpc-web",
+  "extendedProtocols": [
+    "references/websearch-escalation-playbook.md"
+  ]
+}

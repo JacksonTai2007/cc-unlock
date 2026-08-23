@@ -1,0 +1,85 @@
+{
+  "key": "storage-ipc",
+  "label": "Storage / IPC / provider / binder evidence",
+  "maturity": "closed-loop",
+  "routeTrack": "storage-ipc",
+  "signals": [
+    "sharedpreferences",
+    "sqlite",
+    "room",
+    "mmkv",
+    "contentprovider",
+    "binder"
+  ],
+  "protocol": "references/storage-ipc-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/storage-ipc.json",
+  "taskInit": {
+    "aliases": [
+      "storage",
+      "ipc"
+    ],
+    "baseProtectionTier": "A1"
+  },
+  "taskSemantics": {
+    "presentPath": "storageIpc.present",
+    "artifactsPath": "storageIpc.artifact",
+    "minArtifacts": 1,
+    "arrayPaths": [
+      "storageIpc.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "storageIpc.present",
+    "requiredArtifacts": [
+      "run/storage-ipc-notes.md"
+    ],
+    "requirementsAll": [
+      {
+        "message": "storageIpc.present=true but status is still not-started",
+        "path": "storageIpc.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "storageIpc.present=true but keyFindings is still empty",
+        "path": "storageIpc.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "storageIpc.present=true but storage-ipc notes are still placeholders",
+        "touchedAny": [
+          "run/storage-ipc-notes.md"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-storage-ipc-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/storage-ipc-notes.md"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Storage / IPC",
+    "run/storage-ipc-notes.md"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "medium",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/storage-ipc"
+}

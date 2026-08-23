@@ -1,0 +1,17 @@
+{
+  "userlandCrypto": {
+    "version": 1,
+    "present": true,
+    "callgraphStatus": "not-started",
+    "boundaryStatus": "not-started",
+    "determinismMode": "unknown",
+    "sampleVerificationStatus": "not-started",
+    "portStatus": "not-started",
+    "cryptoFamilies": [],
+    "artifacts": [
+      "run/crypto-callgraph.md",
+      "run/plain-cipher-pairs.json",
+      "run/pure-crypto.js"
+    ]
+  }
+}

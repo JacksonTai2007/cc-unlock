@@ -1,0 +1,14 @@
+{
+  "graphqlRpc": {
+    "version": 1,
+    "present": true,
+    "operationStatus": "not-started",
+    "persistedQueryStatus": "not-started",
+    "variableNormalizationStatus": "not-started",
+    "operationNames": [],
+    "artifacts": [
+      "run/graphql-ops.json",
+      "run/query-map.md"
+    ]
+  }
+}

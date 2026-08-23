@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web 前端逆向（新方案）"
+  short_description: "验收优先、默认连续推进的 Web 逆向执行技能"
+  default_prompt: "bootstrap/workflow：先进入 task-local。无 history data files 就 task-start/task-init，再 task-sync -> task-advance；若已有 history data files，则恢复 task.json/route-state/progress/report 后 task-sync -> task-advance。当前目录可能只是 skill 项目目录，真实任务也可能在外部 workspace；禁止新开第二任务，除非显式 --force-new-task。以 taskContract/executionModel/acceptanceModel 为状态真源。先定 1 主模式+最多 1 备用模式、1 主专题+0~2 辅助专题，并只保留 1~2 活跃 entrypoints。默认连续推进，不写“我会继续”。hook 取证必须先找高语义边界，低层 surface 间切换不算真正 pivot，同类低层 hook 连续两轮无新增证据就必须换语义层或换 entrypoint。回复前跑 assert-can-reply；未验证前不得声称已落盘/已成功。"

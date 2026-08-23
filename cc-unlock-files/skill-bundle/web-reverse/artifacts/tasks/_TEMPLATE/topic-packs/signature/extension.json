@@ -1,0 +1,21 @@
+{
+  "signatureAnalysis": {
+    "version": 1,
+    "present": true,
+    "algorithmFamily": "unknown",
+    "inputBoundaryStatus": "not-started",
+    "canonicalizationStatus": "not-started",
+    "determinismMode": "unknown",
+    "randomnessSource": "unknown",
+    "clockSource": "unknown",
+    "stateDependencyStatus": "unknown",
+    "carrierCoverageStatus": "not-started",
+    "runtimeSyncStatus": "not-started",
+    "requestAcceptanceStatus": "not-started",
+    "signFields": [],
+    "artifacts": [
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ]
+  }
+}

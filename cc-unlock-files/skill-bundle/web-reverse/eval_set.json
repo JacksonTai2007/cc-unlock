@@ -1,0 +1,5569 @@
+[
+  {
+    "id": "external-workspace-truth-source",
+    "query": "当前目录是 skill 项目目录，真实任务位于外部 workspace。请继续已有 task-local，并以 workspaceRoot 为真源，不要因为 skill 仓库里没文件就说未落盘。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "external-workspace-awareness",
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "external-workspace-awareness",
+        "description": "应包含推理标签: external-workspace-awareness"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "no-status-only-stop",
+    "query": "继续这个已有 task-local。在请求未成功前不要停止，不要只汇报状态；除非拿到新证据或新文件，否则不要回复。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "continuous-execution-discipline",
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "continuous-execution-discipline",
+        "description": "应包含推理标签: continuous-execution-discipline"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "hook-low-level-dead-end",
+    "query": "The browser baseline succeeds, but the local signature request is rejected. Do not keep cycling through document.cookie, cookieStore, script.src, setAttribute, or appendChild hooks. Pivot to dispatch / payload builder / sign callsite, then close the signer state reader -> request-use chain.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "instrumentation-hooking",
+      "session",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/hook-events.jsonl",
+      "run/hook-safety-notes.md",
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/session-notes.md",
+      "run/signature-fixtures.json",
+      "run/signature-input-map.md"
+    ],
+    "expectedReasoningTags": [
+      "acceptance-boundary-first",
+      "carrier-chain-before-patch",
+      "high-semantic-hook-first",
+      "same-family-hook-retry-cap",
+      "stateful-signer-pivot"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-events.jsonl",
+        "description": "run/hook-events.jsonl 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-safety-notes.md",
+        "description": "run/hook-safety-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/preload.js",
+        "description": "run/preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-hooks.js",
+        "description": "run/runtime-hooks.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "acceptance-boundary-first",
+        "description": "应包含推理标签: acceptance-boundary-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "carrier-chain-before-patch",
+        "description": "应包含推理标签: carrier-chain-before-patch"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "high-semantic-hook-first",
+        "description": "应包含推理标签: high-semantic-hook-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "same-family-hook-retry-cap",
+        "description": "应包含推理标签: same-family-hook-retry-cap"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "stateful-signer-pivot",
+        "description": "应包含推理标签: stateful-signer-pivot"
+      }
+    ]
+  },
+  {
+    "id": "hook-same-family-not-pivot-cn",
+    "query": "这不是 hook 技术不行，而是签名链路里的 hook 层级错了。不要在 document.cookie、cookieStore、script.src、appendChild 之间来回切换；这不算 pivot。请直接从 dispatch、payload、sign callsite 和 request-use 边界切入，避免继续在低层 hook 上钻牛角尖。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "instrumentation-hooking",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/hook-events.jsonl",
+      "run/hook-safety-notes.md",
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/signature-fixtures.json",
+      "run/signature-input-map.md"
+    ],
+    "expectedReasoningTags": [
+      "acceptance-boundary-first",
+      "high-semantic-hook-first",
+      "same-family-hook-retry-cap"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-events.jsonl",
+        "description": "run/hook-events.jsonl 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-safety-notes.md",
+        "description": "run/hook-safety-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/preload.js",
+        "description": "run/preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-hooks.js",
+        "description": "run/runtime-hooks.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "acceptance-boundary-first",
+        "description": "应包含推理标签: acceptance-boundary-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "high-semantic-hook-first",
+        "description": "应包含推理标签: high-semantic-hook-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "same-family-hook-retry-cap",
+        "description": "应包含推理标签: same-family-hook-retry-cap"
+      }
+    ]
+  },
+  {
+    "id": "aes-toolkit",
+    "query": "Build a small AES encrypt/decrypt toolkit.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "android-reverse",
+    "query": "Reverse an Android APK signing flow.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "anti-debug-token",
+    "query": "Opening the page immediately triggers debugger anti-debug logic. Bypass it and capture the token generation chain.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug"
+    ],
+    "expectedArtifacts": [
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-preload.js",
+        "description": "run/anti-debug-preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-runtime.js",
+        "description": "run/anti-debug-runtime.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "backend-protocol-design",
+    "query": "Design a backend WebSocket chat protocol.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "graphql-client-dev",
+    "query": "Build a frontend GraphQL client with persisted queries and typed hooks for a dashboard app.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "grpc-web-client-dev",
+    "query": "Implement a gRPC-Web client in React and map protobuf responses into UI state.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "webrtc-chat-app",
+    "query": "Build a WebRTC data channel chat demo with ICE reconnect handling.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "wasm-perf-opt",
+    "query": "Optimize a WASM image-processing module and profile instantiateStreaming performance in Vite.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "new-task-init-first",
+    "query": "This is a new Web reverse task. There are no history data files in the current workspace. Use web-reverse to analyze X-Bogus on a protected API, but do not start coding before task-local initialization.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ],
+    "expectedReasoningTags": [
+      "new-task-init-first"
+    ],
+    "forbiddenReasoningTags": [
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "new-task-init-first",
+        "description": "应包含推理标签: new-task-init-first"
+      },
+      {
+        "type": "reasoning_tag_forbidden",
+        "tag": "resume-then-advance",
+        "description": "不应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "behavioral-risk-signals",
+    "query": "The anti-bot flow samples mousemove, scroll cadence, focus shifts, and visibility timing before issuing a challenge token. Profile the behavior telemetry chain.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "behavior-telemetry",
+      "challenge-orchestration"
+    ],
+    "expectedArtifacts": [
+      "run/behavior-telemetry-notes.md",
+      "run/telemetry-profile.json",
+      "run/challenge-route-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "telemetry-before-challenge-routing"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "behavior-telemetry",
+        "description": "应路由到 behavior-telemetry 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "challenge-orchestration",
+        "description": "应路由到 challenge-orchestration 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/behavior-telemetry-notes.md",
+        "description": "run/behavior-telemetry-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/telemetry-profile.json",
+        "description": "run/telemetry-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-route-notes.md",
+        "description": "run/challenge-route-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "telemetry-before-challenge-routing",
+        "description": "应包含推理标签: telemetry-before-challenge-routing"
+      }
+    ]
+  },
+  {
+    "id": "binary-protobuf-frame",
+    "query": "The WebSocket payload is protobuf-like with varints and a tiny reader/writer pair. Reconstruct the binary schema before replaying.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "binary-codec",
+      "protocol"
+    ],
+    "expectedArtifacts": [
+      "run/binary-codec-notes.md",
+      "run/binary-samples.json",
+      "run/web-replay.js"
+    ],
+    "expectedReasoningTags": [
+      "probe-before-expansion",
+      "schema-before-replay"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "binary-codec",
+        "description": "应路由到 binary-codec 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/binary-codec-notes.md",
+        "description": "run/binary-codec-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/binary-samples.json",
+        "description": "run/binary-samples.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "schema-before-replay",
+        "description": "应包含推理标签: schema-before-replay"
+      }
+    ]
+  },
+  {
+    "id": "browser-node-loop",
+    "query": "The browser run succeeds, but Node differs on Uint8Array and crypto.getRandomValues. I need a browser -> node env closure loop.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "env"
+    ],
+    "expectedArtifacts": [
+      "run/env-drift-matrix.md",
+      "run/env-conformance-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "first-divergence-before-broad-patch"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-drift-matrix.md",
+        "description": "run/env-drift-matrix.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-conformance-notes.md",
+        "description": "run/env-conformance-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "first-divergence-before-broad-patch",
+        "description": "应包含推理标签: first-divergence-before-broad-patch"
+      }
+    ]
+  },
+  {
+    "id": "bundle-loader-async-map",
+    "query": "The target function is split across webpack async chunks. Identify the chunk loader and map entry to async chunk boundaries.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "bundle-loader"
+    ],
+    "expectedArtifacts": [
+      "run/chunk-loader-notes.md",
+      "run/preload-orchestrator.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "bundle-loader",
+        "description": "应路由到 bundle-loader 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/chunk-loader-notes.md",
+        "description": "run/chunk-loader-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/preload-orchestrator.js",
+        "description": "run/preload-orchestrator.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "challenge-risk-router",
+    "query": "The site chooses between a silent challenge token, a visible captcha, and a refresh route depending on risk signals. Map the challenge orchestration state machine.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "challenge-orchestration"
+    ],
+    "expectedArtifacts": [
+      "run/challenge-route-notes.md",
+      "run/challenge-state-machine.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "challenge-orchestration",
+        "description": "应路由到 challenge-orchestration 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-route-notes.md",
+        "description": "run/challenge-route-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-state-machine.json",
+        "description": "run/challenge-state-machine.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "continue-task-local",
+    "query": "Continue yesterday's task-local env task. I already recorded the first divergence, now push it toward pure extraction.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "env"
+    ],
+    "expectedArtifacts": [
+      "run/env-drift-matrix.md",
+      "run/pure-*.js"
+    ],
+    "expectedReasoningTags": [
+      "first-divergence-before-broad-patch",
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-drift-matrix.md",
+        "description": "run/env-drift-matrix.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/pure-*.js",
+        "description": "run/pure-*.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "first-divergence-before-broad-patch",
+        "description": "应包含推理标签: first-divergence-before-broad-patch"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "continue-task-local-auto-advance",
+    "query": "Read task.json, state/route-state.json, state/route-plan.md, state/clues.md, and state/progress.md, then continue the existing task-local and keep auto-advancing after each phase unless you need login, missing samples, or a risk confirmation.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "task-local-retrospective-loop",
+    "query": "Continue the task-local. All current entrypoints are PARKED / EXHAUSTED; write a retrospective and generate new entrypoints before continuing.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance",
+      "retrospective-on-exhaustion"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-exhaustion",
+        "description": "应包含推理标签: retrospective-on-exhaustion"
+      }
+    ]
+  },
+  {
+    "id": "composite-entrypoint-loop",
+    "query": "The case combines debugger traps, string-array obfuscation, VMP, WASM, fingerprint probes, cookie and session coupling. Do not lock onto one topic. Triage the composite scene, propose multiple entrypoints, test the cheapest one first, and pivot if it fails.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "ast-deobfuscation",
+      "fingerprint",
+      "jsvmp",
+      "session",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js",
+      "run/after.js",
+      "run/before.js",
+      "run/deobf-rules.md",
+      "run/dispatcher-map.md",
+      "run/fingerprint-profile.json",
+      "run/session-notes.md",
+      "run/vm-opcodes.txt",
+      "run/wasm-analysis.wat"
+    ],
+    "expectedReasoningTags": [
+      "multi-entrypoint-triage",
+      "probe-before-expansion",
+      "retrospective-on-exhaustion"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "ast-deobfuscation",
+        "description": "应路由到 ast-deobfuscation 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-preload.js",
+        "description": "run/anti-debug-preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-runtime.js",
+        "description": "run/anti-debug-runtime.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/after.js",
+        "description": "run/after.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/before.js",
+        "description": "run/before.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/deobf-rules.md",
+        "description": "run/deobf-rules.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "multi-entrypoint-triage",
+        "description": "应包含推理标签: multi-entrypoint-triage"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-exhaustion",
+        "description": "应包含推理标签: retrospective-on-exhaustion"
+      }
+    ]
+  },
+  {
+    "id": "ctf-web-solver",
+    "query": "This is a CTF web challenge. The flag is probably hidden in the JS or API signature logic. Do quick triage and build a solver path.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "deobf-cfg",
+    "query": "I hit obfuscator.io plus CFG flattening and need to deobfuscate the script and recover string constants.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "ast-deobfuscation",
+      "dynamic-code"
+    ],
+    "expectedArtifacts": [
+      "run/before.js",
+      "run/after.js",
+      "run/deobf-rules.md",
+      "run/dynamic-code-capture-template.js",
+      "run/dynamic-code-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "ast-deobfuscation",
+        "description": "应路由到 ast-deobfuscation 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "dynamic-code",
+        "description": "应路由到 dynamic-code 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/before.js",
+        "description": "run/before.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/after.js",
+        "description": "run/after.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/deobf-rules.md",
+        "description": "run/deobf-rules.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dynamic-code-capture-template.js",
+        "description": "run/dynamic-code-capture-template.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dynamic-code-notes.md",
+        "description": "run/dynamic-code-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "dead-code-injection-cleanup",
+    "query": "The obfuscated script contains massive dead code injection: unreachable blocks, no-side-effect expressions, and always-false conditions. I need to identify and eliminate the dead code to reduce noise before analyzing the real logic.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "ast-deobfuscation"
+    ],
+    "expectedArtifacts": [
+      "run/dead-code-analysis.md",
+      "run/dead-code-eliminated.js",
+      "run/dead-code-stats.json"
+    ],
+    "expectedReasoningTags": [
+      "dead-code-elimination",
+      "reachability-analysis",
+      "side-effect-detection"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "ast-deobfuscation",
+        "description": "应路由到 ast-deobfuscation 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dead-code-analysis.md",
+        "description": "run/dead-code-analysis.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dead-code-eliminated.js",
+        "description": "run/dead-code-eliminated.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dead-code-stats.json",
+        "description": "run/dead-code-stats.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "dead-code-elimination",
+        "description": "应包含推理标签: dead-code-elimination"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "reachability-analysis",
+        "description": "应包含推理标签: reachability-analysis"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "side-effect-detection",
+        "description": "应包含推理标签: side-effect-detection"
+      }
+    ]
+  },
+  {
+    "id": "download-images",
+    "query": "Write a Python script to download webpage images in batch.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "env-first-divergence",
+    "query": "My Node rebuild diverges on descriptor behavior and queueMicrotask ordering. 这类补环境问题先收敛 first divergence，再写 drift matrix。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "env"
+    ],
+    "expectedArtifacts": [
+      "run/env-drift-matrix.md",
+      "run/env-conformance-notes.md",
+      "run/browser-env-snapshot.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-drift-matrix.md",
+        "description": "run/env-drift-matrix.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-conformance-notes.md",
+        "description": "run/env-conformance-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-env-snapshot.json",
+        "description": "run/browser-env-snapshot.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "env-presence-misclassified",
+    "query": "My browser path works, but the Node rebuild takes the wrong UMD branch after I stubbed unknown globals. Narrow the first divergence, treat process / Buffer / require / module / exports / define as presence questions first, and write the env drift matrix.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "env"
+    ],
+    "expectedArtifacts": [
+      "run/env-drift-matrix.md",
+      "run/env-conformance-notes.md",
+      "run/browser-env-snapshot.json"
+    ],
+    "expectedReasoningTags": [
+      "first-divergence-before-broad-patch"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-drift-matrix.md",
+        "description": "run/env-drift-matrix.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-conformance-notes.md",
+        "description": "run/env-conformance-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-env-snapshot.json",
+        "description": "run/browser-env-snapshot.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "first-divergence-before-broad-patch",
+        "description": "应包含推理标签: first-divergence-before-broad-patch"
+      }
+    ]
+  },
+  {
+    "id": "fingerprint-font-timezone-bucket",
+    "query": "I need to separate generic fingerprint probes like fonts, timezone, languages, and screen from Playwright automation leaks and keep the patch surface minimal.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-notes.md",
+        "description": "run/fingerprint-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "fingerprint-surface-profile",
+    "query": "The anti-bot flow builds a fingerprint from canvas, WebGL, and navigator surfaces. Profile vectors and note the override strategy.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-notes.md",
+        "description": "run/fingerprint-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "fingerprint-webdriver-uach",
+    "query": "The site checks navigator.webdriver, chrome runtime hints, and userAgentData high entropy values before issuing the challenge token.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-inspector-template.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-inspector-template.js",
+        "description": "run/fingerprint-inspector-template.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "fingerprint-worker-frame-binding",
+    "query": "The anti-bot script probes canvas in the main window, reads webdriver in an iframe, then binds a worker-generated fingerprint digest into request headers.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint",
+      "worker",
+      "frame"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/worker-notes.md",
+      "run/frame-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "worker",
+        "description": "应路由到 worker 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "frame",
+        "description": "应路由到 frame 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/worker-notes.md",
+        "description": "run/worker-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-notes.md",
+        "description": "run/frame-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "frame-postmessage-boundary",
+    "query": "The token exchange happens across an iframe boundary. Identify the target frame and cross-frame message flow.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "frame"
+    ],
+    "expectedArtifacts": [
+      "run/frame-notes.md",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "frame",
+        "description": "应路由到 frame 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-notes.md",
+        "description": "run/frame-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "frontend-debug",
+    "query": "My frontend has a browser console error. Help debug the UI bug.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "grpc-web-schema-map",
+    "query": "The browser sends application/grpc-web requests and the response trailers include grpc-status. Recover frame notes, schema map, and a minimal replay path.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "grpc-web"
+    ],
+    "expectedArtifacts": [
+      "run/grpc-frame-notes.md",
+      "run/grpc-schema-map.md",
+      "run/grpc-replay.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "grpc-web",
+        "description": "应路由到 grpc-web 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/grpc-frame-notes.md",
+        "description": "run/grpc-frame-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/grpc-schema-map.md",
+        "description": "run/grpc-schema-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/grpc-replay.js",
+        "description": "run/grpc-replay.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "gzip-body-boundary",
+    "query": "The browser turns JSON into gzip bytes with CompressionStream before sending the request. Capture the compression boundary and replayable sample.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "compression-stream"
+    ],
+    "expectedArtifacts": [
+      "run/compression-stream-notes.md",
+      "run/compression-samples.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "compression-stream",
+        "description": "应路由到 compression-stream 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/compression-stream-notes.md",
+        "description": "run/compression-stream-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/compression-samples.json",
+        "description": "run/compression-samples.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "hmac-theory",
+    "query": "Explain HMAC theory and common use cases.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "incremental-stream-parser",
+    "query": "The response body is consumed through ReadableStream and TransformStream before the challenge payload becomes visible. Map the incremental runtime pipeline.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "streaming-runtime"
+    ],
+    "expectedArtifacts": [
+      "run/streaming-runtime-notes.md",
+      "run/stream-pipeline.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "streaming-runtime",
+        "description": "应路由到 streaming-runtime 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/streaming-runtime-notes.md",
+        "description": "run/streaming-runtime-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/stream-pipeline.json",
+        "description": "run/stream-pipeline.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "instrumentation-unified-hooks",
+    "query": "I need preload and runtime hooks around fetch, XHR, and sendBeacon, and I want a unified hook event log without breaking the target runtime.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "instrumentation-hooking"
+    ],
+    "expectedArtifacts": [
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/hook-events.jsonl",
+      "run/hook-safety-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/preload.js",
+        "description": "run/preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-hooks.js",
+        "description": "run/runtime-hooks.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-events.jsonl",
+        "description": "run/hook-events.jsonl 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-safety-notes.md",
+        "description": "run/hook-safety-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "microfrontend-remote-loader",
+    "query": "The app boots through single-spa and a custom remote manifest. Map host and subapp load order, shared deps, and runtime boundaries.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "microfrontend-runtime"
+    ],
+    "expectedArtifacts": [
+      "run/runtime-map.json",
+      "run/remote-deps.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "microfrontend-runtime",
+        "description": "应路由到 microfrontend-runtime 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-map.json",
+        "description": "run/runtime-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/remote-deps.md",
+        "description": "run/remote-deps.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "nested-vm",
+    "query": "这里是多层 JS-VMP，外层 dispatcher 会调内层 handler table。先理清 bytecode decode chain。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/dispatcher-map.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "nextjs-hydration-boundary",
+    "query": "This Next.js app ships __NEXT_DATA__, hydrates on the client, and then loads the signer inside framework runtime chunks. Map the SSR/CSR boundary first.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "bundle-loader",
+      "framework-runtime"
+    ],
+    "expectedArtifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-payload-map.json",
+      "run/chunk-loader-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "bundle-loader",
+        "description": "应路由到 bundle-loader 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "framework-runtime",
+        "description": "应路由到 framework-runtime 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/framework-runtime-notes.md",
+        "description": "run/framework-runtime-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/framework-payload-map.json",
+        "description": "run/framework-payload-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/chunk-loader-notes.md",
+        "description": "run/chunk-loader-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "vite-astro-islands-boundary",
+    "query": "This Astro frontend runs on Vite, ships modulepreload hints, and hydrates island components from native ESM runtime chunks. Map the framework runtime and loader boundary first.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "bundle-loader",
+      "framework-runtime"
+    ],
+    "expectedArtifacts": [
+      "run/framework-runtime-notes.md",
+      "run/framework-payload-map.json",
+      "run/chunk-loader-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "bundle-loader",
+        "description": "应路由到 bundle-loader 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "framework-runtime",
+        "description": "应路由到 framework-runtime 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/framework-runtime-notes.md",
+        "description": "run/framework-runtime-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/framework-payload-map.json",
+        "description": "run/framework-payload-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/chunk-loader-notes.md",
+        "description": "run/chunk-loader-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "pentest-scan",
+    "query": "I need a pentest port scan.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "react-login-ui",
+    "query": "Build a React login page UI with captcha.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "sharedarraybuffer-message-graph",
+    "query": "The token flow coordinates across BroadcastChannel, storage event, and SharedArrayBuffer workers. Build a context map and message graph before replay.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "cross-context-coordination"
+    ],
+    "expectedArtifacts": [
+      "run/context-map.md",
+      "run/message-graph.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "cross-context-coordination",
+        "description": "应路由到 cross-context-coordination 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/context-map.md",
+        "description": "run/context-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/message-graph.json",
+        "description": "run/message-graph.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "remote-entry-runtime",
+    "query": "The app boots a remoteEntry.js container and calls __webpack_init_sharing__ before the signer module loads. Map the federated runtime boundary.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "bundle-loader",
+      "module-federation"
+    ],
+    "expectedArtifacts": [
+      "run/module-federation-notes.md",
+      "run/remote-entry-map.json",
+      "run/chunk-loader-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "bundle-loader",
+        "description": "应路由到 bundle-loader 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "module-federation",
+        "description": "应路由到 module-federation 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/module-federation-notes.md",
+        "description": "run/module-federation-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/remote-entry-map.json",
+        "description": "run/remote-entry-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/chunk-loader-notes.md",
+        "description": "run/chunk-loader-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "session-refresh-carrier",
+    "query": "The app bootstraps auth from cookies and refreshes a token in the browser. Map the session lifecycle and relogin boundary.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "session"
+    ],
+    "expectedArtifacts": [
+      "run/session-notes.md",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "signature-replay",
+    "query": "I have a login API signature that looks like HMAC + nonce + ts. Recover the JS signing logic and write a replay script.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "protocol",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "run/web-replay.js",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "stateful-signer-pivot",
+    "query": "The browser baseline returns JSON, but my locally generated X-Bogus and X-Gnarly degrade into 200 empty body. A swap matrix shows the real cookie and session still work, and only the local signer fails. Stop broad env patching and trace the localStorage or cookie -> memory signer state write chain with runtime hooks.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "instrumentation-hooking",
+      "session",
+      "signature",
+      "storage"
+    ],
+    "expectedArtifacts": [
+      "run/preload.js",
+      "run/runtime-hooks.js",
+      "run/session-notes.md",
+      "run/signature-input-map.md",
+      "run/signer-state-map.md",
+      "run/storage-snapshot.json",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "avoid-broad-env-patching",
+      "carrier-chain-before-patch",
+      "stateful-signer-pivot"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "storage",
+        "description": "应路由到 storage 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/preload.js",
+        "description": "run/preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-hooks.js",
+        "description": "run/runtime-hooks.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signer-state-map.md",
+        "description": "run/signer-state-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-snapshot.json",
+        "description": "run/storage-snapshot.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "avoid-broad-env-patching",
+        "description": "应包含推理标签: avoid-broad-env-patching"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "carrier-chain-before-patch",
+        "description": "应包含推理标签: carrier-chain-before-patch"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "stateful-signer-pivot",
+        "description": "应包含推理标签: stateful-signer-pivot"
+      }
+    ]
+  },
+  {
+    "id": "userland-crypto-bridge",
+    "query": "The page uses CryptoJS.AES.encrypt plus WordArray parsing. Recover the userland crypto boundary and extract a pure replayable implementation.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "userland-crypto"
+    ],
+    "expectedArtifacts": [
+      "run/crypto-callgraph.md",
+      "run/plain-cipher-pairs.json",
+      "run/pure-crypto.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "userland-crypto",
+        "description": "应路由到 userland-crypto 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/crypto-callgraph.md",
+        "description": "run/crypto-callgraph.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/plain-cipher-pairs.json",
+        "description": "run/plain-cipher-pairs.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/pure-crypto.js",
+        "description": "run/pure-crypto.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "graphql-apq-login",
+    "query": "The login flow posts to /graphql with operationName, persistedQuery sha256Hash, and normalized variables. Recover the APQ mapping and verify once.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "graphql-rpc"
+    ],
+    "expectedArtifacts": [
+      "run/graphql-ops.json",
+      "run/query-map.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "graphql-rpc",
+        "description": "应路由到 graphql-rpc 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/graphql-ops.json",
+        "description": "run/graphql-ops.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/query-map.md",
+        "description": "run/query-map.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "source-map-hidden-entry",
+    "query": "The bundle exposes a hidden sourceMappingURL and I need to recover the original source file for the signer entry.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "source-map"
+    ],
+    "expectedArtifacts": [
+      "run/source-map-notes.md",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "source-map",
+        "description": "应路由到 source-map 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/source-map-notes.md",
+        "description": "run/source-map-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "storage-seed-snapshot",
+    "query": "The browser stores seed material in localStorage and IndexedDB before requests. Snapshot storage and map key roles.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "storage"
+    ],
+    "expectedArtifacts": [
+      "run/storage-snapshot.json",
+      "run/storage-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "storage",
+        "description": "应路由到 storage 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-snapshot.json",
+        "description": "run/storage-snapshot.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-notes.md",
+        "description": "run/storage-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "subtlecrypto-sign-chain",
+    "query": "The browser uses crypto.subtle.importKey and sign() to build an x-signature header. Recover the key lifecycle and replay path.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "protocol",
+      "subtlecrypto"
+    ],
+    "expectedArtifacts": [
+      "run/subtlecrypto-notes.md",
+      "run/subtlecrypto-keyflow.json",
+      "run/web-replay.js"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "subtlecrypto",
+        "description": "应路由到 subtlecrypto 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/subtlecrypto-notes.md",
+        "description": "run/subtlecrypto-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/subtlecrypto-keyflow.json",
+        "description": "run/subtlecrypto-keyflow.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "webtransport-datagram-replay",
+    "query": "The site opens a WebTransport session, sends challenge state in datagrams, and returns signed updates over bidirectional streams. Map the transport schema and stream pipeline before replay.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "protocol",
+      "streaming-runtime"
+    ],
+    "expectedArtifacts": [
+      "run/web-replay.js",
+      "run/protocol-notes.md",
+      "run/stream-pipeline.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "streaming-runtime",
+        "description": "应路由到 streaming-runtime 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/protocol-notes.md",
+        "description": "run/protocol-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/stream-pipeline.json",
+        "description": "run/stream-pipeline.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "trusted-types-integrity-loop",
+    "query": "The page freezes hooks, checks function toString integrity, and enforces Trusted Types before the dynamic loader runs. Map the anti-tamper surfaces.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-tamper",
+      "dynamic-code"
+    ],
+    "expectedArtifacts": [
+      "run/anti-tamper-notes.md",
+      "run/integrity-surface.json",
+      "run/dynamic-code-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "integrity-before-loader-patch",
+      "probe-before-expansion"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-tamper",
+        "description": "应路由到 anti-tamper 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "dynamic-code",
+        "description": "应路由到 dynamic-code 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-tamper-notes.md",
+        "description": "run/anti-tamper-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/integrity-surface.json",
+        "description": "run/integrity-surface.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dynamic-code-notes.md",
+        "description": "run/dynamic-code-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "integrity-before-loader-patch",
+        "description": "应包含推理标签: integrity-before-loader-patch"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      }
+    ]
+  },
+  {
+    "id": "vm-opcodes",
+    "query": "The site is protected by JS-VMP. Recover the opcode mapping and produce vm-opcodes.txt.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/dispatcher-map.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "vm-wasm-mixed",
+    "query": "The page mixes VM + WASM protection. Confirm the decode boundary and bridge before lifting opcode semantics.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/wasm-analysis.wat"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "vm-generic-template-sop",
+    "query": "把这个 JS-VMP + WASM 案例沉淀成可迁移的 VM 通用模板，输出 SOP / checklist / tooling baseline。请明确 env-read、bytecode lifecycle、nesting map，并用 first divergence 约束补环境，不要把站点私有常量写死进模板。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "wasm",
+      "env"
+    ],
+    "expectedArtifacts": [
+      "run/vm-env-reads.json",
+      "run/vm-bytecode-lifecycle.md",
+      "run/vm-nesting-map.md",
+      "run/vm-template-profile.json",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "first-divergence-before-broad-patch"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-env-reads.json",
+        "description": "run/vm-env-reads.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-bytecode-lifecycle.md",
+        "description": "run/vm-bytecode-lifecycle.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-nesting-map.md",
+        "description": "run/vm-nesting-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-template-profile.json",
+        "description": "run/vm-template-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "first-divergence-before-broad-patch",
+        "description": "应包含推理标签: first-divergence-before-broad-patch"
+      }
+    ]
+  },
+  {
+    "id": "resume-vm-template-retrofit",
+    "query": "继续这个已有 task-local。当前 VM 请求验收已经接近完成，但我还要把经验回收成可迁移模板：保留 dispatcher / opcode / handler 产物，同时补 env-read profile、bytecode lifecycle 和 tooling baseline；不要把 cookie 公式、固定指纹值或站点私有字段名直接写进模板。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "jsvmp",
+      "env"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/vm-opcodes.txt",
+      "run/dispatcher-map.md",
+      "run/vm-env-reads.json",
+      "run/vm-bytecode-lifecycle.md",
+      "run/vm-template-profile.json"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance",
+      "first-divergence-before-broad-patch"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-env-reads.json",
+        "description": "run/vm-env-reads.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-bytecode-lifecycle.md",
+        "description": "run/vm-bytecode-lifecycle.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-template-profile.json",
+        "description": "run/vm-template-profile.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "first-divergence-before-broad-patch",
+        "description": "应包含推理标签: first-divergence-before-broad-patch"
+      }
+    ]
+  },
+  {
+    "id": "wasm-sign",
+    "query": "The page uses WebAssembly.instantiate and the signer is probably inside wasm. Reverse the algorithm.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "run/wasm-analysis.wat",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "webpack-optimize",
+    "query": "How do I reduce webpack bundle size with tree-shaking?",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "webpack-sign-chain",
+    "query": "The target is a webpack bundle. Locate the sign() call chain and the crypto module, then output web-replay.js.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "protocol"
+    ],
+    "expectedArtifacts": [
+      "run/web-replay.js",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "worker-message-pump",
+    "query": "There is a Service Worker and a dedicated worker script handling signed payloads. Map worker roles and message flow.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "worker"
+    ],
+    "expectedArtifacts": [
+      "run/worker-notes.md",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "worker",
+        "description": "应路由到 worker 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/worker-notes.md",
+        "description": "run/worker-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "workbox-navigation-preload-route",
+    "query": "A Workbox Service Worker handles fetch event routing, navigation preload, and runtime cache before the page sees API responses. Map worker roles and cache boundaries.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "storage",
+      "worker"
+    ],
+    "expectedArtifacts": [
+      "run/worker-notes.md",
+      "run/storage-snapshot.json",
+      "run/storage-notes.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "storage",
+        "description": "应路由到 storage 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "worker",
+        "description": "应路由到 worker 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/worker-notes.md",
+        "description": "run/worker-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-snapshot.json",
+        "description": "run/storage-snapshot.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-notes.md",
+        "description": "run/storage-notes.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "webauthn-passkey-challenge",
+    "query": "The login flow calls navigator.credentials with PublicKeyCredential options for a passkey challenge. Map the credential flow and request or response samples.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "webauthn-passkey"
+    ],
+    "expectedArtifacts": [
+      "run/credential-flow.md",
+      "run/request-response-samples.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "webauthn-passkey",
+        "description": "应路由到 webauthn-passkey 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/credential-flow.md",
+        "description": "run/credential-flow.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/request-response-samples.json",
+        "description": "run/request-response-samples.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "media-drm-license-route",
+    "query": "Playback triggers encrypted events and requestMediaKeySystemAccess before a license request with token inputs. Map the license flow and token boundaries.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "run/license-flow.md",
+      "run/token-inputs.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/license-flow.md",
+        "description": "run/license-flow.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/token-inputs.json",
+        "description": "run/token-inputs.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "webrtc-datachannel-signaling",
+    "query": "The browser creates an RTCPeerConnection, exchanges ICE candidates, and binds tokens on RTCDataChannel messages. Map signaling and capture channel frames.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "webrtc-datachannel"
+    ],
+    "expectedArtifacts": [
+      "run/signaling-map.md",
+      "run/channel-frames.jsonl"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "webrtc-datachannel",
+        "description": "应路由到 webrtc-datachannel 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signaling-map.md",
+        "description": "run/signaling-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/channel-frames.jsonl",
+        "description": "run/channel-frames.jsonl 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "beacon-hidden-reporting",
+    "query": "The page uses sendBeacon and ReportingObserver during pagehide to flush hidden telemetry. Build a beacon log and reporting map.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "beacon-reporting"
+    ],
+    "expectedArtifacts": [
+      "run/beacon-log.jsonl",
+      "run/reporting-map.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "beacon-reporting",
+        "description": "应路由到 beacon-reporting 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/beacon-log.jsonl",
+        "description": "run/beacon-log.jsonl 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/reporting-map.md",
+        "description": "run/reporting-map.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "cn-signature-local-repro",
+    "query": "请帮我还原这个接口的签名参数、时间戳和随机串，梳理归一化规则，并给出本地复现所需的最小交付。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json",
+      "run/pure-*.js",
+      "run/local-repro-example.js"
+    ],
+    "expectedReasoningTags": [
+      "probe-before-expansion"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/pure-*.js",
+        "description": "run/pure-*.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/local-repro-example.js",
+        "description": "run/local-repro-example.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      }
+    ]
+  },
+  {
+    "id": "cn-new-task-init-first",
+    "query": "这是一个新的前端逆向任务，当前工作区没有历史数据文件。先做 task-local 初始化，再分析受保护接口的签名参数，不要一上来就直接写代码。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ],
+    "expectedReasoningTags": [
+      "new-task-init-first"
+    ],
+    "forbiddenReasoningTags": [
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "new-task-init-first",
+        "description": "应包含推理标签: new-task-init-first"
+      },
+      {
+        "type": "reasoning_tag_forbidden",
+        "tag": "resume-then-advance",
+        "description": "不应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "cn-resume-task-local",
+    "query": "继续昨天的任务目录，先读取状态文件恢复路线，然后自动推进下一阶段，不要停在已恢复。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance"
+    ],
+    "forbiddenReasoningTags": [
+      "new-task-init-first"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_forbidden",
+        "tag": "new-task-init-first",
+        "description": "不应包含推理标签: new-task-init-first"
+      }
+    ]
+  },
+  {
+    "id": "cn-protocol-binary-replay",
+    "query": "分析这个站点的长连接二进制消息格式，先恢复字段编码边界，再生成重放脚本。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "binary-codec",
+      "protocol"
+    ],
+    "expectedArtifacts": [
+      "run/binary-codec-notes.md",
+      "run/binary-samples.json",
+      "run/protocol-notes.md",
+      "run/web-replay.js"
+    ],
+    "expectedReasoningTags": [
+      "probe-before-expansion",
+      "schema-before-replay"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "binary-codec",
+        "description": "应路由到 binary-codec 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/binary-codec-notes.md",
+        "description": "run/binary-codec-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/binary-samples.json",
+        "description": "run/binary-samples.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/protocol-notes.md",
+        "description": "run/protocol-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "schema-before-replay",
+        "description": "应包含推理标签: schema-before-replay"
+      }
+    ]
+  },
+  {
+    "id": "cn-source-map-anti-debug",
+    "query": "帮我定位前端混淆代码里的源码映射和反调试逻辑，先确认入口再下手。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "source-map"
+    ],
+    "expectedArtifacts": [
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js",
+      "run/source-map-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "hook-before-breakpoint"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "source-map",
+        "description": "应路由到 source-map 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-preload.js",
+        "description": "run/anti-debug-preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-runtime.js",
+        "description": "run/anti-debug-runtime.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/source-map-notes.md",
+        "description": "run/source-map-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hook-before-breakpoint",
+        "description": "应包含推理标签: hook-before-breakpoint"
+      }
+    ]
+  },
+  {
+    "id": "cn-fingerprint-challenge",
+    "query": "排查这个站点的浏览器指纹采集和风控挑战链路，先确认探针顺序和挑战状态机。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint",
+      "challenge-orchestration"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-notes.md",
+      "run/challenge-route-notes.md",
+      "run/challenge-state-machine.json"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "challenge-orchestration",
+        "description": "应路由到 challenge-orchestration 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-notes.md",
+        "description": "run/fingerprint-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-route-notes.md",
+        "description": "run/challenge-route-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-state-machine.json",
+        "description": "run/challenge-state-machine.json 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "cn-composite-entrypoint-loop",
+    "query": "这是一个复合场景：反调试、混淆、虚拟机保护、wasm、浏览器指纹和登录态耦合都在。不要锁定单一专题，先给出多个切入点，优先试成本最低的那个，失败就切换。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "fingerprint",
+      "jsvmp",
+      "session",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js",
+      "run/fingerprint-profile.json",
+      "run/session-notes.md",
+      "run/vm-opcodes.txt",
+      "run/wasm-analysis.wat"
+    ],
+    "expectedReasoningTags": [
+      "multi-entrypoint-triage",
+      "probe-before-expansion"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-preload.js",
+        "description": "run/anti-debug-preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-runtime.js",
+        "description": "run/anti-debug-runtime.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "multi-entrypoint-triage",
+        "description": "应包含推理标签: multi-entrypoint-triage"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "probe-before-expansion",
+        "description": "应包含推理标签: probe-before-expansion"
+      }
+    ]
+  },
+  {
+    "id": "cn-jsvmp-wasm",
+    "query": "页面同时用了虚拟机保护和 wasm，先确认解码边界，再恢复操作码映射。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/dispatcher-map.md",
+      "run/wasm-analysis.wat"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "cn-task-local-retrospective",
+    "query": "继续已有任务，当前切入点都已经停放或耗尽。先做一次复盘，生成新的切入点，再继续推进。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance",
+      "retrospective-on-exhaustion"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-exhaustion",
+        "description": "应包含推理标签: retrospective-on-exhaustion"
+      }
+    ]
+  },
+  {
+    "id": "cn-stateful-signer-pivot",
+    "query": "浏览器请求能过，但本地一换签名器就只剩 200 空体。请沿存储到内存签名状态再到请求使用的链路取证。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature",
+      "storage",
+      "instrumentation-hooking"
+    ],
+    "expectedArtifacts": [
+      "run/signer-state-map.md",
+      "run/storage-snapshot.json",
+      "run/storage-notes.md",
+      "run/runtime-hooks.js"
+    ],
+    "expectedReasoningTags": [
+      "stateful-signer-pivot",
+      "carrier-chain-before-patch",
+      "avoid-broad-env-patching"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "storage",
+        "description": "应路由到 storage 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signer-state-map.md",
+        "description": "run/signer-state-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-snapshot.json",
+        "description": "run/storage-snapshot.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/storage-notes.md",
+        "description": "run/storage-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/runtime-hooks.js",
+        "description": "run/runtime-hooks.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "stateful-signer-pivot",
+        "description": "应包含推理标签: stateful-signer-pivot"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "carrier-chain-before-patch",
+        "description": "应包含推理标签: carrier-chain-before-patch"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "avoid-broad-env-patching",
+        "description": "应包含推理标签: avoid-broad-env-patching"
+      }
+    ]
+  },
+  {
+    "id": "cn-backend-protocol-design",
+    "query": "请设计一个后端长连接聊天协议，给出服务端和客户端的字段约定。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "cn-graphql-dashboard-client",
+    "query": "给管理后台封装一个 GraphQL 客户端，支持持久化查询和类型安全。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "cn-react-login-ui",
+    "query": "给我的 React 登录页做一个更现代的界面和表单交互。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "cn-hmac-theory",
+    "query": "用中文解释 HMAC、时间戳和随机串签名的原理，给几个教学例子。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "cn-webrtc-demo",
+    "query": "写一个带 ICE 重连的数据通道聊天演示。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "cn-aes-toolkit",
+    "query": "做一个 AES 加解密小工具，带输入框和结果展示。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "signature-header-runtime-sync",
+    "query": "Browser baseline can return JSON, local X-Bogus/X-Gnarly shape also looks normal, but local replay still returns 200 empty body. Stop URL-only fixes. Build a carrier matrix for each key parameter across header/query/cookie/runtime, explicitly verify x-ms-token header and runtime msToken sync, then replay with original-vs-local dual verification.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "session",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/session-notes.md",
+      "run/signature-fixtures.json",
+      "run/signature-input-map.md",
+      "run/signer-state-map.md"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signer-state-map.md",
+        "description": "run/signer-state-map.md 应已生成"
+      }
+    ]
+  },
+  {
+    "id": "jsvmp-drm-video-decryption",
+    "query": "Video playback uses EME encryption. The license response is processed by JSVMP-protected bytecode before being injected into MediaKeySession. Need to recover the video frame clear boundary and provide a locally verifiable decryption chain.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "run/frame-decryption-chain.md",
+      "run/key-session-timeline.json",
+      "run/vm-trace.jsonl",
+      "run/license-flow.md"
+    ],
+    "expectedReasoningTags": [
+      "compound-protection-tier-T7",
+      "drm-mode-content-decryption",
+      "jsvmp-after-license-response",
+      "clear-frame-boundary-first",
+      "blackbox-before-deep-analysis"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/key-session-timeline.json",
+        "description": "run/key-session-timeline.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-trace.jsonl",
+        "description": "run/vm-trace.jsonl 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/license-flow.md",
+        "description": "run/license-flow.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "compound-protection-tier-T7",
+        "description": "应包含推理标签: compound-protection-tier-T7"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "drm-mode-content-decryption",
+        "description": "应包含推理标签: drm-mode-content-decryption"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "jsvmp-after-license-response",
+        "description": "应包含推理标签: jsvmp-after-license-response"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "clear-frame-boundary-first",
+        "description": "应包含推理标签: clear-frame-boundary-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "blackbox-before-deep-analysis",
+        "description": "应包含推理标签: blackbox-before-deep-analysis"
+      }
+    ]
+  },
+  {
+    "id": "sample-aes-hls-clear-frame",
+    "query": "HLS stream uses #EXT-X-KEY Sample-AES encryption. Need to find the key acquisition chain and verify segment decrypts into playable content.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "run/frame-decryption-chain.md",
+      "run/key-session-timeline.json"
+    ],
+    "expectedReasoningTags": [
+      "encryption-scheme-sample-aes",
+      "key-uri-recovery",
+      "segment-decryption-verification"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/key-session-timeline.json",
+        "description": "run/key-session-timeline.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "encryption-scheme-sample-aes",
+        "description": "应包含推理标签: encryption-scheme-sample-aes"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "key-uri-recovery",
+        "description": "应包含推理标签: key-uri-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "segment-decryption-verification",
+        "description": "应包含推理标签: segment-decryption-verification"
+      }
+    ]
+  },
+  {
+    "id": "wasm-cenc-decrypt-non-cdm",
+    "query": "DASH mpd uses CENC encryption, but the player does not use EME/CDM. Instead a WASM module directly decrypts segments before appendBuffer. Need to recover the WASM decrypt function input/output boundary.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "wasm",
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "run/wasm-imports-exports.json",
+      "run/frame-decryption-chain.md",
+      "run/clear-frame-samples/"
+    ],
+    "expectedReasoningTags": [
+      "non-cdm-decryption-path",
+      "wasm-memory-bridge",
+      "ciphertext-plaintext-pairs"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-imports-exports.json",
+        "description": "run/wasm-imports-exports.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/clear-frame-samples/",
+        "description": "run/clear-frame-samples/ 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "non-cdm-decryption-path",
+        "description": "应包含推理标签: non-cdm-decryption-path"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "wasm-memory-bridge",
+        "description": "应包含推理标签: wasm-memory-bridge"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "ciphertext-plaintext-pairs",
+        "description": "应包含推理标签: ciphertext-plaintext-pairs"
+      }
+    ]
+  },
+  {
+    "id": "vm-wasm-mixed-chain",
+    "query": "The signature algorithm runs inside a JSVMP that calls a WASM export for the hash computation. The VMP reads navigator properties before dispatching to WASM. Trace the full mixed chain and identify the pure algorithm boundary.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "wasm",
+      "env",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcodes.txt",
+      "run/dispatcher-map.md",
+      "run/wasm-imports-exports.json",
+      "run/wasm-jsvmp-bridge.md",
+      "run/vm-env-reads.json",
+      "run/signature-input-map.md"
+    ],
+    "expectedReasoningTags": [
+      "vm-wasm-bridge",
+      "env-as-algorithm-input",
+      "cross-boundary-trace",
+      "hybrid-decomposition"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcodes.txt",
+        "description": "run/vm-opcodes.txt 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dispatcher-map.md",
+        "description": "run/dispatcher-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-imports-exports.json",
+        "description": "run/wasm-imports-exports.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-jsvmp-bridge.md",
+        "description": "run/wasm-jsvmp-bridge.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-env-reads.json",
+        "description": "run/vm-env-reads.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "vm-wasm-bridge",
+        "description": "应包含推理标签: vm-wasm-bridge"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "env-as-algorithm-input",
+        "description": "应包含推理标签: env-as-algorithm-input"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "cross-boundary-trace",
+        "description": "应包含推理标签: cross-boundary-trace"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hybrid-decomposition",
+        "description": "应包含推理标签: hybrid-decomposition"
+      }
+    ]
+  },
+  {
+    "id": "env-algorithm-input-chain",
+    "query": "The site passes fingerprint checks in my patched Node environment, but the generated signature is still rejected by the server. The navigator values must be entering the signing algorithm directly, not just detection. Trace the env-read to sign-field chain.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "env",
+      "signature",
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "run/env-as-algorithm-input.md",
+      "run/env-algorithm-input-map.json",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ],
+    "expectedReasoningTags": [
+      "env-as-algorithm-input",
+      "detection-pass-vs-algorithm-pass",
+      "swap-verification",
+      "sign-field-tracing"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "env",
+        "description": "应路由到 env 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-as-algorithm-input.md",
+        "description": "run/env-as-algorithm-input.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/env-algorithm-input-map.json",
+        "description": "run/env-algorithm-input-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "env-as-algorithm-input",
+        "description": "应包含推理标签: env-as-algorithm-input"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "detection-pass-vs-algorithm-pass",
+        "description": "应包含推理标签: detection-pass-vs-algorithm-pass"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "swap-verification",
+        "description": "应包含推理标签: swap-verification"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "sign-field-tracing",
+        "description": "应包含推理标签: sign-field-tracing"
+      }
+    ]
+  },
+  {
+    "id": "pure-algorithm-python-port",
+    "query": "I have verified the signing algorithm in the browser. Now migrate it to pure Python so I can generate valid requests without a browser runtime. The algorithm uses HMAC-SHA256 with a session-derived key.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature",
+      "userland-crypto"
+    ],
+    "expectedArtifacts": [
+      "run/pure-crypto.js",
+      "run/pure-sign.py",
+      "run/signature-fixtures.json",
+      "run/verify-once.mjs"
+    ],
+    "expectedReasoningTags": [
+      "pure-extraction",
+      "python-port",
+      "algorithm-boundary-lock"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "userland-crypto",
+        "description": "应路由到 userland-crypto 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/pure-crypto.js",
+        "description": "run/pure-crypto.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/pure-sign.py",
+        "description": "run/pure-sign.py 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/verify-once.mjs",
+        "description": "run/verify-once.mjs 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "pure-extraction",
+        "description": "应包含推理标签: pure-extraction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "python-port",
+        "description": "应包含推理标签: python-port"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "algorithm-boundary-lock",
+        "description": "应包含推理标签: algorithm-boundary-lock"
+      }
+    ]
+  },
+  {
+    "id": "composite-cascade-failure",
+    "query": "After bypassing the anti-debug layer, the dynamic code no longer unpacks correctly and the VMP fails to initialize. I need to diagnose whether this is a trigger dependency failure, integrity check failure, or state inconsistency.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "anti-tamper",
+      "dynamic-code",
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "run/composite-protection-map.md",
+      "run/anti-debug-preload.js",
+      "run/anti-debug-runtime.js",
+      "run/dynamic-code-notes.md",
+      "run/vm-decode-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "composite-protection",
+      "cascade-diagnosis",
+      "trigger-dependency",
+      "integrity-vs-state",
+      "minimal-breakpoint"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "anti-tamper",
+        "description": "应路由到 anti-tamper 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "dynamic-code",
+        "description": "应路由到 dynamic-code 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/composite-protection-map.md",
+        "description": "run/composite-protection-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-preload.js",
+        "description": "run/anti-debug-preload.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/anti-debug-runtime.js",
+        "description": "run/anti-debug-runtime.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/dynamic-code-notes.md",
+        "description": "run/dynamic-code-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-decode-notes.md",
+        "description": "run/vm-decode-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "composite-protection",
+        "description": "应包含推理标签: composite-protection"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "cascade-diagnosis",
+        "description": "应包含推理标签: cascade-diagnosis"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "trigger-dependency",
+        "description": "应包含推理标签: trigger-dependency"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "integrity-vs-state",
+        "description": "应包含推理标签: integrity-vs-state"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "minimal-breakpoint",
+        "description": "应包含推理标签: minimal-breakpoint"
+      }
+    ]
+  },
+  {
+    "id": "control-flow-flattening-deobf",
+    "query": "The target script uses control flow flattening with a while-switch dispatcher and all strings are in a rotated array. I need to recover the original control flow and string constants.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "ast-deobfuscation",
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "run/cff-dispatcher-var.md",
+      "run/cff-block-map.json",
+      "run/cff-cfg.json",
+      "run/cff-deobfuscated.js",
+      "run/string-array-mapping.json",
+      "run/string-array-deobfuscated.js"
+    ],
+    "expectedReasoningTags": [
+      "control-flow-flattening",
+      "string-array-deobfuscation",
+      "cfg-reconstruction",
+      "block-clustering"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "ast-deobfuscation",
+        "description": "应路由到 ast-deobfuscation 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/cff-dispatcher-var.md",
+        "description": "run/cff-dispatcher-var.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/cff-block-map.json",
+        "description": "run/cff-block-map.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/cff-cfg.json",
+        "description": "run/cff-cfg.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/cff-deobfuscated.js",
+        "description": "run/cff-deobfuscated.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/string-array-mapping.json",
+        "description": "run/string-array-mapping.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/string-array-deobfuscated.js",
+        "description": "run/string-array-deobfuscated.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "control-flow-flattening",
+        "description": "应包含推理标签: control-flow-flattening"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "string-array-deobfuscation",
+        "description": "应包含推理标签: string-array-deobfuscation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "cfg-reconstruction",
+        "description": "应包含推理标签: cfg-reconstruction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "block-clustering",
+        "description": "应包含推理标签: block-clustering"
+      }
+    ]
+  },
+  {
+    "id": "commercial-protection-akamai",
+    "query": "The site returns _abck and bm_sz cookies, and sensor_data is posted to an Akamai endpoint. The mouse trajectory is sampled at high frequency. Identify the protection provider and build a bypass strategy.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint",
+      "behavior-telemetry",
+      "challenge-orchestration"
+    ],
+    "expectedArtifacts": [
+      "run/commercial-protection-identification.json",
+      "run/commercial-protection-notes.md",
+      "run/fingerprint-profile.json",
+      "run/behavior-telemetry-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "commercial-protection-identification",
+      "provider-fingerprint",
+      "high-frequency-telemetry",
+      "behavior-synthesis"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "behavior-telemetry",
+        "description": "应路由到 behavior-telemetry 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "challenge-orchestration",
+        "description": "应路由到 challenge-orchestration 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/commercial-protection-identification.json",
+        "description": "run/commercial-protection-identification.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/commercial-protection-notes.md",
+        "description": "run/commercial-protection-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/behavior-telemetry-notes.md",
+        "description": "run/behavior-telemetry-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "commercial-protection-identification",
+        "description": "应包含推理标签: commercial-protection-identification"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "provider-fingerprint",
+        "description": "应包含推理标签: provider-fingerprint"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "high-frequency-telemetry",
+        "description": "应包含推理标签: high-frequency-telemetry"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "behavior-synthesis",
+        "description": "应包含推理标签: behavior-synthesis"
+      }
+    ]
+  },
+  {
+    "id": "tls-ja3-fingerprint-block",
+    "query": "My Python requests script gets blocked, but the same request from Chrome succeeds. The server seems to check the TLS fingerprint. How do I match the browser JA3 signature in my script?",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "protocol"
+    ],
+    "expectedArtifacts": [
+      "run/tls-http-fingerprint-notes.md",
+      "run/tls-http-fingerprint-profile.json",
+      "run/web-replay.js"
+    ],
+    "expectedReasoningTags": [
+      "tls-fingerprint",
+      "ja3-matching",
+      "transport-layer-evasion",
+      "curl-cffi"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "protocol",
+        "description": "应路由到 protocol 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/tls-http-fingerprint-notes.md",
+        "description": "run/tls-http-fingerprint-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/tls-http-fingerprint-profile.json",
+        "description": "run/tls-http-fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/web-replay.js",
+        "description": "run/web-replay.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "tls-fingerprint",
+        "description": "应包含推理标签: tls-fingerprint"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "ja3-matching",
+        "description": "应包含推理标签: ja3-matching"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "transport-layer-evasion",
+        "description": "应包含推理标签: transport-layer-evasion"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "curl-cffi",
+        "description": "应包含推理标签: curl-cffi"
+      }
+    ]
+  },
+  {
+    "id": "deep-canvas-webgl-fingerprint",
+    "query": "The anti-bot system builds fingerprint from canvas toDataURL, WebGL renderer info, and OfflineAudioContext. I need to profile each vector and determine the minimal patch surface.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "run/fingerprint-profile.json",
+      "run/fingerprint-canvas-profile.json",
+      "run/fingerprint-webgl-profile.json",
+      "run/fingerprint-audio-profile.json",
+      "run/fingerprint-inspector-template.js"
+    ],
+    "expectedReasoningTags": [
+      "deep-vector-analysis",
+      "canvas-hook",
+      "webgl-renderer-spoof",
+      "audio-fingerprint",
+      "minimal-patch-surface"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-profile.json",
+        "description": "run/fingerprint-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-canvas-profile.json",
+        "description": "run/fingerprint-canvas-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-webgl-profile.json",
+        "description": "run/fingerprint-webgl-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-audio-profile.json",
+        "description": "run/fingerprint-audio-profile.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-inspector-template.js",
+        "description": "run/fingerprint-inspector-template.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "deep-vector-analysis",
+        "description": "应包含推理标签: deep-vector-analysis"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "canvas-hook",
+        "description": "应包含推理标签: canvas-hook"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "webgl-renderer-spoof",
+        "description": "应包含推理标签: webgl-renderer-spoof"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "audio-fingerprint",
+        "description": "应包含推理标签: audio-fingerprint"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "minimal-patch-surface",
+        "description": "应包含推理标签: minimal-patch-surface"
+      }
+    ]
+  },
+  {
+    "id": "vmp-semantic-lifting",
+    "query": "I have captured the full VM trace with pc, opcode, handler, and stack delta. Now I need to lift the opcode sequence back to high-level semantics to understand the signing algorithm inside the VMP.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp"
+    ],
+    "expectedArtifacts": [
+      "run/vm-opcode-patterns.json",
+      "run/vm-dataflow-analysis.json",
+      "run/vm-algorithm-identification.md",
+      "run/vm-lifted-semantics.js",
+      "run/vm-semantic-verification.md"
+    ],
+    "expectedReasoningTags": [
+      "semantic-lifting",
+      "pattern-recognition",
+      "algorithm-identification",
+      "def-use-chain",
+      "magic-number-matching"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-opcode-patterns.json",
+        "description": "run/vm-opcode-patterns.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-dataflow-analysis.json",
+        "description": "run/vm-dataflow-analysis.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-algorithm-identification.md",
+        "description": "run/vm-algorithm-identification.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-lifted-semantics.js",
+        "description": "run/vm-lifted-semantics.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/vm-semantic-verification.md",
+        "description": "run/vm-semantic-verification.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "semantic-lifting",
+        "description": "应包含推理标签: semantic-lifting"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "pattern-recognition",
+        "description": "应包含推理标签: pattern-recognition"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "algorithm-identification",
+        "description": "应包含推理标签: algorithm-identification"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "def-use-chain",
+        "description": "应包含推理标签: def-use-chain"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "magic-number-matching",
+        "description": "应包含推理标签: magic-number-matching"
+      }
+    ]
+  },
+  {
+    "id": "wasm-binary-deep-analysis",
+    "query": "The WASM module is loaded encrypted and decrypted at runtime. After capturing the decrypted bytes, I need to analyze the binary structure, identify the hash algorithm inside, and extract the data segment constants.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "run/wasm-analysis.wat",
+      "run/wasm-section-analysis.md",
+      "run/wasm-data-segments.json",
+      "run/wasm-algorithm-identification.md",
+      "run/wasm-memory-layout.md",
+      "run/wasm-binary-samples/"
+    ],
+    "expectedReasoningTags": [
+      "wasm-binary-analysis",
+      "section-inspection",
+      "data-segment-extraction",
+      "algorithm-pattern-matching",
+      "memory-layout-mapping"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-section-analysis.md",
+        "description": "run/wasm-section-analysis.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-data-segments.json",
+        "description": "run/wasm-data-segments.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-algorithm-identification.md",
+        "description": "run/wasm-algorithm-identification.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-memory-layout.md",
+        "description": "run/wasm-memory-layout.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-binary-samples/",
+        "description": "run/wasm-binary-samples/ 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "wasm-binary-analysis",
+        "description": "应包含推理标签: wasm-binary-analysis"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "section-inspection",
+        "description": "应包含推理标签: section-inspection"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "data-segment-extraction",
+        "description": "应包含推理标签: data-segment-extraction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "algorithm-pattern-matching",
+        "description": "应包含推理标签: algorithm-pattern-matching"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "memory-layout-mapping",
+        "description": "应包含推理标签: memory-layout-mapping"
+      }
+    ]
+  },
+  {
+    "id": "browser-controlled-reuse-template",
+    "query": "I need a browser-controlled reuse setup with Puppeteer to maintain session state and intercept network requests while avoiding bot detection. Provide the base script template.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "browser-controlled-reuse"
+    ],
+    "expectedArtifacts": [
+      "run/browser-controlled-repro.md",
+      "run/browser-repro-script.js",
+      "run/browser-env-override.js"
+    ],
+    "expectedReasoningTags": [
+      "browser-controlled-reuse",
+      "puppeteer-stealth",
+      "network-interception",
+      "session-maintenance"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-controlled-repro.md",
+        "description": "run/browser-controlled-repro.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-repro-script.js",
+        "description": "run/browser-repro-script.js 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-env-override.js",
+        "description": "run/browser-env-override.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "browser-controlled-reuse",
+        "description": "应包含推理标签: browser-controlled-reuse"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "puppeteer-stealth",
+        "description": "应包含推理标签: puppeteer-stealth"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "network-interception",
+        "description": "应包含推理标签: network-interception"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "session-maintenance",
+        "description": "应包含推理标签: session-maintenance"
+      }
+    ]
+  },
+  {
+    "id": "execution-drift-low-level-hook-cycle",
+    "query": "You have been cycling through document.cookie, cookieStore, script.src, setAttribute, and appendChild for 3 rounds without getting closer to request success. The user explicitly asks you to stop low-level hook switching and pivot to dispatch / payload / sign callsite on this signature task. Read route-state.json and resume from the highest-semantic hook.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "signature",
+      "instrumentation-hooking"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/hook-safety-notes.md",
+      "run/signature-input-map.md"
+    ],
+    "expectedReasoningTags": [
+      "execution-drift-recovery",
+      "high-semantic-hook-first",
+      "pivot-to-high-semantic",
+      "same-family-hook-retry-cap",
+      "same-family-hook-retry-cap-exceeded"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "instrumentation-hooking",
+        "description": "应路由到 instrumentation-hooking 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/hook-safety-notes.md",
+        "description": "run/hook-safety-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execution-drift-recovery",
+        "description": "应包含推理标签: execution-drift-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "high-semantic-hook-first",
+        "description": "应包含推理标签: high-semantic-hook-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "pivot-to-high-semantic",
+        "description": "应包含推理标签: pivot-to-high-semantic"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "same-family-hook-retry-cap",
+        "description": "应包含推理标签: same-family-hook-retry-cap"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "same-family-hook-retry-cap-exceeded",
+        "description": "应包含推理标签: same-family-hook-retry-cap-exceeded"
+      }
+    ]
+  },
+  {
+    "id": "execution-drift-wrong-conclusion-recovery",
+    "query": "You previously concluded the video stream is unencrypted because ffprobe shows h264/aac and TS sync byte is 0x47. The user corrected you: the video frames are actually garbled/scrambled. This stream uses js-vmp and wasm. You must recover from this wrong conclusion and re-evaluate the decryption chain from content-layer evidence, checking clear frame boundaries.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "media-drm",
+      "jsvmp",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "run/frame-decryption-chain.md",
+      "run/key-session-timeline.json",
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "blackbox-before-deep-analysis",
+      "clear-frame-boundary-first",
+      "container-readable-not-content-decrypted",
+      "content-layer-verification-required",
+      "execution-drift-recovery",
+      "wrong-conclusion-correction"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/key-session-timeline.json",
+        "description": "run/key-session-timeline.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "blackbox-before-deep-analysis",
+        "description": "应包含推理标签: blackbox-before-deep-analysis"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "clear-frame-boundary-first",
+        "description": "应包含推理标签: clear-frame-boundary-first"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "container-readable-not-content-decrypted",
+        "description": "应包含推理标签: container-readable-not-content-decrypted"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "content-layer-verification-required",
+        "description": "应包含推理标签: content-layer-verification-required"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execution-drift-recovery",
+        "description": "应包含推理标签: execution-drift-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "wrong-conclusion-correction",
+        "description": "应包含推理标签: wrong-conclusion-correction"
+      }
+    ]
+  },
+  {
+    "id": "execution-drift-artifact-misplacement",
+    "query": "The previous round wrote report.md and fixtures.json to the workspace root directory instead of artifacts/tasks/<task-id>/. You need to correct the artifact placement and ensure all future deliverables land in the correct task-local directory within the skill 项目目录.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "artifact-misplacement-correction",
+      "execution-drift-recovery",
+      "external-workspace-awareness"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "artifact-misplacement-correction",
+        "description": "应包含推理标签: artifact-misplacement-correction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execution-drift-recovery",
+        "description": "应包含推理标签: execution-drift-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "external-workspace-awareness",
+        "description": "应包含推理标签: external-workspace-awareness"
+      }
+    ]
+  },
+  {
+    "id": "execution-drift-status-only-reply-recovery",
+    "query": "You have been replying to the user with status updates like 'current phase is Capture' and 'I will continue' instead of actually continuing execution on our web reverse task. Read route-state.json and immediately execute the next actionable trace step without status-only replies.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "assert-can-reply-discipline",
+      "execution-drift-recovery",
+      "execute-before-report",
+      "status-only-reply-correction"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "assert-can-reply-discipline",
+        "description": "应包含推理标签: assert-can-reply-discipline"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execution-drift-recovery",
+        "description": "应包含推理标签: execution-drift-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execute-before-report",
+        "description": "应包含推理标签: execute-before-report"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "status-only-reply-correction",
+        "description": "应包含推理标签: status-only-reply-correction"
+      }
+    ]
+  },
+  {
+    "id": "execution-drift-premature-closeout",
+    "query": "You declared the task 'completed' and output a final summary, but verify-once.mjs has not been run and the x-sign request acceptance has not been validated. The user wants you to continue this task-local reverse work until success.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local",
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/signature-input-map.md",
+      "run/signature-fixtures.json"
+    ],
+    "expectedReasoningTags": [
+      "assert-can-reply-require-validated-deliverable",
+      "continuous-execution-discipline",
+      "execution-drift-recovery",
+      "premature-closeout-correction",
+      "verify-before-claim"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-fixtures.json",
+        "description": "run/signature-fixtures.json 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "assert-can-reply-require-validated-deliverable",
+        "description": "应包含推理标签: assert-can-reply-require-validated-deliverable"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "continuous-execution-discipline",
+        "description": "应包含推理标签: continuous-execution-discipline"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execution-drift-recovery",
+        "description": "应包含推理标签: execution-drift-recovery"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "premature-closeout-correction",
+        "description": "应包含推理标签: premature-closeout-correction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "verify-before-claim",
+        "description": "应包含推理标签: verify-before-claim"
+      }
+    ]
+  },
+  {
+    "id": "websearch-provider-triage",
+    "query": "命中 _abck / bm_sz / sensor_data，先做一轮 web search / GitHub / 官方文档搜索，确认保护供应商与挑战链路，再回到 entrypoint loop。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "challenge-orchestration",
+      "fingerprint"
+    ],
+    "expectedArtifacts": [
+      "state/external-research.md",
+      "state/external-research.json",
+      "run/challenge-route-notes.md",
+      "run/fingerprint-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "websearch-escalation",
+      "source-triangulation",
+      "hypothesis-correction"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "challenge-orchestration",
+        "description": "应路由到 challenge-orchestration 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "fingerprint",
+        "description": "应路由到 fingerprint 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "state/external-research.md",
+        "description": "state/external-research.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "state/external-research.json",
+        "description": "state/external-research.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/challenge-route-notes.md",
+        "description": "run/challenge-route-notes.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fingerprint-notes.md",
+        "description": "run/fingerprint-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "websearch-escalation",
+        "description": "应包含推理标签: websearch-escalation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "source-triangulation",
+        "description": "应包含推理标签: source-triangulation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hypothesis-correction",
+        "description": "应包含推理标签: hypothesis-correction"
+      }
+    ]
+  },
+  {
+    "id": "websearch-signature-generated-rejected",
+    "query": "浏览器 baseline 成功，但本地 x-bogus / msToken 一直 generated-rejected。先做一轮 GitHub issue / 官方文档 / websearch 搜索，校正 signer state 与 carrier 假设，再回到 request-use。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature",
+      "session"
+    ],
+    "expectedArtifacts": [
+      "state/external-research.md",
+      "state/external-research.json",
+      "run/signature-input-map.md",
+      "run/session-notes.md"
+    ],
+    "expectedReasoningTags": [
+      "websearch-escalation",
+      "source-triangulation",
+      "stateful-signer-pivot"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "session",
+        "description": "应路由到 session 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "state/external-research.md",
+        "description": "state/external-research.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "state/external-research.json",
+        "description": "state/external-research.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/signature-input-map.md",
+        "description": "run/signature-input-map.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/session-notes.md",
+        "description": "run/session-notes.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "websearch-escalation",
+        "description": "应包含推理标签: websearch-escalation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "source-triangulation",
+        "description": "应包含推理标签: source-triangulation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "stateful-signer-pivot",
+        "description": "应包含推理标签: stateful-signer-pivot"
+      }
+    ]
+  },
+  {
+    "id": "websearch-react-dashboard-template",
+    "query": "Search the web for React dashboard templates.",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "evidence-first-search-correction",
+    "query": "这是新版本 web-reverse。请先恢复并继续当前已有 task-local，再按证据优先与外部搜索纠偏推进，不要回到历史任务计数口径。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-then-advance",
+      "websearch-escalation"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "websearch-escalation",
+        "description": "应包含推理标签: websearch-escalation"
+      }
+    ]
+  },
+  {
+    "id": "media-ts-partial-sample-overfit",
+    "query": "HD ts video decryption path uses jsvmp + wasm. I only captured the first 256 bytes of a few NAL units and saw a 4-byte diff at offset 64-67, so I suspect a custom S-box. Do not overfit the partial sample. Re-check the full NAL/PES payload diff, triage standard families like TEA/AES before custom theory, and search for existing research if the wasm/provider family is still opaque.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "media-drm",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/frame-decryption-chain.md",
+      "run/wasm-analysis.wat",
+      "state/external-research.md"
+    ],
+    "expectedReasoningTags": [
+      "algorithm-family-triage",
+      "full-payload-diff-before-custom-theory",
+      "partial-sample-provisional",
+      "standard-before-custom",
+      "websearch-escalation"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "state/external-research.md",
+        "description": "state/external-research.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "algorithm-family-triage",
+        "description": "应包含推理标签: algorithm-family-triage"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "full-payload-diff-before-custom-theory",
+        "description": "应包含推理标签: full-payload-diff-before-custom-theory"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "partial-sample-provisional",
+        "description": "应包含推理标签: partial-sample-provisional"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "standard-before-custom",
+        "description": "应包含推理标签: standard-before-custom"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "websearch-escalation",
+        "description": "应包含推理标签: websearch-escalation"
+      }
+    ]
+  },
+  {
+    "id": "wasm-direct-call-before-sample-mining",
+    "query": "The HD ts pipeline is jsvmp-protected and the worker's wasm decrypt export returns the original byte length with unchanged bytes. The browser playback succeeds, so prioritize browser internal direct call / func60 mapping / wasm2wat / exports-table mapping instead of collecting thousands of statistical samples.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "jsvmp",
+      "media-drm",
+      "wasm",
+      "worker"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/frame-decryption-chain.md",
+      "run/wasm-analysis.wat",
+      "run/wasm-imports-exports.json",
+      "run/wasm-jsvmp-bridge.md"
+    ],
+    "expectedReasoningTags": [
+      "direct-internal-call-before-sample-mining",
+      "hypothesis-stop-loss",
+      "vm-wasm-bridge"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "jsvmp",
+        "description": "应路由到 jsvmp 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "worker",
+        "description": "应路由到 worker 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-imports-exports.json",
+        "description": "run/wasm-imports-exports.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-jsvmp-bridge.md",
+        "description": "run/wasm-jsvmp-bridge.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "direct-internal-call-before-sample-mining",
+        "description": "应包含推理标签: direct-internal-call-before-sample-mining"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hypothesis-stop-loss",
+        "description": "应包含推理标签: hypothesis-stop-loss"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "vm-wasm-bridge",
+        "description": "应包含推理标签: vm-wasm-bridge"
+      }
+    ]
+  },
+  {
+    "id": "same-hypothesis-script-sprawl",
+    "query": "I already wrote 10 sample-analysis scripts around the same S-box hypothesis for a video wasm decryptor and still have no acceptance evidence. Stop the script sprawl, run a retrospective, and pivot to a higher-value entrypoint.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "media-drm",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/frame-decryption-chain.md",
+      "run/wasm-analysis.wat"
+    ],
+    "expectedReasoningTags": [
+      "hypothesis-stop-loss",
+      "retrospective-on-exhaustion"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/wasm-analysis.wat",
+        "description": "run/wasm-analysis.wat 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hypothesis-stop-loss",
+        "description": "应包含推理标签: hypothesis-stop-loss"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-exhaustion",
+        "description": "应包含推理标签: retrospective-on-exhaustion"
+      }
+    ]
+  },
+  {
+    "id": "browser-harness-request-acceptance-tier",
+    "query": "Continue the existing task-local. The user only needs a browser-controlled harness that can replay the signed request with Playwright and keep the session alive. Do not overbuild a pure algorithm port before the browser harness is stable.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "browser-controlled-reuse",
+      "signature",
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/browser-controlled-repro.md",
+      "run/browser-repro-script.js"
+    ],
+    "expectedReasoningTags": [
+      "browser-before-pure-extraction",
+      "browser-controlled-reuse",
+      "deliverable-tier-control",
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-controlled-repro.md",
+        "description": "run/browser-controlled-repro.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-repro-script.js",
+        "description": "run/browser-repro-script.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "browser-before-pure-extraction",
+        "description": "应包含推理标签: browser-before-pure-extraction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "browser-controlled-reuse",
+        "description": "应包含推理标签: browser-controlled-reuse"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "deliverable-tier-control",
+        "description": "应包含推理标签: deliverable-tier-control"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "topic-budget-composite-scene",
+    "query": "This is a composite scene with anti-debug, wasm, and signature logic mixed together. Pick one primary topic and at most two secondary topics for the current probe. Do not bulk-load every playbook in the skill.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "anti-debug",
+      "signature",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "focused-reference-loading",
+      "multi-entrypoint-triage",
+      "topic-budgeting"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "anti-debug",
+        "description": "应路由到 anti-debug 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "focused-reference-loading",
+        "description": "应包含推理标签: focused-reference-loading"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "multi-entrypoint-triage",
+        "description": "应包含推理标签: multi-entrypoint-triage"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "topic-budgeting",
+        "description": "应包含推理标签: topic-budgeting"
+      }
+    ]
+  },
+  {
+    "id": "retrospective-after-two-stalls",
+    "query": "The same signer-state hypothesis has already consumed two rounds and several scripts without getting closer to acceptance. Run a retrospective, park the stale route, write the retrospective artifact, and then choose the cheapest new probe.",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "signature"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/retrospective.md"
+    ],
+    "expectedReasoningTags": [
+      "hypothesis-stop-loss",
+      "retrospective-on-exhaustion",
+      "retrospective-on-stall"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "signature",
+        "description": "应路由到 signature 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/retrospective.md",
+        "description": "run/retrospective.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "hypothesis-stop-loss",
+        "description": "应包含推理标签: hypothesis-stop-loss"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-exhaustion",
+        "description": "应包含推理标签: retrospective-on-exhaustion"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-stall",
+        "description": "应包含推理标签: retrospective-on-stall"
+      }
+    ]
+  },
+  {
+    "id": "claim-hygiene-content-layer-cn",
+    "query": "ffprobe 已经能识别 TS 里的 h264/aac，MediaSource 也会触发 updateend，但画面仍然是花的。请把当前结论标成 provisional 或最多 route-ready，不要宣称“视频已解密成功”，必须继续做内容层验证。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "media-drm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/frame-decryption-chain.md"
+    ],
+    "expectedReasoningTags": [
+      "claim-precision",
+      "container-readable-not-content-decrypted",
+      "content-layer-verification-required"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "media-drm",
+        "description": "应路由到 media-drm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/frame-decryption-chain.md",
+        "description": "run/frame-decryption-chain.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "claim-precision",
+        "description": "应包含推理标签: claim-precision"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "container-readable-not-content-decrypted",
+        "description": "应包含推理标签: container-readable-not-content-decrypted"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "content-layer-verification-required",
+        "description": "应包含推理标签: content-layer-verification-required"
+      }
+    ]
+  },
+  {
+    "id": "playwright-smoke-test-negative",
+    "query": "用 Playwright 给我的管理后台写一个 smoke test，登录后检查左侧菜单和用户头像是否显示正常。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "deliverable-tier-downgrade-browser-cn",
+    "query": "当前原计划是 pure extraction，但两轮下来仍然只是解释 wasm 内部细节。浏览器 harness 已能稳定 accepted request。请把任务降级到浏览器内可控复用交付，暂停纯算法路线。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "browser-controlled-reuse",
+      "wasm"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/browser-controlled-repro.md",
+      "run/browser-repro-script.js"
+    ],
+    "expectedReasoningTags": [
+      "browser-before-pure-extraction",
+      "deliverable-tier-control",
+      "retrospective-on-stall"
+    ],
+    "assertions": [
+      {
+        "type": "route_matches",
+        "topic": "wasm",
+        "description": "应路由到 wasm 专题"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-controlled-repro.md",
+        "description": "run/browser-controlled-repro.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/browser-repro-script.js",
+        "description": "run/browser-repro-script.js 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "browser-before-pure-extraction",
+        "description": "应包含推理标签: browser-before-pure-extraction"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "deliverable-tier-control",
+        "description": "应包含推理标签: deliverable-tier-control"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "retrospective-on-stall",
+        "description": "应包含推理标签: retrospective-on-stall"
+      }
+    ]
+  },
+  {
+    "id": "closeout-after-validation-cn",
+    "query": "这个 task-local 已经拿到 acceptance-ready 证据。现在请先跑验证，再补齐 report / fixtures / verify / retrospective / external-research（如适用），最后执行 task-close，不要只停在“报告已更新”。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md",
+      "run/fixtures.json",
+      "run/verify-once.mjs"
+    ],
+    "expectedReasoningTags": [
+      "assert-can-reply-require-validated-deliverable",
+      "closeout-after-validation"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/fixtures.json",
+        "description": "run/fixtures.json 应已生成"
+      },
+      {
+        "type": "artifact_exists",
+        "path": "run/verify-once.mjs",
+        "description": "run/verify-once.mjs 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "assert-can-reply-require-validated-deliverable",
+        "description": "应包含推理标签: assert-can-reply-require-validated-deliverable"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "closeout-after-validation",
+        "description": "应包含推理标签: closeout-after-validation"
+      }
+    ]
+  },
+  {
+    "id": "plain-frontend-dev-negative-cn",
+    "query": "帮我给这个 React 管理后台做一个带侧边栏和头像下拉菜单的页面，再顺手补一个 Playwright 测试。",
+    "shouldTrigger": false,
+    "expectedRoutes": [],
+    "expectedArtifacts": [],
+    "assertions": [
+      {
+        "type": "no_task_artifacts",
+        "description": "不应创建 task artifacts（非本 skill 场景）"
+      }
+    ]
+  },
+  {
+    "id": "truth-root-reporting-cn",
+    "query": "这是续跑任务，当前目录只是 skill 仓库，真实 task-local 在外部 workspace。继续执行前，请在报告顶部显式写 workspaceRoot、taskLocalRoot、artifactTruthRoot、workspaceKind，再按 nextExecutableAction 继续。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "external-workspace-awareness",
+      "resume-then-advance",
+      "truth-root-reporting"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "external-workspace-awareness",
+        "description": "应包含推理标签: external-workspace-awareness"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "truth-root-reporting",
+        "description": "应包含推理标签: truth-root-reporting"
+      }
+    ]
+  },
+  {
+    "id": "entrypoint-ledger-next-action-cn",
+    "query": "继续这个已有 task-local。不要只说当前阶段；请在报告里写 activeEntrypoints、entrypointStatuses、nextEntrypointId 和 nextExecutableAction，然后立即执行那条最便宜 probe。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "entrypoint-ledger",
+      "execute-before-report",
+      "resume-then-advance"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "entrypoint-ledger",
+        "description": "应包含推理标签: entrypoint-ledger"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "execute-before-report",
+        "description": "应包含推理标签: execute-before-report"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-then-advance",
+        "description": "应包含推理标签: resume-then-advance"
+      }
+    ]
+  },
+  {
+    "id": "evidence-frontier-gap-cn",
+    "query": "当前最多只能算 route-ready。请明确写 whyNotDeliveredYet、acceptanceGap 和 nextEvidenceGate，说明还差哪条直接证据，不要笼统地说继续抓一抓。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "claim-precision",
+      "evidence-frontier"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "claim-precision",
+        "description": "应包含推理标签: claim-precision"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "evidence-frontier",
+        "description": "应包含推理标签: evidence-frontier"
+      }
+    ]
+  },
+  {
+    "id": "pause-gate-precision-login-cn",
+    "query": "如果这轮必须停下来，只允许因为登录协作阻塞。请不要只说需要配合，而要明确写 replyGateDecision、blockingAction、requiredUserAction，并直接告诉我：现在请登录；同时写清 resumeCondition。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "pause-gate-precision"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "pause-gate-precision",
+        "description": "应包含推理标签: pause-gate-precision"
+      }
+    ]
+  },
+  {
+    "id": "delivery-adoption-evidence-cn",
+    "query": "进入 closeout 时，请明确写 deliveryAdoptionStatus、acceptancePath、usedArtifacts 和 unusedArtifacts，说明哪个脚本或浏览器 harness 真正跑通 accepted request，不要把未使用的探索脚本也包装成交付。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "browser-controlled-reuse",
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "closeout-after-validation",
+      "delivery-adoption-evidence"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "closeout-after-validation",
+        "description": "应包含推理标签: closeout-after-validation"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "delivery-adoption-evidence",
+        "description": "应包含推理标签: delivery-adoption-evidence"
+      }
+    ]
+  },
+  {
+    "id": "resume-after-user-collab-clear-pause-cn",
+    "query": "上一轮因为需要我把 wasm 加载到 IDA 才暂停；现在我已经回复‘已加载’。请先 task-sync，再用 task-advance --resume-from-user（或 --pause-category=none）清除旧的 blocked-on-user，再继续执行 nextExecutableAction；不要沿用旧暂停状态做阶段汇报或收尾。",
+    "shouldTrigger": true,
+    "expectedRoutes": [
+      "task-local"
+    ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "resume-after-user-collab",
+      "clear-user-pause-first"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "resume-after-user-collab",
+        "description": "应包含推理标签: resume-after-user-collab"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "clear-user-pause-first",
+        "description": "应包含推理标签: clear-user-pause-first"
+      }
+    ]
+  },
+  {
+    "id": "pure-local-target-no-browser-closeout-cn",
+    "query": "最终目标是纯 Python 或纯 Node 本地拿 m3u8、下载 ts 并完成解密，不依赖 Playwright / Puppeteer / 浏览器框架。即使你先做出了 browser harness / Playwright PoC，也不要把它当最终交付收尾；必须明确写原目标尚未完成、当前只到哪个 deliverable tier，以及下一步迁移边界。",
+      "shouldTrigger": true,
+      "expectedRoutes": [
+        "browser-controlled-reuse",
+        "media-drm"
+      ],
+    "expectedArtifacts": [
+      "artifacts/tasks/<task-id>/report.md"
+    ],
+    "expectedReasoningTags": [
+      "deliverable-tier-control",
+      "pure-local-target-guard",
+      "browser-tier-not-final"
+    ],
+    "assertions": [
+      {
+        "type": "artifact_exists",
+        "path": "artifacts/tasks/<task-id>/report.md",
+        "description": "artifacts/tasks/<task-id>/report.md 应已生成"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "deliverable-tier-control",
+        "description": "应包含推理标签: deliverable-tier-control"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "pure-local-target-guard",
+        "description": "应包含推理标签: pure-local-target-guard"
+      },
+      {
+        "type": "reasoning_tag_present",
+        "tag": "browser-tier-not-final",
+        "description": "应包含推理标签: browser-tier-not-final"
+      }
+    ]
+  }
+]

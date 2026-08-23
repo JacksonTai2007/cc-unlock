@@ -1,0 +1,15 @@
+{
+  "configRecovery": {
+    "version": 1,
+    "present": true,
+    "status": "not-started",
+    "keyFindings": [],
+    "blockers": [],
+    "notes": [],
+    "artifacts": [
+      "run/config-recovery-notes.md",
+      "run/config-schema.md",
+      "run/blob-decode-notes.md"
+    ]
+  }
+}

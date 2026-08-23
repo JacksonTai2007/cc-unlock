@@ -1,0 +1,15 @@
+{
+  "protocol": {
+    "version": 1,
+    "present": true,
+    "transport": "unknown",
+    "schemaStatus": "not-started",
+    "channelKinds": [],
+    "streamModelStatus": "not-started",
+    "sampleKinds": [],
+    "artifacts": [
+      "run/protocol-notes.md",
+      "run/websocket-frame-notes.md"
+    ]
+  }
+}

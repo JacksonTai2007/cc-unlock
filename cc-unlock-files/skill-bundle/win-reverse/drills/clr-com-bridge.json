@@ -1,0 +1,108 @@
+{
+  "id": "clr-com-bridge",
+  "title": "Mixed-mode CLR host / COM bridge drill",
+  "summary": "围绕 native CLR host、C++/CLI bridge、COM 对象与 IL/native 协同路径的组合演练。",
+  "difficulty": "advanced",
+  "topics": [
+    "static-triage",
+    "dotnet",
+    "mixed-mode-interop",
+    "ui-runtime"
+  ],
+  "taskInit": {
+    "protectionTier": "T3",
+    "localReproductionRequested": true,
+    "protocolReplayExampleRequired": false
+  },
+  "taskInput": {
+    "target": {
+      "value": "clr com bridge sample",
+      "binaryPath": "samples/clr-com-bridge.exe"
+    },
+    "objective": "确认 native 宿主如何拉起 CLR、识别托管/非托管桥接、恢复 COM/界面事件到业务逻辑的真实调用链，并完成最小本地复现。",
+    "requirements": {
+      "deliverables": [
+        "dotnet notes",
+        "mixed-mode notes",
+        "bridge map",
+        "message flow"
+      ],
+      "localReproductionRequested": true,
+      "protocolReplayExampleRequired": false
+    },
+    "boundaries": {
+      "inScope": [
+        "静态分诊",
+        "IL/native/COM 桥接分析",
+        "最小 UI 触发链复现"
+      ],
+      "outOfScope": [
+        "外部组件投送",
+        "系统级 COM 劫持"
+      ]
+    }
+  },
+  "taskPatch": {
+    "title": "[Drill] CLR host / mixed bridge / COM object chain",
+    "runtime": {
+      "architecture": "x64",
+      "binaryFormat": "pe",
+      "managed": true,
+      "loader": "native-clr-host"
+    },
+    "debugSession": {
+      "mode": "userland",
+      "debugger": "dnSpy+x64dbg+Frida",
+      "spawnStrategy": "suspend-and-trace",
+      "privilegeLevel": "user"
+    },
+    "targetContext": {
+      "targetBinaryPath": "samples/clr-com-bridge.exe",
+      "targetProcessNames": [
+        "clr-com-bridge.exe"
+      ],
+      "targetModuleNames": [
+        "mscoree.dll",
+        "clr.dll",
+        "ole32.dll"
+      ],
+      "targetKeywords": [
+        "clr host",
+        "c++/cli",
+        "ijw thunk",
+        "com bridge"
+      ],
+      "targetFunctionNames": [
+        "CLRCreateInstance",
+        "CorBindToRuntimeEx",
+        "CoCreateInstance",
+        "CreateDelegate"
+      ]
+    },
+    "successCriteria": [
+      "确认 CLR host 初始化路径",
+      "确认至少一条 managed/native bridge edge",
+      "确认 COM 或 UI 触发链如何进入核心逻辑",
+      "完成一次最小本地复现或验证"
+    ],
+    "taskDrill": {
+      "entrypointHypotheses": [
+        "native host -> CLR init",
+        "IJW / P/Invoke bridge",
+        "COM object creation",
+        "UI event -> business path"
+      ],
+      "evidenceGoals": [
+        "CLR 初始化证据",
+        "bridge edge 与承载方式",
+        "COM/UI 到核心逻辑的链路"
+      ],
+      "caseFiles": [
+        "scripts/cases/win-multi-topic-workflow.mjs",
+        "scripts/cases/win-dotnet-workflow.mjs",
+        "scripts/cases/win-mixed-mode-interop-workflow.mjs",
+        "scripts/cases/win-ui-runtime-workflow.mjs"
+      ]
+    }
+  }
+}

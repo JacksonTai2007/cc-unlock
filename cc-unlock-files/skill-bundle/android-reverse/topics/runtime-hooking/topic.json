@@ -1,0 +1,94 @@
+{
+  "key": "runtime-hooking",
+  "label": "Frida runtime capture / Java + Native",
+  "maturity": "synthetic-e2e",
+  "routeTrack": "runtime-hooking",
+  "signals": [
+    "frida",
+    "java.use",
+    "interceptor",
+    "hexdump",
+    "hook"
+  ],
+  "protocol": "references/frida-java-playbook.md",
+  "taskModelFile": "artifacts/tasks/_TEMPLATE/extensions/runtime-hooking.json",
+  "taskInit": {
+    "aliases": [
+      "frida-hook"
+    ],
+    "baseProtectionTier": "A3"
+  },
+  "taskSemantics": {
+    "presentPath": "runtimeHooking.present",
+    "versionPath": "runtimeHooking.version",
+    "artifactsPath": "runtimeHooking.artifacts",
+    "minArtifacts": 2,
+    "arrayPaths": [
+      "runtimeHooking.keyFindings"
+    ]
+  },
+  "formalValidation": {
+    "presentPath": "runtimeHooking.present",
+    "requiredArtifacts": [
+      "run/frida-java-template.js",
+      "run/frida-native-template.js"
+    ],
+    "requirementsAll": [
+      {
+        "message": "runtimeHooking.present=true but status is still not-started",
+        "path": "runtimeHooking.status",
+        "disallow": [
+          "not-started"
+        ]
+      },
+      {
+        "message": "runtimeHooking.present=true but keyFindings is still empty",
+        "path": "runtimeHooking.keyFindings",
+        "minLength": 1
+      },
+      {
+        "message": "runtimeHooking.present=true but frida-java-template is still placeholder",
+        "touchedAny": [
+          "run/frida-java-template.js"
+        ]
+      },
+      {
+        "message": "runtimeHooking.present=true but frida-native-template is still placeholder",
+        "touchedAny": [
+          "run/frida-native-template.js"
+        ]
+      }
+    ]
+  },
+  "caseFiles": [
+    "scripts/cases/android-runtime-hook-workflow.mjs"
+  ],
+  "templateArtifacts": [
+    "artifacts/tasks/_TEMPLATE/run/frida-java-template.js",
+    "artifacts/tasks/_TEMPLATE/run/frida-native-template.js"
+  ],
+  "qaFiles": [
+    {
+      "path": "tools/task/validation.mjs",
+      "needles": [
+        "evaluateTopicFormalValidation",
+        "evaluateTopicPhaseGuards"
+      ]
+    }
+  ],
+  "outputNeedles": [
+    "Frida",
+    "run/frida-java-template.js",
+    "run/frida-native-template.js"
+  ],
+  "owner": "android-reverse-core",
+  "riskLevel": "high",
+  "requiredChecks": [
+    "check:topic-manifests",
+    "check:capability-coverage",
+    "check:operating-contracts",
+    "check:deliverables"
+  ],
+  "taskPackDir": "artifacts/tasks/_TEMPLATE/topic-packs/runtime-hooking"
+}
+
