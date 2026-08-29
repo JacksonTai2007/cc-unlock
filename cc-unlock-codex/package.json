@@ -1,8 +1,8 @@
 {
-  "name": "cc-unlock-claude",
-  "productName": "cc-unlock for Claude Code",
+  "name": "cc-unlock-codex",
+  "productName": "cc-unlock for Codex",
   "version": "1.0.0",
-  "description": "cc-unlock for Claude Code — security research workstation deployer (IBM Carbon)",
+  "description": "cc-unlock for Codex — security research workstation deployer (IBM Carbon)",
   "main": "main.js",
   "author": "JacksonTai",
   "license": "MIT",
@@ -16,30 +16,23 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "dev.ccunlock.claude",
-    "productName": "cc-unlock-claude",
+    "appId": "dev.ccunlock.codex",
+    "productName": "cc-unlock-codex",
     "files": [
       "main.js",
       "preload.js",
       "deploy-core.js",
-      "renderer/**/*"
+      "renderer/**/*",
+      "bundle/**/*"
     ],
     "extraResources": [
       {
-        "from": "../cc-unlock-files/memory-bundle",
-        "to": "memory-bundle"
+        "from": "../codex-files",
+        "to": "codex-files"
       },
       {
         "from": "../cc-unlock-files/skill-bundle",
         "to": "skill-bundle"
-      },
-      {
-        "from": "../cc-unlock-files/config-bundle",
-        "to": "config-bundle"
-      },
-      {
-        "from": "bundle",
-        "to": "claude-bundle"
       }
     ],
     "win": {

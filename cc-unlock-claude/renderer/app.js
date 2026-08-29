@@ -149,7 +149,7 @@ async function loadOverview() {
   setTile('#tSkills', String(e.skillDirs), 'ok', 'loop-sec + 3');
   setTile('#tAgents', String(e.agentFiles), 'ok', 'persona + memory');
   setTile('#tClaude', e.claudeMd ? 'OK' : '缺失', e.claudeMd ? 'ok' : 'err', 'lab-scope 人格');
-  $('#hdrMeta').textContent = (e.ccInstalled && e.ccVersion && e.ccVersion !== '?') ? `v8.0.7 · CC ${e.ccVersion}` : 'v8.0.7';
+  $('#hdrMeta').textContent = (e.ccInstalled && e.ccVersion && e.ccVersion !== '?') ? `v1.0-stable · CC ${e.ccVersion}` : 'v1.0-stable';
 }
 
 async function loadPaths() {
@@ -216,7 +216,7 @@ $('#btnBrowse').addEventListener('click', async () => {
 function logAfterClear(kind, msg) { logClear(); logLine(kind, msg); }
 
 // ---- External links (GitHub / donation) — open in system browser under Electron ----
-const DONATE_URL = ''; // 填入捐赠页 URL（爱发电/afdian、Ko-fi 等）；留空则弹提示
+const DONATE_URL = 'https://jacksontai2007.github.io/donate/';
 document.addEventListener('click', (ev) => {
   const a = ev.target.closest('a[data-external]');
   if (!a) return;
@@ -233,7 +233,7 @@ document.addEventListener('click', (ev) => {
 // ---- Boot ----
 (async function boot() {
   if (!HAS_BRIDGE) {
-    document.querySelector('.header__meta').textContent = 'v8.0.7 · preview';
+    document.querySelector('.header__meta').textContent = 'v1.0-stable · preview';
   }
   await Promise.all([loadOverview(), loadPaths(), loadWorkspaces()]);
 })();

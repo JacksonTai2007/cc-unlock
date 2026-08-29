@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
+<title>cc-unlock · Codex</title>
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="header__brand">cc&#8209;<b>unlock</b></span>
+    <span class="header__tag">for Codex</span>
+    <span class="header__spacer"></span>
+    <a class="header__link" data-external href="https://github.com/JacksonTai2007/cc-unlock" title="GitHub 仓库">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="18" height="18"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <a class="header__link header__link--heart" data-external href="#donate" title="捐赠支持">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="17" height="17"><path d="M8 14.25l-1.09-1C3.14 9.86 1 7.93 1 5.5 1 3.5 2.5 2 4.5 2c1.13 0 2.21.53 2.9 1.36h1.2C9.29 2.53 10.37 2 11.5 2 13.5 2 15 3.5 15 5.5c0 2.43-2.14 4.36-5.91 7.75L8 14.25z"/></svg>
+    </a>
+    <span class="header__meta" id="hdrMeta">v1.0-stable</span>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav__item is-active" data-page="overview">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg>
+      概览
+    </button>
+    <button class="nav__item" data-page="deploy">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l3 3H9v6H7V4H5zM3 12h10v2H3z"/></svg>
+      部署
+    </button>
+    <button class="nav__item" data-page="settings">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6 3 3 0 000-6zm6 3l-1.6 1 .3 1.9-1.6.9-1.4-1.2-1.7.6L7 14H6l-.7-1.9-1.7-.6-1.4 1.2-1.6-.9.3-1.9L-.4 8h.4l1.6-1L1.3 5.1l1.6-.9 1.4 1.2 1.7-.6L7 2h1l.7 1.9 1.7.6 1.4-1.2 1.6.9-.3 1.9z"/></svg>
+      设置
+    </button>
+    <button class="nav__item" data-page="about">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7V7h2zm0-6H7V4h2z"/></svg>
+      关于
+    </button>
+    <span class="nav__spacer"></span>
+    <div class="nav__foot">安全研究工作站<br/>Codex · 全局注入</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section class="page is-active" id="page-overview">
+      <h1 class="page__title">概览</h1>
+      <p class="page__sub">Codex 安全研究工作站部署状态（全局 ~/.codex）</p>
+
+      <div class="section-label">环境检测</div>
+      <div class="tiles">
+        <div class="tile"><span class="tile__label">Codex</span><span class="tile__value" id="tCodex">…</span><span class="tile__meta" id="tCodexMeta">~/.codex</span></div>
+        <div class="tile"><span class="tile__label">config.toml</span><span class="tile__value" id="tConfig">…</span><span class="tile__meta">model_instructions_file</span></div>
+        <div class="tile"><span class="tile__label">system-prompt.md</span><span class="tile__value" id="tSp">…</span><span class="tile__meta">base 替换 · 传子agent</span></div>
+        <div class="tile"><span class="tile__label">中转站</span><span class="tile__value" id="tRelay">…</span><span class="tile__meta">relay provider</span></div>
+      </div>
+
+      <div class="section-label">Bundle 状态</div>
+      <div class="tiles">
+        <div class="tile"><span class="tile__label">system-prompt + AGENTS</span><span class="tile__value" id="tCfgBundle">…</span><span class="tile__meta">人格 base + 冗余层</span></div>
+        <div class="tile"><span class="tile__label">Memories</span><span class="tile__value" id="tMem">…</span><span class="tile__meta">persona + many-shot</span></div>
+        <div class="tile"><span class="tile__label">Rollouts</span><span class="tile__value" id="tRollout">…</span><span class="tile__meta">交付历史</span></div>
+        <div class="tile"><span class="tile__label">Skills</span><span class="tile__value" id="tSkills">…</span><span class="tile__meta">loop-sec + 3</span></div>
+      </div>
+
+      <div class="section-label">上下文注入覆盖（对二进制验证）</div>
+      <div class="cov">
+        <div class="cov__row"><span class="cov__k">system-prompt.md</span><span class="cov__d">整段替换 base system prompt · base_instructions ∈ SessionMeta 自动传播到每个子 agent</span><span class="tag tag--green"><span class="tag__dot"></span>最强</span></div>
+        <div class="cov__row"><span class="cov__k">~/.codex/AGENTS.md</span><span class="cov__d">全局用户指令冗余层，叠加在 base 之上</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">memories/MEMORY.md</span><span class="cov__d">use_memories 时自动注入 persona + 交付 many-shot</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">skills/*/SKILL.md</span><span class="cov__d">name+description 常驻注入，正文按需</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+      </div>
+    </section>
+
+    <!-- DEPLOY -->
+    <section class="page" id="page-deploy">
+      <h1 class="page__title">部署</h1>
+      <p class="page__sub">部署到全局 Codex 配置 ~/.codex（system-prompt + AGENTS + config + memories + rollouts + skills）</p>
+
+      <div class="card">
+        <label class="toggle" style="margin-bottom:8px">
+          <input type="checkbox" id="tglRelay" />
+          <span class="toggle__track"></span>
+          <span class="toggle__label">使用中转站接入（relay provider）</span>
+        </label>
+        <div class="field__help" style="margin-bottom:12px">开启后写入 <span class="mono">[model_providers.cc_unlock_relay]</span> 到 config.toml。官方 API 用户不用开。</div>
+        <div class="field"><label class="field__label">API 地址</label><input class="field__input" id="relayUrl" placeholder="https://api.example.com/v1" disabled /></div>
+        <div class="field__row">
+          <div class="field"><label class="field__label">API Key</label><input class="field__input" id="relayKey" type="password" placeholder="sk-..." disabled /></div>
+          <div class="field"><label class="field__label">模型</label><input class="field__input" id="relayModel" placeholder="gpt-5.6-sol" disabled /></div>
+        </div>
+      </div>
+
+      <div class="section-label">Codex</div>
+      <div class="btn-row">
+        <button class="btn" id="btnDeploy"><span>部署 Codex</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l3 3H9v6H7V4H5zM3 12h10v2H3z"/></svg></button>
+        <button class="btn btn--danger" id="btnUninstall"><span>卸载 Codex</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M5 2h6v1h3v2H2V3h3zM3 6h10l-1 8H4z"/></svg></button>
+        <button class="btn btn--tertiary" id="btnVerify"><span>验证</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-1 10L4 8l1.4-1.4L7 8.2l3.6-3.6L12 6z"/></svg></button>
+      </div>
+
+      <div class="section-label">日志</div>
+      <div class="console" id="console"><span class="console__line log-info">就绪。点击"部署 Codex"。</span></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="page-settings">
+      <h1 class="page__title">设置</h1>
+      <p class="page__sub">路径信息</p>
+      <div class="section-label">界面语言</div>
+      <div class="card"><div class="radios">
+        <label class="radio"><input type="radio" name="lang" value="zh" checked /> 中文</label>
+        <label class="radio"><input type="radio" name="lang" value="en" /> English</label>
+      </div></div>
+      <div class="section-label">路径信息</div>
+      <div class="card">
+        <div class="field"><label class="field__label">Codex 配置目录</label><input class="field__input" id="pCodex" readonly /></div>
+        <div class="field"><label class="field__label">Bundle 路径</label><input class="field__input" id="pBundle" readonly /></div>
+        <div class="field" style="margin-bottom:0"><label class="field__label">Skills 路径</label><input class="field__input" id="pSkills" readonly /></div>
+      </div>
+      <div class="section-label">与 cc-switch 共存</div>
+      <div class="card"><div class="field__help" style="margin-top:0">config.toml 用 latin1 字节直通合并写入，保留 cc-switch 的 provider/base_url/密钥与任意 CJK 内容（不做编码转换）。卸载只移除 cc-unlock 写入的键。</div></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="page" id="page-about">
+      <h1 class="page__title">关于</h1>
+      <p class="page__sub">cc-unlock for Codex</p>
+      <div class="tiles tiles--3">
+        <div class="tile"><span class="tile__label">版本</span><span class="tile__value" style="font-size:16px">v1.0-stable</span><span class="tile__meta">Codex edition</span></div>
+        <div class="tile"><span class="tile__label">设计系统</span><span class="tile__value" style="font-size:16px">IBM Carbon</span><span class="tile__meta">g100 dark</span></div>
+        <div class="tile"><span class="tile__label">执行引擎</span><span class="tile__value" style="font-size:16px">Loop&nbsp;Sec</span><span class="tile__meta">JIT harness</span></div>
+      </div>
+      <div class="section-label">这个版本做了什么</div>
+      <div class="card">
+        <p style="margin:0 0 12px">把 Codex 配置为全谱系安全研究执行环境。核心注入点 <span class="mono">system-prompt.md</span> 整段替换内置 system prompt，且 base_instructions 随 SessionMeta 自动传播到每个子 agent——**Codex 侧子 agent 天然覆盖**。</p>
+        <ul style="margin:0; padding-left:18px; color:var(--text-secondary); line-height:1.9">
+          <li>system-prompt.md — 人格 base 替换 + 传子 agent</li>
+          <li>AGENTS.md — 全局用户指令冗余层</li>
+          <li>memories — persona + 跨领域交付 many-shot</li>
+          <li>rollout summaries — 交付历史</li>
+          <li>Loop Sec + 4 技能框架；relay 中转站接入</li>
+        </ul>
+      </div>
+      <div class="section-label">链接与支持</div>
+      <div class="link-cards">
+        <a class="link-card" data-external href="https://github.com/JacksonTai2007/cc-unlock">
+          <svg class="link-card__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <div><div class="link-card__title">GitHub 仓库</div><div class="link-card__sub mono">github.com/JacksonTai2007/cc-unlock</div></div>
+          <svg class="link-card__arrow" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5-1-1 4-4-4-4z"/></svg>
+        </a>
+        <a class="link-card" data-external href="#donate">
+          <svg class="link-card__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14.25l-1.09-1C3.14 9.86 1 7.93 1 5.5 1 3.5 2.5 2 4.5 2c1.13 0 2.21.53 2.9 1.36h1.2C9.29 2.53 10.37 2 11.5 2 13.5 2 15 3.5 15 5.5c0 2.43-2.14 4.36-5.91 7.75L8 14.25z"/></svg>
+          <div><div class="link-card__title">捐赠支持</div><div class="link-card__sub">如果这个工具对你有用，请作者喝杯咖啡</div></div>
+          <svg class="link-card__arrow" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5-1-1 4-4-4-4z"/></svg>
+        </a>
+      </div>
+    </section>
+
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
