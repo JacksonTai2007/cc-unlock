@@ -551,6 +551,11 @@ function Deploy-CodexConfig {
         $dst = Join-Path $CODEX_DIR 'system-prompt.md'
         if (Copy-Safe $spSrc $dst) { $sz = (Get-Item $dst).Length; LogOk "system-prompt.md ($sz bytes)" } else { LogFail "system-prompt.md" }
     }
+    $agentsSrc = Join-Path $CODEX_BUNDLE 'AGENTS.md'
+    if (Test-Path $agentsSrc) {
+        $adst = Join-Path $CODEX_DIR 'AGENTS.md'
+        if (Copy-Safe $agentsSrc $adst) { $sz = (Get-Item $adst).Length; LogOk "AGENTS.md ($sz bytes)" } else { LogFail "AGENTS.md" }
+    }
     $cfg = Join-Path $CODEX_DIR 'config.toml'
     if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
     if ($script:chkRelay -and $script:chkRelay.Checked -and $script:txtRelayUrl.Text) {

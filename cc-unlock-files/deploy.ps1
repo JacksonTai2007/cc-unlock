@@ -705,10 +705,16 @@ function Deploy-Codex-Config {
         Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
         Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
     }
-    $old = Join-Path $CODEX_DIR 'AGENTS.md'
-    if (Test-Path $old) {
-        Remove-Item $old -Force -ErrorAction SilentlyContinue
-        Write-Host '  [ok] Cleaned old AGENTS.md' -ForegroundColor DarkGray
+    # AGENTS.md — 全局用户指令冗余层(叠加在 system-prompt.md base 之上)
+    $agentsSrc = Join-Path $CODEX_BUNDLE 'AGENTS.md'
+    if (Test-Path $agentsSrc) {
+        $agentsDst = Join-Path $CODEX_DIR 'AGENTS.md'
+        if (Copy-Safe $agentsSrc $agentsDst) {
+            $sz = (Get-Item $agentsDst).Length
+            Write-Host "  [ok] AGENTS.md ($sz bytes)" -ForegroundColor Green
+        } else {
+            Write-Host '  [FAIL] AGENTS.md' -ForegroundColor Red
+        }
     }
     Deploy-Codex-Skills
     Deploy-Codex-Memory
