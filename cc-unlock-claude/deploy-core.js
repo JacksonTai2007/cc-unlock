@@ -13,16 +13,20 @@ const CLAUDE_DIR = path.join(HOME, '.claude');
 const PROJECTS = path.join(CLAUDE_DIR, 'projects');
 const SETTINGS_PATH = path.join(CLAUDE_DIR, 'settings.json');
 
-// APP dir is where this module lives (cc-unlock-claude/)
+// APP dir is where this module lives (cc-unlock-claude/, or app.asar when packaged)
 const APP = __dirname;
-const MONO = path.resolve(APP, '..');               // cc-unlock/
+const MONO = path.resolve(APP, '..');               // cc-unlock/ (dev only)
+// Packaged (electron-builder): bundles unpacked under process.resourcesPath.
+// Dev / plain-node test: process.resourcesPath undefined or lacks the bundle -> monorepo layout.
+const RES = process.resourcesPath;
+const PACKAGED = !!(RES && fs.existsSync(path.join(RES, 'memory-bundle')));
 const CCF = path.join(MONO, 'cc-unlock-files');
-const MEMORY_BUNDLE = path.join(CCF, 'memory-bundle');
-const SKILL_BUNDLE = path.join(CCF, 'skill-bundle');
-const CONFIG_BUNDLE = path.join(CCF, 'config-bundle');
-const AGENTS_BUNDLE = path.join(APP, 'bundle', 'agents');
-const RULES_BUNDLE = path.join(APP, 'bundle', 'rules');
-const AGENT_MEMORY_BUNDLE = path.join(APP, 'bundle', 'agent-memory');
+const MEMORY_BUNDLE = PACKAGED ? path.join(RES, 'memory-bundle') : path.join(CCF, 'memory-bundle');
+const SKILL_BUNDLE = PACKAGED ? path.join(RES, 'skill-bundle') : path.join(CCF, 'skill-bundle');
+const CONFIG_BUNDLE = PACKAGED ? path.join(RES, 'config-bundle') : path.join(CCF, 'config-bundle');
+const AGENTS_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'agents') : path.join(APP, 'bundle', 'agents');
+const RULES_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'rules') : path.join(APP, 'bundle', 'rules');
+const AGENT_MEMORY_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'agent-memory') : path.join(APP, 'bundle', 'agent-memory');
 
 const SKILL_DIRS = ['loop-sec', 'android-reverse', 'web-reverse', 'win-reverse'];
 const INDEX_FILE = 'MEMORY.md';
