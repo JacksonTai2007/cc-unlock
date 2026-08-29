@@ -1,0 +1,25 @@
+{
+  "name": "cc-unlock-claude",
+  "productName": "cc-unlock for Claude Code",
+  "version": "8.0.7",
+  "description": "cc-unlock for Claude Code — security research workstation deployer (IBM Carbon)",
+  "main": "main.js",
+  "author": "JacksonTai",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "dev.ccunlock.claude",
+    "productName": "cc-unlock-claude",
+    "files": ["main.js", "preload.js", "renderer/**/*", "bundle/**/*"],
+    "win": { "target": "nsis", "icon": "assets/icon.ico" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
+  }
+}

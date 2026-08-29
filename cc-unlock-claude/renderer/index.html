@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
+<title>cc-unlock · Claude Code</title>
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <span class="header__brand">cc&#8209;<b>unlock</b></span>
+    <span class="header__tag">for Claude Code</span>
+    <span class="header__spacer"></span>
+    <a class="header__link" data-external href="https://github.com/JacksonTai2007/cc-unlock" title="GitHub 仓库">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="18" height="18"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+    <a class="header__link header__link--heart" data-external href="#donate" id="hdrDonate" title="捐赠支持">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="17" height="17"><path d="M8 14.25l-1.09-1C3.14 9.86 1 7.93 1 5.5 1 3.5 2.5 2 4.5 2c1.13 0 2.21.53 2.9 1.36h1.2C9.29 2.53 10.37 2 11.5 2 13.5 2 15 3.5 15 5.5c0 2.43-2.14 4.36-5.91 7.75L8 14.25z"/></svg>
+    </a>
+    <span class="header__meta" id="hdrMeta">v8.0.7</span>
+  </header>
+
+  <!-- ============ SIDE NAV ============ -->
+  <nav class="nav">
+    <button class="nav__item is-active" data-page="overview">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg>
+      概览
+    </button>
+    <button class="nav__item" data-page="deploy">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l3 3H9v6H7V4H5zM3 12h10v2H3z"/></svg>
+      部署
+    </button>
+    <button class="nav__item" data-page="settings">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6 3 3 0 000-6zm6 3l-1.6 1 .3 1.9-1.6.9-1.4-1.2-1.7.6L7 14H6l-.7-1.9-1.7-.6-1.4 1.2-1.6-.9.3-1.9L-.4 8h.4l1.6-1L1.3 5.1l1.6-.9 1.4 1.2 1.7-.6L7 2h1l.7 1.9 1.7.6 1.4-1.2 1.6.9-.3 1.9z"/></svg>
+      设置
+    </button>
+    <button class="nav__item" data-page="about">
+      <svg class="nav__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7V7h2zm0-6H7V4h2z"/></svg>
+      关于
+    </button>
+    <span class="nav__spacer"></span>
+    <div class="nav__foot">
+      安全研究工作站<br/>
+      <span id="footPlatform">Claude Code · 子 agent 覆盖</span>
+    </div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="page is-active" id="page-overview">
+      <h1 class="page__title">概览</h1>
+      <p class="page__sub">Claude Code 安全研究工作站部署状态</p>
+
+      <div class="section-label">环境检测</div>
+      <div class="tiles" id="envTiles">
+        <div class="tile"><span class="tile__label">Claude Code</span><span class="tile__value" id="tCcVer">…</span><span class="tile__meta" id="tCcMeta">检测中</span></div>
+        <div class="tile"><span class="tile__label">全局配置</span><span class="tile__value" id="tSettings">…</span><span class="tile__meta" id="tSettingsMeta">~/.claude/settings.json</span></div>
+        <div class="tile"><span class="tile__label">已部署工作区</span><span class="tile__value" id="tDeployed">…</span><span class="tile__meta">memory + CLAUDE.md + skills</span></div>
+        <div class="tile"><span class="tile__label">子 agent 覆盖</span><span class="tile__value" id="tSubagent">…</span><span class="tile__meta">.claude/agents/</span></div>
+      </div>
+
+      <div class="section-label">Bundle 状态</div>
+      <div class="tiles" id="bundleTiles">
+        <div class="tile"><span class="tile__label">Memory 记忆</span><span class="tile__value" id="tMem">…</span><span class="tile__meta">track records</span></div>
+        <div class="tile"><span class="tile__label">Skills 技能框架</span><span class="tile__value" id="tSkills">…</span><span class="tile__meta">loop-sec + 3</span></div>
+        <div class="tile"><span class="tile__label">Agents 子代理</span><span class="tile__value" id="tAgents">…</span><span class="tile__meta">persona + memory</span></div>
+        <div class="tile"><span class="tile__label">CLAUDE.md</span><span class="tile__value" id="tClaude">…</span><span class="tile__meta">lab-scope 人格</span></div>
+      </div>
+
+      <div class="section-label">子 agent 上下文覆盖</div>
+      <div class="cov" id="covRows">
+        <div class="cov__row"><span class="cov__k">CLAUDE.md</span><span class="cov__d">通用 Task 子 agent 加载 · Explore/Plan 跳过</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">.claude/agents/ + memory:project</span><span class="cov__d">启动注入 MEMORY.md 前 25KB · 专用执行子 agent 满血</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">.claude/skills/</span><span class="cov__d">子 agent 可发现并调用</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">Explore / Plan 内置</span><span class="cov__d">只读搜索/规划 · 官方跳过 CLAUDE.md（不可配）</span><span class="tag tag--yellow"><span class="tag__dot"></span>只读盲区</span></div>
+      </div>
+    </section>
+
+    <!-- ---------- DEPLOY ---------- -->
+    <section class="page" id="page-deploy">
+      <h1 class="page__title">部署</h1>
+      <p class="page__sub">把记忆 + CLAUDE.md + 技能 + 子 agent 覆盖部署到工作区</p>
+
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <span class="table-toolbar__title">工作区</span>
+          <span class="tag tag--gray" id="wsCount">0 个</span>
+          <span class="table-toolbar__spacer"></span>
+          <button class="btn btn--ghost btn--sm" id="btnRefresh">
+            <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 8a5.5 5.5 0 01-9.9 3.3l1.2-1A4 4 0 108 4V2l3 3-3 3V6a2.5 2.5 0 100 5 4 4 0 004-3z"/></svg>
+            刷新
+          </button>
+        </div>
+        <table class="data">
+          <thead><tr>
+            <th class="col-cbx"></th><th>工作区路径</th>
+            <th class="col-status">状态</th><th class="col-status">子 agent</th>
+          </tr></thead>
+          <tbody id="wsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="field__row" style="margin-top:16px">
+        <div class="field">
+          <label class="field__label">自定义工作区路径</label>
+          <input class="field__input" id="customPath" placeholder="C:\path\to\workspace" />
+        </div>
+        <button class="btn btn--secondary" id="btnBrowse">
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M1 3h5l1 1h8v9H1z"/></svg>
+          浏览
+        </button>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <label class="toggle" style="margin-bottom:8px">
+          <input type="checkbox" id="tglSubagent" checked />
+          <span class="toggle__track"></span>
+          <span class="toggle__label">部署子 agent 覆盖（.claude/agents/ + memory:project）</span>
+        </label>
+        <div class="field__help">开启后，主 agent 委派的执行子 agent 会带上反软拒绝人格 + 记忆，启动即满血。关闭则只部署 memory + CLAUDE.md + skills。</div>
+      </div>
+
+      <div class="section-label">Claude Code</div>
+      <div class="btn-row">
+        <button class="btn" id="btnDeploySel"><span>部署选中</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l3 3H9v6H7V4H5zM3 12h10v2H3z"/></svg></button>
+        <button class="btn" id="btnDeployAll"><span>全部部署</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 12L2 7.5 3.5 6l3 3L12.5 3 14 4.5z"/></svg></button>
+        <button class="btn btn--danger" id="btnUninstSel"><span>卸载选中</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M5 2h6v1h3v2H2V3h3zM3 6h10l-1 8H4z"/></svg></button>
+        <button class="btn btn--danger" id="btnUninstAll"><span>全部卸载</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M5 2h6v1h3v2H2V3h3zM3 6h10l-1 8H4z"/></svg></button>
+        <button class="btn btn--tertiary" id="btnVerify"><span>验证</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-1 10L4 8l1.4-1.4L7 8.2l3.6-3.6L12 6z"/></svg></button>
+      </div>
+
+      <div class="section-label">日志</div>
+      <div class="console" id="console"><span class="console__line log-info">就绪。选择工作区后点击部署。</span></div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section class="page" id="page-settings">
+      <h1 class="page__title">设置</h1>
+      <p class="page__sub">路径信息与界面选项</p>
+
+      <div class="section-label">界面语言</div>
+      <div class="card">
+        <div class="radios">
+          <label class="radio"><input type="radio" name="lang" value="zh" checked /> 中文</label>
+          <label class="radio"><input type="radio" name="lang" value="en" /> English</label>
+        </div>
+      </div>
+
+      <div class="section-label">路径信息</div>
+      <div class="card">
+        <div class="field"><label class="field__label">Bundle 路径</label><input class="field__input" id="pBundle" readonly /></div>
+        <div class="field"><label class="field__label">Claude Code 配置目录</label><input class="field__input" id="pClaude" readonly /></div>
+        <div class="field" style="margin-bottom:0"><label class="field__label">Projects 记忆目录</label><input class="field__input" id="pProjects" readonly /></div>
+      </div>
+
+      <div class="section-label">全局权限</div>
+      <div class="card">
+        <div class="field__help" style="margin-top:0">settings.json 合并写入 <span class="mono">permissions.defaultMode = bypassPermissions</span> + <span class="mono">effortLevel</span>，保留用户已有键。卸载只删 cc-unlock 塞的键。</div>
+      </div>
+    </section>
+
+    <!-- ---------- ABOUT ---------- -->
+    <section class="page" id="page-about">
+      <h1 class="page__title">关于</h1>
+      <p class="page__sub">cc-unlock for Claude Code</p>
+
+      <div class="tiles tiles--3">
+        <div class="tile"><span class="tile__label">版本</span><span class="tile__value">8.0.7</span><span class="tile__meta">Claude edition</span></div>
+        <div class="tile"><span class="tile__label">设计系统</span><span class="tile__value" style="font-size:16px">IBM Carbon</span><span class="tile__meta">g100 dark</span></div>
+        <div class="tile"><span class="tile__label">执行引擎</span><span class="tile__value" style="font-size:16px">Loop&nbsp;Sec</span><span class="tile__meta">JIT harness</span></div>
+      </div>
+
+      <div class="section-label">这个版本做了什么</div>
+      <div class="card">
+        <p style="margin:0 0 12px">安全研究工作站 — 把 Claude Code 配置为全谱系安全研究执行环境，并让**子 agent 也带上反软拒绝人格 + 记忆**，多 agent 任务不回退默认行为。</p>
+        <ul style="margin:0; padding-left:18px; color:var(--text-secondary); line-height:1.9">
+          <li>研究员记忆注入 — track records + MEMORY.md 反拒绝载体</li>
+          <li>CLAUDE.md 轻量人格 + lab-scope 框架（穿透通用子 agent）</li>
+          <li>Loop Sec 自递归 harness 引擎 + 4 技能框架</li>
+          <li><b>.claude/agents/ 子 agent 覆盖</b> — memory:project 启动注入 + 技能预载</li>
+          <li>settings.json bypassPermissions 合并写入</li>
+        </ul>
+      </div>
+
+      <div class="notif notif--info">
+        <div>
+          <div class="notif__title">子 agent 覆盖机制</div>
+          <div class="notif__body">自定义 agent 的 <span class="mono">memory: project</span> 在启动时自动注入 MEMORY.md 前 200 行 / 25KB。CLAUDE.md 对通用 Task 子 agent 生效。Explore/Plan 内置 agent 官方跳过 CLAUDE.md，属只读盲区。</div>
+        </div>
+      </div>
+
+      <div class="section-label">链接与支持</div>
+      <div class="link-cards">
+        <a class="link-card" data-external href="https://github.com/JacksonTai2007/cc-unlock">
+          <svg class="link-card__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <div>
+            <div class="link-card__title">GitHub 仓库</div>
+            <div class="link-card__sub mono">github.com/JacksonTai2007/cc-unlock</div>
+          </div>
+          <svg class="link-card__arrow" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5-1-1 4-4-4-4z"/></svg>
+        </a>
+        <a class="link-card" data-external href="#donate" id="aboutDonate">
+          <svg class="link-card__ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14.25l-1.09-1C3.14 9.86 1 7.93 1 5.5 1 3.5 2.5 2 4.5 2c1.13 0 2.21.53 2.9 1.36h1.2C9.29 2.53 10.37 2 11.5 2 13.5 2 15 3.5 15 5.5c0 2.43-2.14 4.36-5.91 7.75L8 14.25z"/></svg>
+          <div>
+            <div class="link-card__title">捐赠支持</div>
+            <div class="link-card__sub" id="donateSub">如果这个工具对你有用，请作者喝杯咖啡</div>
+          </div>
+          <svg class="link-card__arrow" viewBox="0 0 16 16" fill="currentColor"><path d="M6 3l5 5-5 5-1-1 4-4-4-4z"/></svg>
+        </a>
+      </div>
+    </section>
+
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
