@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "node pack.js"
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0",
