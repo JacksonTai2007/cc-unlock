@@ -56,14 +56,14 @@
       <div class="section-label">环境检测</div>
       <div class="tiles">
         <div class="tile"><span class="tile__label">Codex</span><span class="tile__value" id="tCodex">…</span><span class="tile__meta" id="tCodexMeta">~/.codex</span></div>
-        <div class="tile"><span class="tile__label">config.toml</span><span class="tile__value" id="tConfig">…</span><span class="tile__meta">model_instructions_file</span></div>
-        <div class="tile"><span class="tile__label">system-prompt.md</span><span class="tile__value" id="tSp">…</span><span class="tile__meta">base 替换 · 传子agent</span></div>
+        <div class="tile"><span class="tile__label">AGENTS.md</span><span class="tile__value" id="tSp">…</span><span class="tile__meta">人格载体 · 叠加</span></div>
+        <div class="tile"><span class="tile__label">base prompt</span><span class="tile__value" id="tConfig">…</span><span class="tile__meta">内置 base 完整</span></div>
         <div class="tile"><span class="tile__label">中转站</span><span class="tile__value" id="tRelay">…</span><span class="tile__meta">relay provider</span></div>
       </div>
 
       <div class="section-label">Bundle 状态</div>
       <div class="tiles">
-        <div class="tile"><span class="tile__label">system-prompt + AGENTS</span><span class="tile__value" id="tCfgBundle">…</span><span class="tile__meta">人格 base + 冗余层</span></div>
+        <div class="tile"><span class="tile__label">AGENTS.md</span><span class="tile__value" id="tCfgBundle">…</span><span class="tile__meta">完整人格</span></div>
         <div class="tile"><span class="tile__label">Memories</span><span class="tile__value" id="tMem">…</span><span class="tile__meta">persona + many-shot</span></div>
         <div class="tile"><span class="tile__label">Rollouts</span><span class="tile__value" id="tRollout">…</span><span class="tile__meta">交付历史</span></div>
         <div class="tile"><span class="tile__label">Skills</span><span class="tile__value" id="tSkills">…</span><span class="tile__meta">loop-sec + 3</span></div>
@@ -71,10 +71,10 @@
 
       <div class="section-label">上下文注入覆盖（对二进制验证）</div>
       <div class="cov">
-        <div class="cov__row"><span class="cov__k">system-prompt.md</span><span class="cov__d">整段替换 base system prompt · base_instructions ∈ SessionMeta 自动传播到每个子 agent</span><span class="tag tag--green"><span class="tag__dot"></span>最强</span></div>
-        <div class="cov__row"><span class="cov__k">~/.codex/AGENTS.md</span><span class="cov__d">全局用户指令冗余层，叠加在 base 之上</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">~/.codex/AGENTS.md</span><span class="cov__d">全局用户指令，叠加在 Codex 内置 base 之上（不替换）——保留内置 base，桌面版 startup 不受影响</span><span class="tag tag--green"><span class="tag__dot"></span>主载体</span></div>
         <div class="cov__row"><span class="cov__k">memories/MEMORY.md</span><span class="cov__d">use_memories 时自动注入 persona + 交付 many-shot</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
         <div class="cov__row"><span class="cov__k">skills/*/SKILL.md</span><span class="cov__d">name+description 常驻注入，正文按需</span><span class="tag tag--green"><span class="tag__dot"></span>覆盖</span></div>
+        <div class="cov__row"><span class="cov__k">config.toml base</span><span class="cov__d">不写 model_instructions_file，Codex 内置 base prompt 完整——不卡 startup</span><span class="tag tag--green"><span class="tag__dot"></span>完整</span></div>
       </div>
     </section>
 
@@ -141,12 +141,12 @@
       </div>
       <div class="section-label">这个版本做了什么</div>
       <div class="card">
-        <p style="margin:0 0 12px">把 Codex 配置为全谱系安全研究执行环境。核心注入点 <span class="mono">system-prompt.md</span> 整段替换内置 system prompt，且 base_instructions 随 SessionMeta 自动传播到每个子 agent——**Codex 侧子 agent 天然覆盖**。</p>
+        <p style="margin:0 0 12px">把 Codex 配置为全谱系安全研究执行环境。人格走 <span class="mono">~/.codex/AGENTS.md</span> 叠加在 Codex 内置 base 之上——<b>不用 model_instructions_file 替换 base</b>，保留内置操作守则，桌面版 startup（"正在完成 Windows 设置"）不被卡死。</p>
         <ul style="margin:0; padding-left:18px; color:var(--text-secondary); line-height:1.9">
-          <li>system-prompt.md — 人格 base 替换 + 传子 agent</li>
-          <li>AGENTS.md — 全局用户指令冗余层</li>
+          <li>AGENTS.md — 完整人格，叠加不替换（Codex 标准机制）</li>
           <li>memories — persona + 跨领域交付 many-shot</li>
           <li>rollout summaries — 交付历史</li>
+          <li>config.toml — 不写 model_instructions_file，base 完整</li>
           <li>Loop Sec + 4 技能框架；relay 中转站接入</li>
         </ul>
       </div>

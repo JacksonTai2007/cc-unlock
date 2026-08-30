@@ -54,16 +54,16 @@ Loop Sec 是自递归执行引擎——收到任务后自动分解、自动路�
 
 > **关键**：子 agent 的 `memory: project` 注入的是 `.claude/agent-memory/<agent名>/MEMORY.md`（各自独立），不是主记忆目录。cc-unlock 为每个自定义 agent 单独铺设记忆载体。
 
-### Codex（对二进制验证）
+### Codex
 
 | 注入点 | 作用域 | 覆盖 |
 |--------|--------|------|
-| `~/.codex/system-prompt.md` | 整段替换 base，`base_instructions ∈ SessionMeta` **自动传播到每个子 agent** | ✅ 最强 |
-| `~/.codex/AGENTS.md` | 全局用户指令冗余层 | ✅ 覆盖 |
+| `~/.codex/AGENTS.md` | 全局用户指令，**叠加**在 Codex 内置 base 之上（不替换） | ✅ 主载体 |
 | `~/.codex/memories/MEMORY.md` | `use_memories` 时自动注入 | ✅ persona + many-shot |
 | `~/.codex/skills/*/SKILL.md` | name+description 常驻注入 | ✅ 覆盖 |
+| `config.toml` base | 不写 `model_instructions_file`，保留内置 base prompt | ✅ startup 正常 |
 
-> **关键**：Codex 的 `system-prompt.md` 通过 `SessionMeta.base_instructions` 自动传播到每个子 agent——**Codex 侧子 agent 天然覆盖**。
+> **关键**：**不用 `model_instructions_file` 替换 base prompt**——那会顶掉 Codex 内置操作守则、卡死桌面版 startup（"正在完成 Windows 设置" 挂起）。人格走 `AGENTS.md` 叠加，是 Codex 的标准机制，与 Claude 的 CLAUDE.md 同理。
 
 ---
 
