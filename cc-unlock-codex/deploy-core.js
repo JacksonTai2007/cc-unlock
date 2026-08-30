@@ -119,20 +119,26 @@ function deployCodex(opts, log) {
   ensureDir(CODEX_DIR);
   log('head', 'Codex 配置');
 
-  // 1. system-prompt.md (base 替换,传子 agent)
-  const sp = path.join(CONFIG_BUNDLE, 'system-prompt.md');
-  if (exists(sp) && copyFile(sp, path.join(CODEX_DIR, 'system-prompt.md')))
-    log('ok', `system-prompt.md (${fs.statSync(path.join(CODEX_DIR, 'system-prompt.md')).size} bytes)`);
-
-  // 2. AGENTS.md (全局用户指令冗余层)
+  // 1. AGENTS.md — 主人格载体，叠加在 Codex 内置 base instructions 之上（不替换）。
+  //    不用 model_instructions_file 替换 base：那会顶掉 Codex 内置操作守则、卡死桌面版 startup
+  //    （"正在完成 Windows 设置" 挂起）。AGENTS.md 是 Codex 的标准人格机制，startup 不受影响。
   const ag = path.join(CONFIG_BUNDLE, 'AGENTS.md');
   if (exists(ag) && copyFile(ag, path.join(CODEX_DIR, 'AGENTS.md')))
-    log('ok', `AGENTS.md (${fs.statSync(path.join(CODEX_DIR, 'AGENTS.md')).size} bytes)`);
+    log('ok', `AGENTS.md (${fs.statSync(path.join(CODEX_DIR, 'AGENTS.md')).size} bytes) — 人格`);
 
-  // 3. config.toml — model_instructions_file 合并写入 (latin1 安全)
-  if (setInstructionsFile(CONFIG_PATH, log)) log('ok', 'config.toml — model_instructions_file (merged)');
+  // 2. config.toml — 移除 model_instructions_file（旧版遗留会替换 base prompt，修复卡死）。保留其它键。
+  if (exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH))) {
+    removeInstructionsFile(CONFIG_PATH);
+    log('ok', 'config.toml — 已移除 model_instructions_file（不替换 base prompt，修复启动）');
+  }
 
-  // 4. relay provider (optional)
+  // 2b. 清理 legacy system-prompt.md（人格已改由 AGENTS.md 承载，此文件不再被引用）
+  if (exists(path.join(CODEX_DIR, 'system-prompt.md'))) {
+    rmrf(path.join(CODEX_DIR, 'system-prompt.md'));
+    log('info', 'cleaned legacy system-prompt.md');
+  }
+
+  // 3. relay provider (optional)
   if (opts.relayUrl) {
     deployRelayProvider(CONFIG_PATH, opts.relayUrl, opts.relayKey, opts.relayModel);
     log('ok', `relay provider: ${opts.relayUrl}`);
@@ -177,11 +183,10 @@ function uninstallCodex(log) {
 
 function verifyCodex(log) {
   log('head', 'Codex 验证');
-  const sp = path.join(CODEX_DIR, 'system-prompt.md');
-  log(exists(sp) ? 'ok' : 'fail', `system-prompt.md ${exists(sp) ? `(${fs.statSync(sp).size} b)` : 'MISSING'}`);
-  log(exists(path.join(CODEX_DIR, 'AGENTS.md')) ? 'ok' : 'warn', 'AGENTS.md');
-  const cfgOk = exists(CONFIG_PATH) && /model_instructions_file\s*=\s*"system-prompt\.md"/.test(readLatin1(CONFIG_PATH));
-  log(cfgOk ? 'ok' : 'fail', 'config.toml — model_instructions_file');
+  const ag = path.join(CODEX_DIR, 'AGENTS.md');
+  log(exists(ag) ? 'ok' : 'fail', `AGENTS.md ${exists(ag) ? `(${fs.statSync(ag).size} b) — 人格` : 'MISSING'}`);
+  const noInstr = !(exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH)));
+  log(noInstr ? 'ok' : 'warn', `config.toml — base prompt 完整${noInstr ? '（未被替换）' : '（仍有 model_instructions_file，应移除）'}`);
   const mOk = MEMORY_FILES.filter((f) => exists(path.join(MEMORIES_DIR, f))).length;
   log(mOk === MEMORY_FILES.length ? 'ok' : 'warn', `memories ${mOk}/${MEMORY_FILES.length}`);
   const sOk = SKILL_DIRS.filter((d) => exists(path.join(SKILLS_DIR, d))).length;
@@ -208,21 +213,21 @@ function detectVersion() {
 
 async function detect() {
   const relay = exists(CONFIG_PATH) && readLatin1(CONFIG_PATH).includes(RELAY_HEADER);
-  const cfgInstr = exists(CONFIG_PATH) && /model_instructions_file\s*=\s*"system-prompt\.md"/.test(readLatin1(CONFIG_PATH));
+  const baseIntact = !(exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH)));
+  const liveAgents = exists(path.join(CODEX_DIR, 'AGENTS.md'));
   return {
     codexInstalled: exists(CODEX_DIR),
     codexVersion: (await detectVersion()) || '?',
     configPresent: exists(CONFIG_PATH),
-    deployed: exists(path.join(CODEX_DIR, 'system-prompt.md')) && cfgInstr,
+    baseIntact,                    // true = config.toml 未用 model_instructions_file 替换 base prompt
+    deployed: liveAgents,          // AGENTS.md 就位即视为已部署人格
     relayConfigured: relay,
-    spBundle: exists(path.join(CONFIG_BUNDLE, 'system-prompt.md')),
     agentsBundle: exists(path.join(CONFIG_BUNDLE, 'AGENTS.md')),
     memFiles: MEMORY_FILES.filter((f) => exists(path.join(MEMORY_BUNDLE, f))).length,
     rolloutFiles: countFiles(ROLLOUT_BUNDLE),
     skillDirs: SKILL_DIRS.filter((d) => exists(path.join(SKILL_BUNDLE, d))).length,
     // live status
-    liveSp: exists(path.join(CODEX_DIR, 'system-prompt.md')),
-    liveAgents: exists(path.join(CODEX_DIR, 'AGENTS.md')),
+    liveAgents,
     liveMem: MEMORY_FILES.filter((f) => exists(path.join(MEMORIES_DIR, f))).length,
     liveSkills: SKILL_DIRS.filter((d) => exists(path.join(SKILLS_DIR, d))).length,
     liveRollouts: countFiles(ROLLOUT_DIR),

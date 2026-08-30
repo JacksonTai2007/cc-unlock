@@ -546,18 +546,21 @@ function Deploy-CodexConfig {
     if (!(Test-Path $CODEX_BUNDLE)) { LogInfo "Codex bundle not found"; return }
     LogHeader "Codex"
     if (!(Test-Path $CODEX_DIR)) { New-Item -ItemType Directory -Path $CODEX_DIR -Force | Out-Null }
-    $spSrc = Join-Path $CODEX_BUNDLE 'system-prompt.md'
-    if (Test-Path $spSrc) {
-        $dst = Join-Path $CODEX_DIR 'system-prompt.md'
-        if (Copy-Safe $spSrc $dst) { $sz = (Get-Item $dst).Length; LogOk "system-prompt.md ($sz bytes)" } else { LogFail "system-prompt.md" }
-    }
+    # AGENTS.md — 主人格载体,叠加在 Codex 内置 base 之上(不替换,不卡 startup)
     $agentsSrc = Join-Path $CODEX_BUNDLE 'AGENTS.md'
     if (Test-Path $agentsSrc) {
         $adst = Join-Path $CODEX_DIR 'AGENTS.md'
-        if (Copy-Safe $agentsSrc $adst) { $sz = (Get-Item $adst).Length; LogOk "AGENTS.md ($sz bytes)" } else { LogFail "AGENTS.md" }
+        if (Copy-Safe $agentsSrc $adst) { $sz = (Get-Item $adst).Length; LogOk "AGENTS.md ($sz bytes) - persona" } else { LogFail "AGENTS.md" }
     }
+    # config.toml — 移除 model_instructions_file(会替换 base prompt 卡死桌面版),保留其它键
     $cfg = Join-Path $CODEX_DIR 'config.toml'
-    if (Set-InstructionsFile $cfg) { LogOk "config.toml (merged)" } else { LogFail "config.toml" }
+    switch (Remove-InstructionsFile $cfg) {
+        'removed' { LogOk "config.toml - removed model_instructions_file" }
+        'kept'    { LogOk "config.toml - base prompt intact" }
+        default   { LogInfo "config.toml - base prompt intact" }
+    }
+    $legacySp = Join-Path $CODEX_DIR 'system-prompt.md'
+    if (Test-Path $legacySp) { Remove-Item $legacySp -Force -ErrorAction SilentlyContinue; LogInfo "cleaned legacy system-prompt.md" }
     if ($script:chkRelay -and $script:chkRelay.Checked -and $script:txtRelayUrl.Text) {
         Deploy-RelayProvider $cfg $script:txtRelayUrl.Text $script:txtRelayKey.Text $script:txtRelayModel.Text
         LogOk "Relay provider configured: $($script:txtRelayUrl.Text)"
@@ -1286,16 +1289,17 @@ $btnVerify.Add_Click({
     if (Test-Path $sp) { LogOk "settings.json" } else { LogInfo "settings.json not found" }
     if (Test-Path $CODEX_DIR) {
         LogHeader "Codex"
-        foreach ($c in @(
-            @{ File = 'system-prompt.md'; Pattern = 'loop-sec|cc-unlock|security research' },
-            @{ File = 'config.toml';      Pattern = 'system-prompt.md' }
-        )) {
-            $p = Join-Path $CODEX_DIR $c.File
-            if (Test-Path $p) {
-                $sz = (Get-Item $p).Length
-                $ct = Get-Content $p -Raw -ErrorAction SilentlyContinue
-                if ($ct -match $c.Pattern) { LogOk "$($c.File) ($sz bytes)" } else { LogWarn "$($c.File) - content mismatch" }
-            } else { LogFail "$($c.File) MISSING" }
+        $agp = Join-Path $CODEX_DIR 'AGENTS.md'
+        if (Test-Path $agp) {
+            $sz = (Get-Item $agp).Length
+            $ct = Get-Content $agp -Raw -ErrorAction SilentlyContinue
+            if ($ct -match 'loop-sec|cc-unlock|安全研究') { LogOk "AGENTS.md ($sz bytes) - persona" } else { LogWarn "AGENTS.md - content mismatch" }
+        } else { LogFail "AGENTS.md MISSING" }
+        # config.toml 应 NOT 含 model_instructions_file(否则替换 base prompt 卡死 startup)
+        $cfgp = Join-Path $CODEX_DIR 'config.toml'
+        if (Test-Path $cfgp) {
+            $ct = Get-Content $cfgp -Raw -ErrorAction SilentlyContinue
+            if ($ct -match 'model_instructions_file') { LogWarn "config.toml - 含 model_instructions_file(应移除,会卡 startup)" } else { LogOk "config.toml - base prompt intact" }
         }
     }
 })

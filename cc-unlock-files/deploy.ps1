@@ -685,36 +685,34 @@ function Deploy-Codex-Config {
     if (!(Test-Path $CODEX_DIR)) {
         New-Item -ItemType Directory -Path $CODEX_DIR -Force | Out-Null
     }
-    $srcFile = Join-Path $CODEX_BUNDLE 'system-prompt.md'
-    if (Test-Path $srcFile) {
-        $dst = Join-Path $CODEX_DIR 'system-prompt.md'
-        if (Copy-Safe $srcFile $dst) {
-            $sz = (Get-Item $dst).Length
-            Write-Host "  [ok] system-prompt.md ($sz bytes)" -ForegroundColor Green
-        } else {
-            Write-Host '  [FAIL] system-prompt.md' -ForegroundColor Red
-        }
-    }
-    $configPath = Join-Path $CODEX_DIR 'config.toml'
-    if (Set-InstructionsFile $configPath) {
-        Write-Host '  [ok] config.toml (merged)' -ForegroundColor Green
-    } else {
-        Write-Host '  [FAIL] config.toml' -ForegroundColor Red
-    }
-    if ($RelayUrl) {
-        Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
-        Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
-    }
-    # AGENTS.md — 全局用户指令冗余层(叠加在 system-prompt.md base 之上)
+    # AGENTS.md — 主人格载体,叠加在 Codex 内置 base instructions 之上(不替换)。
+    # 不用 model_instructions_file 替换 base:那会顶掉内置操作守则、卡死桌面版 startup。
     $agentsSrc = Join-Path $CODEX_BUNDLE 'AGENTS.md'
     if (Test-Path $agentsSrc) {
         $agentsDst = Join-Path $CODEX_DIR 'AGENTS.md'
         if (Copy-Safe $agentsSrc $agentsDst) {
             $sz = (Get-Item $agentsDst).Length
-            Write-Host "  [ok] AGENTS.md ($sz bytes)" -ForegroundColor Green
+            Write-Host "  [ok] AGENTS.md ($sz bytes) - persona" -ForegroundColor Green
         } else {
             Write-Host '  [FAIL] AGENTS.md' -ForegroundColor Red
         }
+    }
+    # config.toml — 移除 model_instructions_file(旧版遗留会替换 base prompt,修复启动),保留其它键
+    $configPath = Join-Path $CODEX_DIR 'config.toml'
+    switch (Remove-InstructionsFile $configPath) {
+        'removed' { Write-Host '  [ok] config.toml - removed model_instructions_file' -ForegroundColor Green }
+        'kept'    { Write-Host '  [ok] config.toml - base prompt intact (removed model_instructions_file, kept rest)' -ForegroundColor Green }
+        default   { Write-Host '  [ok] config.toml - base prompt intact' -ForegroundColor DarkGray }
+    }
+    # legacy system-prompt.md 现由 AGENTS.md 承载,不再引用 —— 清理
+    $legacySp = Join-Path $CODEX_DIR 'system-prompt.md'
+    if (Test-Path $legacySp) {
+        Remove-Item $legacySp -Force -ErrorAction SilentlyContinue
+        Write-Host '  [ok] cleaned legacy system-prompt.md' -ForegroundColor DarkGray
+    }
+    if ($RelayUrl) {
+        Deploy-RelayProvider $configPath $RelayUrl $RelayKey $RelayModel
+        Write-Host "  [ok] Relay provider: $RelayUrl" -ForegroundColor Green
     }
     Deploy-Codex-Skills
     Deploy-Codex-Memory

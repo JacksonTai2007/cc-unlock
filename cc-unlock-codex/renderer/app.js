@@ -8,8 +8,8 @@ const DONATE_URL = 'https://jacksontai2007.github.io/donate/';
 const MOCK = {
   env: {
     codexInstalled: true, codexVersion: '0.141.0', configPresent: true, deployed: true, relayConfigured: false,
-    spBundle: true, agentsBundle: true, memFiles: 3, rolloutFiles: 104, skillDirs: 4,
-    liveSp: true, liveAgents: true, liveMem: 3, liveSkills: 4, liveRollouts: 104,
+    baseIntact: true, agentsBundle: true, memFiles: 3, rolloutFiles: 104, skillDirs: 4,
+    liveAgents: true, liveMem: 3, liveSkills: 4, liveRollouts: 104,
   },
   paths: { codexDir: 'C:\\Users\\you\\.codex', bundle: 'C:\\Users\\you\\cc-unlock\\codex-files', skills: 'C:\\Users\\you\\cc-unlock\\cc-unlock-files\\skill-bundle' },
 };
@@ -27,9 +27,8 @@ function mockRun(kind, opts, onLog) {
     const steps = [];
     if (kind === 'deploy') {
       steps.push(['head', 'Codex 配置']);
-      steps.push(['ok', 'system-prompt.md (11078 bytes)']);
-      steps.push(['ok', 'AGENTS.md (2181 bytes)']);
-      steps.push(['ok', 'config.toml — model_instructions_file (merged)']);
+      steps.push(['ok', 'AGENTS.md (6842 bytes) — 人格']);
+      steps.push(['ok', 'config.toml — 已移除 model_instructions_file（base 完整，不卡 startup）']);
       if (opts.relayUrl) steps.push(['ok', `relay provider: ${opts.relayUrl}`]);
       steps.push(['ok', 'memories/ (3) — persona + delivery many-shot']);
       steps.push(['ok', 'rollout_summaries/ (104 files)']);
@@ -37,12 +36,12 @@ function mockRun(kind, opts, onLog) {
       steps.push(['done', '完成。请重启 Codex。']);
     } else if (kind === 'uninstall') {
       steps.push(['head', 'Codex 卸载']);
-      steps.push(['ok', 'removed system-prompt.md + AGENTS.md']);
+      steps.push(['ok', 'removed AGENTS.md + system-prompt.md']);
       steps.push(['ok', 'removed config.toml key + memories + rollouts + skills']);
       steps.push(['done', '完成。请重启 Codex。']);
     } else {
       steps.push(['head', 'Codex 验证']);
-      steps.push(['ok', 'system-prompt.md · AGENTS.md · config.toml · memories 3/3 · skills 4/4 · rollouts 104']);
+      steps.push(['ok', 'AGENTS.md · base 完整 · memories 3/3 · skills 4/4 · rollouts 104']);
       steps.push(['done', '验证完成。']);
     }
     let i = 0;
@@ -84,10 +83,10 @@ async function loadOverview() {
   const e = await api.detect();
   const ver = !e.codexInstalled ? '未检测' : (e.codexVersion && e.codexVersion !== '?' ? ('v' + e.codexVersion) : '已安装');
   setTile('#tCodex', ver, e.codexInstalled ? 'ok' : 'err', e.codexInstalled ? '~/.codex' : '未安装');
-  setTile('#tConfig', e.deployed ? '已注入' : (e.configPresent ? '未注入' : '缺失'), e.deployed ? 'ok' : 'warn');
-  setTile('#tSp', e.liveSp ? '就位' : '缺失', e.liveSp ? 'ok' : 'warn');
+  setTile('#tSp', e.liveAgents ? '就位' : '缺失', e.liveAgents ? 'ok' : 'warn', '人格载体 · 叠加');
+  setTile('#tConfig', e.baseIntact ? '完整' : '被替换', e.baseIntact ? 'ok' : 'err', e.baseIntact ? '内置 base 完整' : 'model_instructions_file 应移除');
   setTile('#tRelay', e.relayConfigured ? '已配置' : '未用', e.relayConfigured ? 'ok' : '', 'relay provider');
-  setTile('#tCfgBundle', (e.spBundle ? 1 : 0) + (e.agentsBundle ? 1 : 0) + '/2', (e.spBundle && e.agentsBundle) ? 'ok' : 'warn');
+  setTile('#tCfgBundle', e.agentsBundle ? 'OK' : '缺失', e.agentsBundle ? 'ok' : 'warn');
   setTile('#tMem', String(e.memFiles), e.memFiles ? 'ok' : 'warn', 'persona + many-shot');
   setTile('#tRollout', String(e.rolloutFiles), e.rolloutFiles ? 'ok' : 'warn', '交付历史');
   setTile('#tSkills', String(e.skillDirs), e.skillDirs ? 'ok' : 'warn', 'loop-sec + 3');
