@@ -33,6 +33,11 @@ function wireIpc() {
     return { ok: true };
   });
 
+  ipcMain.handle('restore', (ev) => {
+    const log = (kind, text) => ev.sender.send('restore-log', { kind, text });
+    return core.restoreOriginal(log);
+  });
+
   ipcMain.handle('openExternal', (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
 }
 

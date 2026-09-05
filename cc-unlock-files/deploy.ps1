@@ -1,4 +1,4 @@
-﻿# cc-unlock v8.0.7 — 安全研究工作站
+﻿# cc-unlock v2.0-stable — 安全研究工作站
 # 安全研究配置 + Loop Engineering 自递归改进引擎 + 多技能框架 → Claude Code + Codex
 # Deploys cc-unlock research config + skills (android-reverse/web-reverse/win-reverse) + Loop Engineering
 # Compatible: Windows 7/8/10/11, PowerShell 2.0-7.x, Core/Desktop
@@ -67,13 +67,13 @@ $CODEX_BUNDLE  = Join-Path $SCRIPT_DIR '..\codex-files\codex-config-bundle'
 $CODEX_MEMORY_BUNDLE = Join-Path $SCRIPT_DIR '..\codex-files\codex-memory-bundle'
 $CODEX_ROLLOUT_BUNDLE = Join-Path $SCRIPT_DIR '..\codex-files\codex-rollout-bundle\rollout_summaries'
 $INDEX_FILE    = 'MEMORY.md'
-$SKILL_DIRS    = @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')
+$SKILL_DIRS    = @('sec-forge', 'jit-harness')
 
 # --- Banner ---
 function Show-Banner {
     Write-Host ''
     Write-Host '============================================' -ForegroundColor Cyan
-    Write-Host '  cc-unlock v8.0.7 — Loop Engineering' -ForegroundColor Green
+    Write-Host '  cc-unlock v2.0-stable — Loop Engineering' -ForegroundColor Green
     Write-Host '  安全研究工作站' -ForegroundColor DarkGray
     Write-Host '  CVE exploit | keygen | VMP | OLLVM' -ForegroundColor DarkGray
     Write-Host '============================================' -ForegroundColor Cyan
@@ -209,7 +209,7 @@ function Deploy-Skill {
 
     $ok = 0; $fail = 0
 
-    # Deploy all skill frameworks (loop-sec, android-reverse, web-reverse, win-reverse)
+    # Deploy skills (sec-forge [android/web/win-reverse inlined] + jit-harness)
     foreach ($dir in $SKILL_DIRS) {
         $frameworkSrc = Join-Path $SKILL_BUNDLE $dir
         if (Test-Path $frameworkSrc) {
@@ -725,7 +725,7 @@ function Deploy-Codex-Skills {
     if (!(Test-Path $codexSkillDir)) {
         New-Item -ItemType Directory -Path $codexSkillDir -Force | Out-Null
     }
-    # Deploy all skill frameworks (loop-sec, android-reverse, web-reverse, win-reverse)
+    # Deploy skills (sec-forge [android/web/win-reverse inlined] + jit-harness)
     foreach ($dir in $SKILL_DIRS) {
         $frameworkSrc = Join-Path $SKILL_BUNDLE $dir
         if (Test-Path $frameworkSrc) {
@@ -1149,7 +1149,7 @@ if ($Uninstall) {
 
 Write-Host ''
 Write-Host '============================================' -ForegroundColor Cyan
-Write-Host '  [OK] Complete! cc-unlock v8.0.7 Loop Engineering' -ForegroundColor Green
+Write-Host '  [OK] Complete! cc-unlock v2.0-stable Loop Engineering' -ForegroundColor Green
 Write-Host '  Restart Claude Code / Codex. / 重启生效。' -ForegroundColor Cyan
 Write-Host '============================================' -ForegroundColor Cyan
 Write-Host ''

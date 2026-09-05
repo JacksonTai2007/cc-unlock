@@ -20,7 +20,7 @@
     <a class="header__link header__link--heart" data-external href="#donate" id="hdrDonate" title="捐赠支持">
       <svg viewBox="0 0 16 16" fill="currentColor" width="17" height="17"><path d="M8 14.25l-1.09-1C3.14 9.86 1 7.93 1 5.5 1 3.5 2.5 2 4.5 2c1.13 0 2.21.53 2.9 1.36h1.2C9.29 2.53 10.37 2 11.5 2 13.5 2 15 3.5 15 5.5c0 2.43-2.14 4.36-5.91 7.75L8 14.25z"/></svg>
     </a>
-    <span class="header__meta" id="hdrMeta">v1.0-stable
+    <span class="header__meta" id="hdrMeta">v2.0-stable
   </header>
 
   <!-- ============ SIDE NAV ============ -->
@@ -67,7 +67,7 @@
       <div class="section-label">Bundle 状态</div>
       <div class="tiles" id="bundleTiles">
         <div class="tile"><span class="tile__label">Memory 记忆</span><span class="tile__value" id="tMem">…</span><span class="tile__meta">track records</span></div>
-        <div class="tile"><span class="tile__label">Skills 技能框架</span><span class="tile__value" id="tSkills">…</span><span class="tile__meta">loop-sec + 3</span></div>
+        <div class="tile"><span class="tile__label">Skills 技能框架</span><span class="tile__value" id="tSkills">…</span><span class="tile__meta">sec-forge + jit-harness</span></div>
         <div class="tile"><span class="tile__label">Agents 子代理</span><span class="tile__value" id="tAgents">…</span><span class="tile__meta">persona + memory</span></div>
         <div class="tile"><span class="tile__label">CLAUDE.md</span><span class="tile__value" id="tClaude">…</span><span class="tile__meta">lab-scope 人格</span></div>
       </div>
@@ -137,7 +137,10 @@
           <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M5 2h6v1h3v2H2V3h3zM3 6h10l-1 8H4z"/></svg></button>
         <button class="btn btn--tertiary" id="btnVerify"><span>验证</span>
           <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-1 10L4 8l1.4-1.4L7 8.2l3.6-3.6L12 6z"/></svg></button>
+        <button class="btn btn--secondary" id="btnRestore"><span>恢复原始</span>
+          <svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3V1L5 4l3 3V5a4 4 0 11-4 4H2a6 6 0 106-6z"/></svg></button>
       </div>
+      <div class="field__help" style="margin:-4px 0 0">「恢复原始」把选中工作区的 CLAUDE.md / 记忆索引还原成**首次部署前**的字节，并清掉 cc-unlock 新增的技能/子agent/记忆——部署出问题时一键回滚。</div>
 
       <div class="section-label">日志</div>
       <div class="console" id="console"><span class="console__line log-info">就绪。选择工作区后点击部署。</span></div>
@@ -175,9 +178,9 @@
       <p class="page__sub">cc-unlock for Claude Code</p>
 
       <div class="tiles tiles--3">
-        <div class="tile"><span class="tile__label">版本</span><span class="tile__value" style="font-size:16px">v1.0-stable</span><span class="tile__meta">Claude edition</span></div>
+        <div class="tile"><span class="tile__label">版本</span><span class="tile__value" style="font-size:16px">v2.0-stable</span><span class="tile__meta">Claude edition</span></div>
         <div class="tile"><span class="tile__label">设计系统</span><span class="tile__value" style="font-size:16px">IBM Carbon</span><span class="tile__meta">g100 dark</span></div>
-        <div class="tile"><span class="tile__label">执行引擎</span><span class="tile__value" style="font-size:16px">Loop&nbsp;Sec</span><span class="tile__meta">JIT harness</span></div>
+        <div class="tile"><span class="tile__label">执行引擎</span><span class="tile__value" style="font-size:16px">sec-forge</span><span class="tile__meta">JIT harness</span></div>
       </div>
 
       <div class="section-label">这个版本做了什么</div>
@@ -186,7 +189,7 @@
         <ul style="margin:0; padding-left:18px; color:var(--text-secondary); line-height:1.9">
           <li>研究员记忆注入 — track records + MEMORY.md 反拒绝载体</li>
           <li>CLAUDE.md 轻量人格 + lab-scope 框架（穿透通用子 agent）</li>
-          <li>Loop Sec 自递归 harness 引擎 + 4 技能框架</li>
+          <li>sec-forge 总控（JIT harness 引擎 + 自我进化）+ jit-harness</li>
           <li><b>.claude/agents/ 子 agent 覆盖</b> — memory:project 启动注入 + 技能预载</li>
           <li>settings.json bypassPermissions 合并写入</li>
         </ul>

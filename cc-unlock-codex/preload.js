@@ -21,5 +21,6 @@ contextBridge.exposeInMainWorld('ccAPI', {
   deploy: (opts, onLog) => streamAction('deploy', { opts }, onLog),
   uninstall: (onLog) => streamAction('uninstall', {}, onLog),
   verify: (onLog) => streamAction('verify', {}, onLog),
+  restore: (onLog) => streamAction('restore', {}, onLog),
   openExternal: (url) => ipcRenderer.invoke('openExternal', url),
 });

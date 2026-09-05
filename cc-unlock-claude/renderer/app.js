@@ -13,7 +13,7 @@ const MOCK = {
     ccVersion: '2.1.240', ccInstalled: true,
     settings: true,
     deployedCount: 2, subagentCount: 1,
-    memFiles: 15, skillDirs: 4, agentFiles: 3, claudeMd: true,
+    memFiles: 15, skillDirs: 2, agentFiles: 3, claudeMd: true,
     bundleOk: true,
   },
   paths: {
@@ -35,6 +35,7 @@ const api = HAS_BRIDGE ? window.ccAPI : {
   deploy: async (targets, opts, onLog) => mockRun(targets, 'deploy', opts, onLog),
   uninstall: async (targets, onLog) => mockRun(targets, 'uninstall', {}, onLog),
   verify: async (targets, onLog) => mockRun(targets, 'verify', {}, onLog),
+  restore: async (targets, onLog) => mockRun(targets, 'restore', {}, onLog),
   browse: async () => null,
 };
 
@@ -49,14 +50,18 @@ function mockRun(targets, kind, opts, onLog) {
         steps.push(['ok', '15 memory files -> ~/.claude/projects/.../memory/']);
         steps.push(['ok', 'MEMORY.md (anti-refusal carrier, 24KB)']);
         steps.push(['ok', 'CLAUDE.md -> workspace root']);
-        steps.push(['ok', 'skills: loop-sec, android/web/win-reverse (4)']);
+        steps.push(['ok', 'skills: sec-forge + jit-harness (2)']);
         if (opts.subagent) steps.push(['ok', '.claude/agents/ (3) + memory:project -> 子 agent 覆盖']);
         else steps.push(['warn', 'skip .claude/agents/ (子 agent 覆盖关闭)']);
       } else if (kind === 'uninstall') {
         steps.push(['ok', 'removed memory files + MEMORY.md']);
         steps.push(['ok', 'removed CLAUDE.md + skills + agents']);
+      } else if (kind === 'restore') {
+        steps.push(['ok', '恢复原始 CLAUDE.md（首次部署前的字节）']);
+        steps.push(['ok', '删除(部署前不存在) 记忆索引']);
+        steps.push(['ok', '清除 cc-unlock 新增的 skills / agents / rules / agent-memory']);
       } else {
-        steps.push(['ok', 'memory 15/15 · CLAUDE.md OK · skills 4/4 · agents 3/3']);
+        steps.push(['ok', 'memory 15/15 · CLAUDE.md OK · skills 2/2 · agents 3/3']);
       }
     });
     steps.push(['done', `完成。请重启 Claude Code。`]);
@@ -146,10 +151,10 @@ async function loadOverview() {
   setTile('#tDeployed', String(e.deployedCount), e.deployedCount ? 'ok' : '', `${e.deployedCount} 个工作区`);
   setTile('#tSubagent', String(e.subagentCount), e.subagentCount ? 'ok' : 'warn', `${e.subagentCount} 个已覆盖`);
   setTile('#tMem', String(e.memFiles), 'ok', 'track records');
-  setTile('#tSkills', String(e.skillDirs), 'ok', 'loop-sec + 3');
+  setTile('#tSkills', String(e.skillDirs), 'ok', 'sec-forge + jit-harness');
   setTile('#tAgents', String(e.agentFiles), 'ok', 'persona + memory');
   setTile('#tClaude', e.claudeMd ? 'OK' : '缺失', e.claudeMd ? 'ok' : 'err', 'lab-scope 人格');
-  $('#hdrMeta').textContent = (e.ccInstalled && e.ccVersion && e.ccVersion !== '?') ? `v1.0-stable · CC ${e.ccVersion}` : 'v1.0-stable';
+  $('#hdrMeta').textContent = (e.ccInstalled && e.ccVersion && e.ccVersion !== '?') ? `v2.0-stable · CC ${e.ccVersion}` : 'v2.0-stable';
 }
 
 async function loadPaths() {
@@ -181,8 +186,19 @@ async function runVerify(targets) {
   logClear();
   await api.verify(targets.map((t) => t.name || t), logLine);
 }
+async function runRestore(targets) {
+  logClear();
+  await api.restore(targets.map((t) => t.name || t), logLine);
+  await loadWorkspaces(); await loadOverview();
+}
 
 $('#btnRefresh').addEventListener('click', async () => { logClear(); await loadWorkspaces(); logLine('info', '工作区列表已刷新。'); });
+
+$('#btnRestore').addEventListener('click', () => {
+  const t = checkedTargets();
+  if (!t.length) return logAfterClear('warn', '勾选要恢复的工作区。');
+  runRestore(t);
+});
 
 $('#btnDeploySel').addEventListener('click', async () => {
   const custom = $('#customPath').value.trim();
@@ -233,7 +249,7 @@ document.addEventListener('click', (ev) => {
 // ---- Boot ----
 (async function boot() {
   if (!HAS_BRIDGE) {
-    document.querySelector('.header__meta').textContent = 'v1.0-stable · preview';
+    document.querySelector('.header__meta').textContent = 'v2.0-stable · preview';
   }
   await Promise.all([loadOverview(), loadPaths(), loadWorkspaces()]);
 })();

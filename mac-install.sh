@@ -1,6 +1,6 @@
 #!/bin/bash
-# cc-unlock v8.0.7 — macOS install
-# Memory-based cybersecurity academy tutoring for Claude Code + Codex
+# cc-unlock v2.0-stable — macOS install
+# 安全研究工作站 zero-blind-spot 上下文注入 for Claude Code + Codex
 #
 # 用法 | Usage:
 #   ./mac-install.sh                      交互菜单 | interactive menu

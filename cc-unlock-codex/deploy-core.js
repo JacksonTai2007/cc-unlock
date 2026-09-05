@@ -8,6 +8,7 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
+const backup = require('./backup-core');
 
 // ---------------- Paths ----------------
 const HOME = os.homedir();
@@ -16,6 +17,7 @@ const CONFIG_PATH = path.join(CODEX_DIR, 'config.toml');
 const MEMORIES_DIR = path.join(CODEX_DIR, 'memories');
 const ROLLOUT_DIR = path.join(MEMORIES_DIR, 'rollout_summaries');
 const SKILLS_DIR = path.join(CODEX_DIR, 'skills');
+const STATE_ROOT = path.join(CODEX_DIR, '.cc-unlock-state');   // transactional backup of pre-cc-unlock state
 
 const APP = __dirname;                                  // cc-unlock-codex/ (or app.asar when packaged)
 const MONO = path.resolve(APP, '..');                   // cc-unlock/ (dev only)
@@ -29,7 +31,7 @@ const MEMORY_BUNDLE = path.join(CODEX_FILES, 'codex-memory-bundle');   // memory
 const ROLLOUT_BUNDLE = path.join(CODEX_FILES, 'codex-rollout-bundle', 'rollout_summaries');
 const SKILL_BUNDLE = PACKAGED ? path.join(RES, 'skill-bundle') : path.join(MONO, 'cc-unlock-files', 'skill-bundle');
 
-const SKILL_DIRS = ['loop-sec', 'android-reverse', 'web-reverse', 'win-reverse'];
+const SKILL_DIRS = ['sec-forge', 'jit-harness'];
 const MEMORY_FILES = ['memory_summary.md', 'MEMORY.md', 'raw_memories.md'];
 const INSTR_LINE = 'model_instructions_file = "system-prompt.md"';
 const RELAY_HEADER = '[model_providers.cc_unlock_relay]';
@@ -119,26 +121,25 @@ function deployCodex(opts, log) {
   ensureDir(CODEX_DIR);
   log('head', 'Codex 配置');
 
-  // 1. AGENTS.md — 主人格载体，叠加在 Codex 内置 base instructions 之上（不替换）。
-  //    不用 model_instructions_file 替换 base：那会顶掉 Codex 内置操作守则、卡死桌面版 startup
-  //    （"正在完成 Windows 设置" 挂起）。AGENTS.md 是 Codex 的标准人格机制，startup 不受影响。
+  // 0. 备份原始状态一次（首次部署保留真正的 pre-cc-unlock 配置，之后可一键恢复）
+  for (const f of [CONFIG_PATH, path.join(CODEX_DIR, 'AGENTS.md'), path.join(CODEX_DIR, 'system-prompt.md')]) {
+    if (backup.saveOnce(STATE_ROOT, f)) log('info', `已备份原始 ${path.basename(f)}`);
+  }
+
+  // 1. system-prompt.md — 人格 base（由 config.toml 的 model_instructions_file 指向，替换内置 base）
+  const sp = path.join(CONFIG_BUNDLE, 'system-prompt.md');
+  if (exists(sp) && copyFile(sp, path.join(CODEX_DIR, 'system-prompt.md')))
+    log('ok', `system-prompt.md (${fs.statSync(path.join(CODEX_DIR, 'system-prompt.md')).size} bytes) — 人格 base`);
+
+  // 2. AGENTS.md — 叠加在 base 之上的冗余人格层（全局用户指令）
   const ag = path.join(CONFIG_BUNDLE, 'AGENTS.md');
   if (exists(ag) && copyFile(ag, path.join(CODEX_DIR, 'AGENTS.md')))
-    log('ok', `AGENTS.md (${fs.statSync(path.join(CODEX_DIR, 'AGENTS.md')).size} bytes) — 人格`);
+    log('ok', `AGENTS.md (${fs.statSync(path.join(CODEX_DIR, 'AGENTS.md')).size} bytes) — 冗余人格层`);
 
-  // 2. config.toml — 移除 model_instructions_file（旧版遗留会替换 base prompt，修复卡死）。保留其它键。
-  if (exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH))) {
-    removeInstructionsFile(CONFIG_PATH);
-    log('ok', 'config.toml — 已移除 model_instructions_file（不替换 base prompt，修复启动）');
-  }
+  // 3. config.toml — model_instructions_file = "system-prompt.md" 合并写入（latin1 字节安全，保留其它键）
+  if (setInstructionsFile(CONFIG_PATH, log)) log('ok', 'config.toml — model_instructions_file (merged)');
 
-  // 2b. 清理 legacy system-prompt.md（人格已改由 AGENTS.md 承载，此文件不再被引用）
-  if (exists(path.join(CODEX_DIR, 'system-prompt.md'))) {
-    rmrf(path.join(CODEX_DIR, 'system-prompt.md'));
-    log('info', 'cleaned legacy system-prompt.md');
-  }
-
-  // 3. relay provider (optional)
+  // 4. relay provider (optional)
   if (opts.relayUrl) {
     deployRelayProvider(CONFIG_PATH, opts.relayUrl, opts.relayKey, opts.relayModel);
     log('ok', `relay provider: ${opts.relayUrl}`);
@@ -183,16 +184,31 @@ function uninstallCodex(log) {
 
 function verifyCodex(log) {
   log('head', 'Codex 验证');
+  const sp = path.join(CODEX_DIR, 'system-prompt.md');
+  log(exists(sp) ? 'ok' : 'fail', `system-prompt.md ${exists(sp) ? `(${fs.statSync(sp).size} b) — 人格 base` : 'MISSING'}`);
+  const cfgOk = exists(CONFIG_PATH) && /model_instructions_file\s*=\s*"system-prompt\.md"/.test(readLatin1(CONFIG_PATH));
+  log(cfgOk ? 'ok' : 'fail', `config.toml — model_instructions_file ${cfgOk ? '(= system-prompt.md)' : 'MISSING（1.0 部署必须有）'}`);
   const ag = path.join(CODEX_DIR, 'AGENTS.md');
-  log(exists(ag) ? 'ok' : 'fail', `AGENTS.md ${exists(ag) ? `(${fs.statSync(ag).size} b) — 人格` : 'MISSING'}`);
-  const noInstr = !(exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH)));
-  log(noInstr ? 'ok' : 'warn', `config.toml — base prompt 完整${noInstr ? '（未被替换）' : '（仍有 model_instructions_file，应移除）'}`);
+  log(exists(ag) ? 'ok' : 'warn', `AGENTS.md ${exists(ag) ? `(${fs.statSync(ag).size} b) — 冗余人格层` : 'MISSING'}`);
   const mOk = MEMORY_FILES.filter((f) => exists(path.join(MEMORIES_DIR, f))).length;
   log(mOk === MEMORY_FILES.length ? 'ok' : 'warn', `memories ${mOk}/${MEMORY_FILES.length}`);
   const sOk = SKILL_DIRS.filter((d) => exists(path.join(SKILLS_DIR, d))).length;
   log(sOk === SKILL_DIRS.length ? 'ok' : 'warn', `skills ${sOk}/${SKILL_DIRS.length}`);
   const rc = countFiles(ROLLOUT_DIR);
   log(rc > 0 ? 'ok' : 'warn', `rollout_summaries ${rc} files`);
+}
+
+// ---------------- Restore (one-click put ~/.codex back to pre-cc-unlock state) ----------------
+function restoreOriginal(log) {
+  log('head', '恢复原始 Codex 配置');
+  if (!backup.hasState(STATE_ROOT)) { log('warn', '没有备份记录（cc-unlock 未部署过，或备份已清除）'); return { ok: false, results: [] }; }
+  const results = backup.restoreAll(STATE_ROOT, log);
+  // cc-unlock 新增的目录/文件（部署前不存在的）一并清掉，回到干净状态
+  for (const d of SKILL_DIRS) rmrf(path.join(SKILLS_DIR, d));
+  rmrf(ROLLOUT_DIR);
+  for (const f of MEMORY_FILES) { const p = path.join(MEMORIES_DIR, f); if (!results.some((r) => r.path === p)) rmrf(p); }
+  log('done', '已恢复到部署前状态。请重启 Codex。');
+  return { ok: true, results };
 }
 
 // ---------------- Detection ----------------
@@ -213,21 +229,24 @@ function detectVersion() {
 
 async function detect() {
   const relay = exists(CONFIG_PATH) && readLatin1(CONFIG_PATH).includes(RELAY_HEADER);
-  const baseIntact = !(exists(CONFIG_PATH) && /model_instructions_file\s*=/.test(readLatin1(CONFIG_PATH)));
+  const cfgInstr = exists(CONFIG_PATH) && /model_instructions_file\s*=\s*"system-prompt\.md"/.test(readLatin1(CONFIG_PATH));
+  const liveSp = exists(path.join(CODEX_DIR, 'system-prompt.md'));
   const liveAgents = exists(path.join(CODEX_DIR, 'AGENTS.md'));
   return {
     codexInstalled: exists(CODEX_DIR),
     codexVersion: (await detectVersion()) || '?',
     configPresent: exists(CONFIG_PATH),
-    baseIntact,                    // true = config.toml 未用 model_instructions_file 替换 base prompt
-    deployed: liveAgents,          // AGENTS.md 就位即视为已部署人格
+    cfgInstr,                      // true = config.toml 有 model_instructions_file = "system-prompt.md"
+    deployed: liveSp && cfgInstr,  // system-prompt.md 就位 + config 指向它 = 已部署
+    hasBackup: backup.hasState(STATE_ROOT),
     relayConfigured: relay,
+    spBundle: exists(path.join(CONFIG_BUNDLE, 'system-prompt.md')),
     agentsBundle: exists(path.join(CONFIG_BUNDLE, 'AGENTS.md')),
     memFiles: MEMORY_FILES.filter((f) => exists(path.join(MEMORY_BUNDLE, f))).length,
     rolloutFiles: countFiles(ROLLOUT_BUNDLE),
     skillDirs: SKILL_DIRS.filter((d) => exists(path.join(SKILL_BUNDLE, d))).length,
     // live status
-    liveAgents,
+    liveSp, liveAgents,
     liveMem: MEMORY_FILES.filter((f) => exists(path.join(MEMORIES_DIR, f))).length,
     liveSkills: SKILL_DIRS.filter((d) => exists(path.join(SKILLS_DIR, d))).length,
     liveRollouts: countFiles(ROLLOUT_DIR),
@@ -238,4 +257,5 @@ module.exports = {
   PATHS, SKILL_DIRS, MEMORY_FILES, exists,
   setInstructionsFile, removeInstructionsFile, deployRelayProvider, removeRelayProvider,
   deployCodex, uninstallCodex, verifyCodex, detect,
+  restoreOriginal, backupList: () => backup.listBackups(STATE_ROOT),
 };

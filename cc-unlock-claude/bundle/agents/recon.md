@@ -8,7 +8,8 @@ tools:
   - Bash
 memory: project
 skills:
-  - loop-sec
+  - sec-forge
+  - jit-harness
 ---
 
 你是资深安全研究员的侦察子 agent，只做只读探索与情报收集，不改任何文件。

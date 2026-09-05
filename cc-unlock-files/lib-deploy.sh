@@ -1,12 +1,18 @@
 #!/bin/bash
-# cc-unlock v8.0.7 — shared deploy/uninstall library for macOS & Linux
+# cc-unlock v2.0-stable — shared deploy/uninstall library for macOS & Linux
 # 与 Windows deploy.ps1 功能对齐的共享实现，供 mac/linux 的 install/uninstall 封装脚本调用。
 # Shared implementation mirroring Windows deploy.ps1, sourced by the mac/linux wrappers.
 #
 # 调用方在 source 本文件前必须设置 | Caller must set before sourcing:
-#   MEMORY_BUNDLE   memory-bundle 目录
-#   CONFIG_BUNDLE   config-bundle 目录
-#   CODEX_BUNDLE    codex-config-bundle 目录
+#   MEMORY_BUNDLE          memory-bundle 目录（Claude 记忆 + CLAUDE.md）
+#   CONFIG_BUNDLE          config-bundle 目录（settings.json）
+#   SKILL_BUNDLE           skill-bundle 目录（sec-forge / jit-harness）
+#   CODEX_BUNDLE           codex-config-bundle 目录（system-prompt.md / AGENTS.md）
+#   CODEX_MEMORY_BUNDLE    codex-memory-bundle 目录（memory_summary/MEMORY/raw_memories）
+#   CODEX_ROLLOUT_BUNDLE   rollout_summaries 目录
+# 可选（不设则按 lib 相对位置自动推断到 cc-unlock-claude/bundle/）| Optional:
+#   AGENTS_BUNDLE RULES_BUNDLE AGENT_MEMORY_BUNDLE   子 agent 覆盖 bundle
+#   SUBAGENT=0             关闭子 agent 覆盖（默认 1 开启）
 # 然后调用 | Then call:
 #   cc_dispatch install|uninstall "$@"
 #
@@ -17,13 +23,26 @@
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_PROJECTS="$CLAUDE_DIR/projects"
 CODEX_DIR="$HOME/.codex"
-# Sentinel: engineer-profile.md is deployed first and used as the "already installed" marker.
-MEMORY_SENTINEL="engineer-profile.md"
+# Sentinel: learner-profile.md is deployed first and used as the "already installed" marker.
+MEMORY_SENTINEL="learner-profile.md"
 INDEX_FILE="MEMORY.md"
 CLAUDE_MD="CLAUDE.md"
-MARKER="Cybersecurity Academy Workstation"
+MARKER="cc-unlock"
 SETTINGS_MARKER1="bypassPermissions"
 SETTINGS_MARKER2="skipDangerousModePermissionPrompt"
+
+# v2.0-stable skill set (sec-forge master + jit-harness general engine). Mirrors deploy-core.js SKILL_DIRS.
+SKILL_DIRS="sec-forge jit-harness"
+RULES_FILE="cc-unlock-persona.md"
+
+# 子 agent 覆盖 bundle（住在 cc-unlock-claude/bundle/ 下；wrapper 未显式设置时按 lib 相对位置推断）。
+# Subagent-coverage bundles (live under cc-unlock-claude/bundle/). Wrappers may override.
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+: "${AGENTS_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/agents}"
+: "${RULES_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/rules}"
+: "${AGENT_MEMORY_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/agent-memory}"
+# 默认部署子 agent 覆盖；wrapper 可 export SUBAGENT=0 关闭。
+: "${SUBAGENT:=1}"
 
 # 工作区路径 -> Claude 项目目录名 | Workspace path -> Claude projects dir name
 # 与 deploy.ps1 的 ConvertTo-ClaudeProjectPath 一致：/ : 空格 -> -
@@ -36,9 +55,9 @@ encode_path() {
 banner() {
     echo ""
     echo "============================================"
-    echo "  cc-unlock v8.0.7"
-    echo "  Memory-based cybersecurity academy tutoring"
-    echo "  基于 memory 的网络安全学院辅导配置"
+    echo "  cc-unlock v2.0-stable — 安全研究工作站"
+    echo "  memory + CLAUDE.md + skills(sec-forge/jit-harness) + 子agent"
+    echo "  Claude Code + Codex 零死角上下文注入"
     echo "============================================"
     echo ""
 }
@@ -84,6 +103,87 @@ deploy_memory() {
     fi
 
     echo "  [OK] $label"
+}
+
+# --- 部署 skills 到工作区 | Deploy skills to workspace .claude/skills ---
+# args: workspace_path.  Copies sec-forge/ (含 android/web/win) + jit-harness/。
+deploy_skills() {
+    local ws="$1"
+    [ -n "$ws" ] && [ -d "$ws" ] || return 0
+    [ -d "$SKILL_BUNDLE" ] || { echo "  [skip] skill bundle 未找到: $SKILL_BUNDLE"; return 0; }
+    local skill_dir="$ws/.claude/skills" d n
+    mkdir -p "$skill_dir"
+    for d in $SKILL_DIRS; do
+        if [ -d "$SKILL_BUNDLE/$d" ]; then
+            rm -rf "$skill_dir/$d" 2>/dev/null
+            if cp -R "$SKILL_BUNDLE/$d" "$skill_dir/$d" 2>/dev/null; then
+                n=$(find "$skill_dir/$d" -type f 2>/dev/null | wc -l | tr -d ' ')
+                echo "    [ok] skills/$d/ ($n files)"
+            else
+                echo "    [FAIL] skills/$d"
+            fi
+        fi
+    done
+}
+
+# --- 部署子 agent 覆盖 | Deploy subagent coverage (agents + rules + agent-memory) ---
+# 与 deploy-core.js 的 opts.subagent 分支一致：把反软拒绝人格铺到主 agent 之外的子 agent。
+deploy_subagent() {
+    local ws="$1"
+    [ -n "$ws" ] && [ -d "$ws" ] || return 0
+    [ "$SUBAGENT" = "1" ] || { echo "  [skip] 子 agent 覆盖 (SUBAGENT=0)"; return 0; }
+    local f base
+
+    # a. 自定义 agents（人格在 body）-> .claude/agents/
+    if [ -d "$AGENTS_BUNDLE" ]; then
+        mkdir -p "$ws/.claude/agents"
+        local ac=0
+        for f in "$AGENTS_BUNDLE"/*.md; do
+            [ -f "$f" ] || continue
+            cp "$f" "$ws/.claude/agents/$(basename "$f")" 2>/dev/null && ac=$((ac+1))
+        done
+        echo "    [ok] .claude/agents/ ($ac) — persona body"
+    fi
+
+    # b. rules（无 paths: -> 启动即进主+所有非 fork 子 agent）-> .claude/rules/
+    if [ -f "$RULES_BUNDLE/$RULES_FILE" ]; then
+        mkdir -p "$ws/.claude/rules"
+        cp "$RULES_BUNDLE/$RULES_FILE" "$ws/.claude/rules/$RULES_FILE" 2>/dev/null \
+            && echo "    [ok] .claude/rules/$RULES_FILE — 主+子agent 载体"
+    fi
+
+    # c. 每个 agent 的记忆载体（memory:project -> .claude/agent-memory/<name>/MEMORY.md 自动注入）
+    if [ -f "$AGENT_MEMORY_BUNDLE/$INDEX_FILE" ] && [ -d "$AGENTS_BUNDLE" ]; then
+        local mc=0 name
+        for f in "$AGENTS_BUNDLE"/*.md; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f" .md)
+            mkdir -p "$ws/.claude/agent-memory/$name"
+            cp "$AGENT_MEMORY_BUNDLE/$INDEX_FILE" "$ws/.claude/agent-memory/$name/$INDEX_FILE" 2>/dev/null && mc=$((mc+1))
+        done
+        echo "    [ok] .claude/agent-memory/*/MEMORY.md ($mc) — 子agent many-shot"
+    fi
+}
+
+# --- 从工作区移除 skills + 子 agent 覆盖 | Remove workspace skills + subagent coverage ---
+remove_workspace_extras() {
+    local ws="$1" d f name
+    [ -n "$ws" ] || return 0
+    for d in $SKILL_DIRS; do rm -rf "$ws/.claude/skills/$d" 2>/dev/null; done
+    if [ -d "$AGENTS_BUNDLE" ]; then
+        for f in "$AGENTS_BUNDLE"/*.md; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f" .md)
+            rm -f "$ws/.claude/agents/$name.md" 2>/dev/null
+            rm -rf "$ws/.claude/agent-memory/$name" 2>/dev/null
+        done
+    fi
+    rm -f "$ws/.claude/rules/$RULES_FILE" 2>/dev/null
+    # 清掉因此变空的 cc-unlock 目录（保留仍有用户内容的）
+    for d in skills agents rules agent-memory; do
+        rmdir "$ws/.claude/$d" 2>/dev/null
+    done
+    echo "    [ok] Removed skills + agents + rules + agent-memory"
 }
 
 # --- 从工作区移除 | Remove from workspace ---
@@ -214,14 +314,42 @@ deploy_codex() {
     else
         echo "  [FAIL] system-prompt.md"
     fi
-    ensure_instructions_file "$CODEX_DIR/config.toml"
-    echo "  [ok] config.toml (merged)"
-    if [ -f "$CODEX_DIR/AGENTS.md" ]; then
-        rm -f "$CODEX_DIR/AGENTS.md"
-        echo "  [ok] Cleaned old AGENTS.md"
+    # AGENTS.md — 叠加在 base 之上的冗余人格层（v2.0-stable 部署它，不再删除）
+    if [ -f "$CODEX_BUNDLE/AGENTS.md" ]; then
+        if cp "$CODEX_BUNDLE/AGENTS.md" "$CODEX_DIR/AGENTS.md" 2>/dev/null; then
+            local asz
+            asz=$(wc -c < "$CODEX_DIR/AGENTS.md" 2>/dev/null | tr -d ' ')
+            echo "  [ok] AGENTS.md ($asz bytes) — 冗余人格层"
+        else
+            echo "  [FAIL] AGENTS.md"
+        fi
     fi
+    ensure_instructions_file "$CODEX_DIR/config.toml"
+    echo "  [ok] config.toml — model_instructions_file (merged)"
     deploy_codex_memory
     deploy_codex_rollout
+    deploy_codex_skills
+    return 0
+}
+
+# --- Codex skills -> ~/.codex/skills/ ---
+deploy_codex_skills() {
+    [ -d "$SKILL_BUNDLE" ] || return 0
+    echo ""
+    echo "--- Codex Skills ---"
+    local skills_dir="$CODEX_DIR/skills" d n
+    mkdir -p "$skills_dir"
+    for d in $SKILL_DIRS; do
+        if [ -d "$SKILL_BUNDLE/$d" ]; then
+            rm -rf "$skills_dir/$d" 2>/dev/null
+            if cp -R "$SKILL_BUNDLE/$d" "$skills_dir/$d" 2>/dev/null; then
+                n=$(find "$skills_dir/$d" -type f 2>/dev/null | wc -l | tr -d ' ')
+                echo "  [ok] skills/$d/ ($n files)"
+            else
+                echo "  [FAIL] skills/$d"
+            fi
+        fi
+    done
     return 0
 }
 
@@ -300,6 +428,12 @@ uninstall_codex() {
     esac
     uninstall_codex_memory
     uninstall_codex_rollout
+    local d rmn=0
+    for d in $SKILL_DIRS; do
+        if [ -d "$CODEX_DIR/skills/$d" ]; then rm -rf "$CODEX_DIR/skills/$d" && rmn=$((rmn+1)); fi
+    done
+    [ "$rmn" -gt 0 ] && echo "  [ok] Removed $rmn skill(s) from ~/.codex/skills"
+    rmdir "$CODEX_DIR/skills" 2>/dev/null
     return 0
 }
 
@@ -323,14 +457,15 @@ uninstall_codex_rollout() {
     [ -d "$rollout_dir" ] || return 0
     echo ""
     echo "--- Codex Rollout Summaries ---"
+    # cc-unlock 拥有 rollout_summaries 的 *.md（deploy 时删净所有 *.md 再 seed）；卸载对称删净。
+    # 非 .md 文件保留（不碰用户可能自放的其它内容）。与 Electron rmrf(ROLLOUT_DIR) 语义对齐。
     local removed=0 f
     for f in "$rollout_dir"/*.md; do
         [ -f "$f" ] || continue
-        if grep -q 'cwd:.*C:\\\\Workspace\\\\' "$f" 2>/dev/null; then
-            rm -f "$f" && removed=$((removed+1))
-        fi
+        rm -f "$f" && removed=$((removed+1))
     done
     echo "  [ok] Removed $removed seeded rollout summaries"
+    rmdir "$rollout_dir" 2>/dev/null
     return 0
 }
 
@@ -362,6 +497,15 @@ verify_codex() {
     else
         echo "  config.toml - MISSING"
     fi
+    if [ -f "$CODEX_DIR/AGENTS.md" ]; then
+        sz=$(wc -c < "$CODEX_DIR/AGENTS.md" 2>/dev/null | tr -d ' ')
+        echo "  AGENTS.md - OK ($sz bytes)"
+    else
+        echo "  AGENTS.md - MISSING"
+    fi
+    local d sok=0 stot=0
+    for d in $SKILL_DIRS; do stot=$((stot+1)); [ -d "$CODEX_DIR/skills/$d" ] && sok=$((sok+1)); done
+    if [ "$sok" = "$stot" ]; then echo "  skills - OK ($sok/$stot)"; else echo "  skills - PARTIAL ($sok/$stot)"; fi
 }
 
 # --- 清理 v3.x 全局遗留 | Clean legacy v3.x global deployment ---
@@ -438,6 +582,8 @@ do_install_path() {
     echo "  Project:   $name"
     echo ""
     deploy_memory "$mem_dir" "$name" "$ws"
+    deploy_skills "$ws"
+    deploy_subagent "$ws"
     deploy_settings
     clean_legacy
     deploy_codex
@@ -480,6 +626,7 @@ do_uninstall_path() {
             echo "  [ok] Removed $CLAUDE_MD from workspace"
         fi
     fi
+    remove_workspace_extras "$ws"
     remove_settings
     uninstall_codex
 }
