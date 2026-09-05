@@ -3,6 +3,7 @@
 // non-admin Windows (symlink privilege). @electron/packager avoids that entirely.
 // Run: npm run dist  ->  dist/cc-unlock-claude-win32-x64/cc-unlock-claude.exe
 'use strict';
+const path = require('path');
 const { packager } = require('@electron/packager');
 
 packager({
@@ -14,6 +15,7 @@ packager({
   overwrite: true,
   asar: true,
   prune: true,
+  icon: path.join(__dirname, '..', 'assets', 'cc-unlock.ico'),
   ignore: [/^\/dist($|\/)/, /^\/bundle($|\/)/, /^\/\.gitignore$/, /^\/pack\.js$/],
   extraResource: [
     '../cc-unlock-files/memory-bundle',

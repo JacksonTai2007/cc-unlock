@@ -45,6 +45,15 @@ function wireIpc() {
     return { ok: true };
   });
 
+  ipcMain.handle('restore', (ev, { targets }) => {
+    const log = (kind, text) => ev.sender.send('restore-log', { kind, text });
+    for (const w of core.resolveTargets(targets)) {
+      if (!core.exists(w.path)) { log('warn', `跳过（路径不存在）: ${w.name}`); continue; }
+      core.restoreWorkspace(w.path, log);
+    }
+    return { ok: true };
+  });
+
   ipcMain.handle('browse', async () => {
     const r = await dialog.showOpenDialog({ properties: ['openDirectory'] });
     return r.canceled ? null : r.filePaths[0];

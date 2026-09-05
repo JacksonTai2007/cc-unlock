@@ -1,7 +1,7 @@
 {
   "name": "cc-unlock-codex",
   "productName": "cc-unlock for Codex",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "cc-unlock for Codex — security research workstation deployer (IBM Carbon)",
   "main": "main.js",
   "author": "JacksonTai",

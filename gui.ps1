@@ -1,4 +1,4 @@
-﻿# cc-unlock v8.0.7 GUI - PowerShell WinForms
+﻿# cc-unlock v2.0-stable GUI - PowerShell WinForms
 # Sidebar navigation + version detection + i18n (zh/en)
 
 param([switch]$NoConsole)
@@ -121,11 +121,11 @@ $script:S = @{
     ab_title      = @{ zh = '关于 cc-unlock'; en = 'About cc-unlock' }
     ab_version    = @{ zh = 'cc-unlock 版本'; en = 'cc-unlock Version' }
     ab_desc_title = @{ zh = '描述';     en = 'DESCRIPTION' }
-    ab_desc       = @{ zh = '安全研究工作站 — Loop Sec 自递归执行引擎 + 4 套技能框架'; en = 'Security research workstation — Loop Sec self-recursive engine + 4 skill frameworks' }
+    ab_desc       = @{ zh = '安全研究工作站 — sec-forge 总控（JIT harness + 自我进化）+ jit-harness'; en = 'Security research workstation — sec-forge master skill + jit-harness engine' }
     ab_feat_title = @{ zh = '功能';     en = 'FEATURES' }
     ab_feat1      = @{ zh = '- 研究员记忆注入 (memory bundle)'; en = '- Researcher memory injection (memory bundle)' }
     ab_feat2      = @{ zh = '- CLAUDE.md 轻量人格 + lab-scope 框架'; en = '- CLAUDE.md lightweight persona + lab-scope framework' }
-    ab_feat3      = @{ zh = '- Loop Sec 自递归执行 + 4 技能框架 (loop-sec/android/web/win-reverse)'; en = '- Loop Sec self-recursive + 4 skill frameworks (loop-sec/android/web/win-reverse)' }
+    ab_feat3      = @{ zh = '- sec-forge 总控（内联 android/web/win-reverse）+ jit-harness 通用引擎'; en = '- sec-forge master (android/web/win-reverse inlined) + jit-harness' }
     ab_feat4      = @{ zh = '- Codex 系统提示词 + 记忆 + scope confirmation'; en = '- Codex system prompt + memory + scope confirmation' }
     ab_feat5      = @{ zh = '- settings.json 权限配置'; en = '- settings.json permission config' }
     ab_target     = @{ zh = '支持平台';   en = 'Supported Platforms' }
@@ -422,7 +422,7 @@ function Deploy-ToWorkspace([string]$ProjectName, [string]$WorkspacePath) {
     if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
         if (!(Test-Path $skillDir)) { New-Item -ItemType Directory -Path $skillDir -Force | Out-Null }
-        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('sec-forge', 'jit-harness')) {
             $sdSrc = Join-Path $SKILL_BUNDLE $sd
             if (Test-Path $sdSrc) {
                 $sdDst = Join-Path $skillDir $sd
@@ -457,7 +457,7 @@ function Uninstall-FromWorkspace([string]$ProjectName, [string]$WorkspacePath) {
         $claudePath = Join-Path $WorkspacePath 'CLAUDE.md'
         if (Test-Path $claudePath) { Remove-Item $claudePath -Force -ErrorAction SilentlyContinue; LogOk "Removed CLAUDE.md" }
         $skillDir = Join-Path $WorkspacePath '.claude\skills'
-        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('sec-forge', 'jit-harness')) {
             $sdPath = Join-Path $skillDir $sd
             if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed $sd" }
         }
@@ -573,7 +573,7 @@ function Deploy-CodexSkills {
     LogHeader "Codex Skills"
     $codexSkillDir = Join-Path $CODEX_DIR 'skills'
     if (!(Test-Path $codexSkillDir)) { New-Item -ItemType Directory -Path $codexSkillDir -Force | Out-Null }
-    foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
+    foreach ($sd in @('sec-forge', 'jit-harness')) {
         $sdSrc = Join-Path $SKILL_BUNDLE $sd
         if (Test-Path $sdSrc) {
             $sdDst = Join-Path $codexSkillDir $sd
@@ -608,7 +608,7 @@ function Uninstall-CodexSkills {
     $codexSkillDir = Join-Path $CODEX_DIR 'skills'
     if (!(Test-Path $codexSkillDir)) { return }
     LogHeader "Codex Skills"
-    foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
+    foreach ($sd in @('sec-forge', 'jit-harness')) {
         $sdPath = Join-Path $codexSkillDir $sd
         if (Test-Path $sdPath) { Remove-Item $sdPath -Recurse -Force -ErrorAction SilentlyContinue; LogOk "Removed .codex/skills/$sd/" }
     }
@@ -638,10 +638,10 @@ function Verify-Workspace([string]$ProjectName, [string]$WorkspacePath) {
         if (Test-Path $cp) {
             $sz = (Get-Item $cp).Length
             $c = Get-Content $cp -Raw -ErrorAction SilentlyContinue
-            $loop = if ($c -match 'loop-sec|Loop Engineering') { '+ Loop Sec' } else { '' }
+            $loop = if ($c -match 'sec-forge|loop-sec|Loop Engineering') { '+ sec-forge' } else { '' }
             LogOk "CLAUDE.md ($sz bytes) $loop"
         } else { LogWarn "CLAUDE.md not found" }
-        foreach ($sd in @('loop-sec', 'android-reverse', 'web-reverse', 'win-reverse')) {
+        foreach ($sd in @('sec-forge', 'jit-harness')) {
             $sdPath = Join-Path $WorkspacePath ".claude\skills\$sd"
             if (Test-Path $sdPath) {
                 $count = @(Get-ChildItem $sdPath -Recurse -File -ErrorAction SilentlyContinue).Count
@@ -657,7 +657,7 @@ function Get-Workspaces {
     if (!(Test-Path $CLAUDE_PROJECTS)) { return $result }
     foreach ($d in (Get-ChildItem $CLAUDE_PROJECTS -Directory -ErrorAction SilentlyContinue)) {
         $memDir = Get-MemoryDir $d.Name
-        # v8.0.7 sentinel(learner-profile.md) 或 legacy sentinels 都视为已部署
+        # v2.0-stable sentinel(learner-profile.md) 或 legacy sentinels 都视为已部署
         $deployed = (Test-Path (Join-Path $memDir 'learner-profile.md')) -or `
                     (Test-Path (Join-Path $memDir 'engineer-profile.md')) -or `
                     (Test-Path (Join-Path $memDir 'security-research-lab.md'))
@@ -669,7 +669,7 @@ function Get-Workspaces {
             if (Test-Path $cp) {
                 try {
                     $c = Get-Content $cp -Raw -ErrorAction Stop
-                    if ($c -match 'loop-sec|Loop Engineering') { $hasLoop = $true }
+                    if ($c -match 'sec-forge|loop-sec|Loop Engineering') { $hasLoop = $true }
                 } catch {}
             }
         }
@@ -683,7 +683,7 @@ function Get-Workspaces {
 # ================================================================
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'cc-unlock v8.0.7 - Security Research Workstation'
+$form.Text = 'cc-unlock v2.0-stable - Security Research Workstation'
 $form.Size = New-Object System.Drawing.Size(880, 620)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $CLR_BG
@@ -716,7 +716,7 @@ $lblSideTitle.BackColor = $CLR_SIDEBAR
 $sidebar.Controls.Add($lblSideTitle)
 
 $lblSideVer = New-Object System.Windows.Forms.Label
-$lblSideVer.Text = 'v8.0.7'
+$lblSideVer.Text = 'v2.0-stable'
 $lblSideVer.Font = $fNavSub
 $lblSideVer.ForeColor = $CLR_SUBTEXT
 $lblSideVer.Location = New-Object System.Drawing.Point(18, 48)
@@ -848,7 +848,7 @@ $content.Controls.Add($pageOverview)
 
 # OV: Title
 $ovTitle = New-Object System.Windows.Forms.Label
-$ovTitle.Text = 'cc-unlock v8.0.7'
+$ovTitle.Text = 'cc-unlock v2.0-stable'
 $ovTitle.Font = New-Object System.Drawing.Font($fontFamily, 18, [System.Drawing.FontStyle]::Bold)
 $ovTitle.ForeColor = $CLR_MAUVE
 $ovTitle.Location = New-Object System.Drawing.Point(25, 18)
@@ -1293,7 +1293,7 @@ $btnVerify.Add_Click({
         if (Test-Path $agp) {
             $sz = (Get-Item $agp).Length
             $ct = Get-Content $agp -Raw -ErrorAction SilentlyContinue
-            if ($ct -match 'loop-sec|cc-unlock|安全研究') { LogOk "AGENTS.md ($sz bytes) - persona" } else { LogWarn "AGENTS.md - content mismatch" }
+            if ($ct -match 'sec-forge|loop-sec|cc-unlock|安全研究') { LogOk "AGENTS.md ($sz bytes) - persona" } else { LogWarn "AGENTS.md - content mismatch" }
         } else { LogFail "AGENTS.md MISSING" }
         # config.toml 应 NOT 含 model_instructions_file(否则替换 base prompt 卡死 startup)
         $cfgp = Join-Path $CODEX_DIR 'config.toml'
@@ -1428,7 +1428,7 @@ Bind-T $abTitle 'ab_title'
 $abInfoCard = New-Card 25 75 645 155 $pageAbout
 
 $abRowVer   = New-InfoRow (T 'ab_version') 18 15 170 $abInfoCard
-$abRowVer.Value.Text = '8.0.7'
+$abRowVer.Value.Text = '2.0-stable'
 $abRowVer.Value.ForeColor = $CLR_MAUVE
 
 $abRowCC    = New-InfoRow (T 'ov_cc_ver') 18 45 170 $abInfoCard

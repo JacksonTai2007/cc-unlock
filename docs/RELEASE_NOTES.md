@@ -1,5 +1,23 @@
 # Release Notes
 
+## v2.0-stable — 产品化桌面工作台 | Productized Desktop Workstation
+
+cc-unlock 从提示词工程配置脚本重构为完整的桌面工作台。**下载统一安装器 `cc-unlock-Setup-v2.0-stable.exe`,勾选 Claude / Codex / 两者即可**;macOS / Linux 用功能对等的 shell 安装器,不需要装双系统。
+
+**主要变化:**
+
+- **技能合一**:四个逆向 skill 合并为总控 `sec-forge`(JIT harness 执行引擎 + 自我进化 + 内联 android/web/win 路由);另出通用 `jit-harness`(任何多步任务可用,不绑安全)。
+- **统一图形安装器**:组件勾选、桌面/开始菜单快捷方式、设置里可卸载、升级覆盖。
+- **两个 Electron 桌面应用**(IBM Carbon 深色界面):一键部署 / 验证 / 卸载 / 恢复原始。
+- **零死角上下文注入**:主 agent + 子 agent + Codex 全注入点一致覆盖。
+- **事务化备份/恢复**:部署出问题可 byte-exact 回滚到部署前。
+- **跨平台对等**:Windows GUI 与 Mac/Linux shell 部署完全相同的 bundle。
+- **Codex**:恢复 `model_instructions_file`;升级 system-prompt(分层工作流 + 中途弹窗干扰无视条款)。
+
+> 版本线说明:cc-unlock 产品线版本重置为 v1.0-stable → v2.0-stable。下方 **v8.0.0 及更早**是原提示词内容工程线的历史记录,不是回退。
+
+---
+
 ## v8.0.0 — Zero-framing Direct Operation (2026-07-15)
 
 ### Overview

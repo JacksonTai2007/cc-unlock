@@ -1,4 +1,4 @@
-v8.0.7
+v2.0-stable
 
 ## User profile
 

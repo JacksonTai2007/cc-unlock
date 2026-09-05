@@ -6,6 +6,9 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
+const backup = require('./backup-core');
+
+const stateRootFor = (wsPath) => path.join(wsPath, '.claude', '.cc-unlock-state');
 
 // ---------------- Paths ----------------
 const HOME = os.homedir();
@@ -28,7 +31,7 @@ const AGENTS_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'agents') : path.join(
 const RULES_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'rules') : path.join(APP, 'bundle', 'rules');
 const AGENT_MEMORY_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'agent-memory') : path.join(APP, 'bundle', 'agent-memory');
 
-const SKILL_DIRS = ['loop-sec', 'android-reverse', 'web-reverse', 'win-reverse'];
+const SKILL_DIRS = ['sec-forge', 'jit-harness'];
 const INDEX_FILE = 'MEMORY.md';
 const RULES_FILE = 'cc-unlock-persona.md';
 
@@ -104,6 +107,12 @@ function deployWorkspace(wsPath, opts, log) {
   const memDir = memoryDirFor(projName);
   log('head', `部署: ${wsPath}`);
   ensureDir(memDir);
+
+  // 备份原始状态一次（防用户自有 CLAUDE.md / 记忆索引被覆盖，之后可一键恢复）
+  const sr = stateRootFor(wsPath);
+  for (const f of [path.join(wsPath, 'CLAUDE.md'), path.join(memDir, INDEX_FILE)]) {
+    if (backup.saveOnce(sr, f)) log('info', `已备份原始 ${path.basename(f)}`);
+  }
 
   let ok = 0;
   for (const f of memoryBundleFiles()) {
@@ -196,6 +205,27 @@ function verifyWorkspace(wsPath, log) {
   log(amOk === amWant.length ? 'ok' : 'warn', `agent-memory ${amOk}/${amWant.length} (子agent many-shot)`);
 }
 
+// Put a workspace back to its pre-cc-unlock state (restore original CLAUDE.md/MEMORY.md, remove additions).
+function restoreWorkspace(wsPath, log) {
+  const sr = stateRootFor(wsPath);
+  log('head', `恢复原始: ${wsPath}`);
+  if (!backup.hasState(sr)) { log('warn', '该工作区没有备份记录'); return { ok: false }; }
+  const results = backup.restoreAll(sr, log);
+  const memDir = memoryDirFor(projectName(wsPath));
+  for (const f of memoryBundleFiles()) { const p = path.join(memDir, f); if (!results.some((r) => r.path === p)) rmrf(p); }
+  for (const d of SKILL_DIRS) rmrf(path.join(wsPath, '.claude', 'skills', d));
+  for (const f of agentBundleFiles()) rmrf(path.join(wsPath, '.claude', 'agents', f));
+  rmrf(path.join(wsPath, '.claude', 'rules', RULES_FILE));
+  for (const n of agentNames()) rmrf(path.join(wsPath, '.claude', 'agent-memory', n));
+  // 清掉因此变空的 cc-unlock 目录（保留仍有用户内容的）
+  for (const d of ['agents', 'rules', 'agent-memory', 'skills']) {
+    const dir = path.join(wsPath, '.claude', d);
+    try { if (fs.readdirSync(dir).length === 0) fs.rmdirSync(dir); } catch {}
+  }
+  log('done', '已恢复到部署前状态。请重启 Claude Code。');
+  return { ok: true, results };
+}
+
 function deploySettings(log) {
   const src = readJson(path.join(CONFIG_BUNDLE, 'settings.json'));
   if (!src) return;
@@ -236,12 +266,13 @@ function listWorkspaces() {
     const memDir = path.join(PROJECTS, projName, 'memory');
     const deployed = exists(path.join(memDir, INDEX_FILE)) || wantMem.some((f) => exists(path.join(memDir, f)));
     const wsPath = resolveWorkspace(projName);
-    let subagent = false;
+    let subagent = false, hasBackup = false;
     if (wsPath) {
       const ad = path.join(wsPath, '.claude', 'agents');
       subagent = agentBundleFiles().some((f) => exists(path.join(ad, f)));
+      hasBackup = backup.hasState(stateRootFor(wsPath));
     }
-    out.push({ name: projName, path: wsPath || projName, resolved: !!wsPath, deployed, subagent });
+    out.push({ name: projName, path: wsPath || projName, resolved: !!wsPath, deployed, subagent, hasBackup });
   }
   out.sort((a, b) => (b.deployed - a.deployed) || a.name.localeCompare(b.name));
   return out;
@@ -278,6 +309,6 @@ module.exports = {
   PATHS, SKILL_DIRS,
   exists, projectName, resolveWorkspace,
   memoryBundleFiles, agentBundleFiles,
-  deployWorkspace, uninstallWorkspace, verifyWorkspace, deploySettings,
+  deployWorkspace, uninstallWorkspace, verifyWorkspace, restoreWorkspace, deploySettings,
   detect, listWorkspaces, resolveTargets,
 };

@@ -1,5 +1,5 @@
 #!/bin/bash
-# cc-unlock v8.0.7 — Linux uninstall
+# cc-unlock v2.0-stable — Linux uninstall
 #
 # 用法 | Usage:
 #   ./linux-uninstall.sh                      交互菜单 | interactive menu

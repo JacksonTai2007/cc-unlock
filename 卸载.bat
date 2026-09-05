@@ -1,5 +1,5 @@
 @echo off
 chcp 65001 >nul 2>&1
-title cc-unlock v8.0.7 — Uninstall
+title cc-unlock v2.0-stable — Uninstall
 powershell -ExecutionPolicy Bypass -File "%~dp0cc-unlock-files\deploy.ps1" -Uninstall -All
 pause

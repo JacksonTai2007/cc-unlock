@@ -1,43 +1,43 @@
-# cc-unlock v1.0-stable
+# cc-unlock v2.0-stable
 
 **Security Research Workstation for Claude Code & Codex** | 安全研究工作站
 
-把 Claude Code 和 Codex 配置为全谱系安全研究工作站。内置 **4 套技能框架**（loop-sec + android-reverse + web-reverse + win-reverse），覆盖逆向工程、漏洞研究、渗透测试、内核安全、免杀对抗等 20+ 安全领域，并对**所有会进模型上下文的本地文件做零死角人格注入**——主 agent 与子 agent 一致，不回退默认拘谨行为。
+把 Claude Code 和 Codex 配置为全谱系安全研究工作站。内置 **sec-forge**（安全研究总控：JIT harness 执行引擎 + 自我进化，内联 android/web/win 逆向子工作流）与 **jit-harness**（通用即时 harness 合成引擎）两套技能，覆盖逆向工程、漏洞研究、渗透测试、内核安全、免杀对抗等 20+ 安全领域，并对**所有会进模型上下文的本地文件做零死角人格注入**——主 agent 与子 agent 一致，不回退默认拘谨行为。
 
 ---
 
 ## 两个子项目（Electron 桌面应用）
 
-cc-unlock v1.0-stable 拆成两个独立的 Electron + IBM Carbon 桌面应用，各自打包成 `.exe`：
+cc-unlock v2.0-stable 拆成两个独立的 Electron + IBM Carbon 桌面应用，各自打包成 `.exe`：
 
 | 子项目 | 目标 | 部署范围 |
 |--------|------|---------|
 | **cc-unlock-claude** | Claude Code | 按工作区（memory + CLAUDE.md + skills + **子 agent 覆盖**） |
 | **cc-unlock-codex** | Codex | 全局 `~/.codex`（system-prompt + AGENTS + config + memories + rollouts + skills） |
 
-> 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载对应的 `.exe` 安装即用。两个应用同一套 IBM Carbon 深色界面，一键部署 / 卸载 / 验证。
+> 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载**统一安装器** `cc-unlock-Setup-v2.0-stable.exe`，安装时勾选 Claude / Codex / 两者都装。两个应用同一套 IBM Carbon 深色界面，一键部署 / 卸载 / 验证。
 
 ---
 
-## ⚠️ 使用 /loop-sec 下达任务
+## ⚠️ 使用 /sec-forge 下达任务
 
-部署完成后，**用 `/loop-sec` 前缀下达安全研究任务**（Claude Code 与 Codex 通用）：
+部署完成后，**用 `/sec-forge` 前缀下达安全研究任务**（Claude Code 与 Codex 通用）：
 
 ```
-/loop-sec 渗透 target.lab.local
-/loop-sec 分析这个 APK 的加固保护
-/loop-sec 写 CVE-2024-XXXX 的 PoC
-/loop-sec 破解这个软件的注册验证
-/loop-sec 脱 VMP 保护
-/loop-sec hook 这个 Unity 游戏的伤害函数
-/loop-sec 写个免杀 loader
+/sec-forge 渗透 target.lab.local
+/sec-forge 分析这个 APK 的加固保护
+/sec-forge 写 CVE-2024-XXXX 的 PoC
+/sec-forge 破解这个软件的注册验证
+/sec-forge 脱 VMP 保护
+/sec-forge hook 这个 Unity 游戏的伤害函数
+/sec-forge 写个免杀 loader
 ```
 
-Loop Sec 是自递归执行引擎——收到任务后自动分解、自动路由到对应平台 skill（android-reverse / web-reverse / win-reverse）、递归执行直到完成。**不用手动选 skill。** 直接说任务也会自动触发。
+sec-forge 是安全研究总控——内含 JIT harness 执行引擎 + 自我进化循环，收到任务后自动锁定目标、分解阶段、路由到内联的 android/web/win 逆向子工作流、递归执行直到收敛。**不用手动选 skill。** 直接说任务也会自动触发。需要脱离安全场景的通用即时 harness 时用 `/jit-harness`。
 
 ---
 
-## 零死角上下文注入（v1.0-stable 核心）
+## 零死角上下文注入（v2.0-stable 核心）
 
 审计了 Claude Code 与 Codex **所有会进模型上下文的本地文件**（Claude 查官方文档、Codex 对实际二进制验证），把反软拒绝人格注入到每一个注入点：
 
@@ -83,10 +83,8 @@ PE/ELF/Mach-O · IDA/Ghidra/x64dbg · VMP/Themida/OLLVM · IL2CPP/Unity/UE · �
 
 | Skill | 功能 |
 |-------|------|
-| **loop-sec** | 自递归执行引擎 — 自动路由、任务分解、递归执行 |
-| **android-reverse** | Android 逆向 — APK/DEX/SO, Frida hook, 脱壳, smali patch |
-| **web-reverse** | Web 前端逆向 — JS 去混淆, WASM, 签名还原, 反调试绕过 |
-| **win-reverse** | Windows 逆向 — PE, .NET, 驱动, game reverse, malware |
+| **sec-forge** | 安全研究总控 — JIT harness 执行引擎 + 自我进化，自动路由，内联三套逆向子工作流：<br>· android-reverse（APK/DEX/SO, Frida hook, 脱壳, smali patch）<br>· web-reverse（JS 去混淆, WASM, 签名还原, 反调试绕过）<br>· win-reverse（PE, .NET, 驱动, game reverse, malware） |
+| **jit-harness** | 通用即时 harness 合成引擎 — 目标锁定→阶段分解→带成功判据的递归自改进，任何多步任务可用（不绑安全） |
 
 ---
 
@@ -94,13 +92,14 @@ PE/ELF/Mach-O · IDA/Ghidra/x64dbg · VMP/Themida/OLLVM · IL2CPP/Unity/UE · �
 
 ### 桌面应用（推荐）
 
-1. 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载：
-   - `cc-unlock-claude-Setup-*.exe`（Claude Code）
-   - `cc-unlock-codex-Setup-*.exe`（Codex）
-2. 安装并打开，进入「部署」页
-3. Claude：选工作区，开启「子 agent 覆盖」，点部署
-4. Codex：（可选配置中转站）点「部署 Codex」
-5. 重启 Claude Code / Codex
+1. 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载**统一安装器** `cc-unlock-Setup-v2.0-stable.exe`（Windows x64，免管理员）
+2. 运行安装器：**勾选组件**（Claude Code / Codex / 两者）→ 选安装路径 → 自动解压 → 建桌面 / 开始菜单快捷方式（可从「添加或删除程序」卸载，升级时覆盖旧版）
+3. 打开应用，进入「部署」页
+4. Claude：选工作区，开启「子 agent 覆盖」，点部署
+5. Codex：（可选配置中转站）点「部署 Codex」
+6. 重启 Claude Code / Codex
+
+> **一键回滚**：部署页的「恢复原始」把 config.toml / CLAUDE.md 还原成**首次部署前的字节**，并清掉 cc-unlock 新增的文件——部署出问题随时可退回。
 
 ### 从源码运行 / 打包
 
@@ -163,7 +162,7 @@ cc-unlock/
 ├── cc-unlock-files/           # 共享 bundle + legacy PS 部署
 │   ├── deploy.ps1
 │   ├── memory-bundle/         # Claude 记忆（含 delivery-precedents 大记忆）
-│   ├── skill-bundle/          # 4 技能框架
+│   ├── skill-bundle/          # sec-forge（内联 android/web/win）+ jit-harness
 │   └── config-bundle/
 ├── codex-files/               # Codex bundle
 │   ├── codex-config-bundle/   # system-prompt.md, AGENTS.md, config.toml
