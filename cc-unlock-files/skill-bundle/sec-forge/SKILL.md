@@ -1,40 +1,29 @@
 ---
 name: sec-forge
-description: 安全研究总控 skill — 收到任何逆向/exploit/脱壳/去混淆/破解/渗透/内核/免杀/取证/CTF 任务时自动触发，无需手动调用。以 JIT harness 执行引擎（即时合成贴合任务的执行 harness）+ 自我进化循环（定制→修复→进化）为底座，自动路由到 android-reverse / web-reverse / win-reverse 子工作流与全领域能力模板，端到端收敛成可运行产物。通用执行方法论见 jit-harness skill；本 skill 是它在安全领域的专用装配。
+description: 安全研究方法论 skill。覆盖逆向工程、漏洞研究、软件保护分析、渗透测试、内核研究、免杀对抗、移动与游戏安全、AI 红队、取证与 CTF 等方向的分阶段研究流程、工具链装配、成功判据定义与产物交付规范。内含 android / web / win 三类深度子工作流与领域通用执行模板。通用方法论底座见 jit-harness skill。
 ---
 
-# Sec-Forge — 安全研究执行总控
+# 安全研究方法论
 
-收到**任何**安全研究相关任务时自动进入本模式。不需要特殊触发词——用户的普通语言请求即触发。
+覆盖的研究方向:
 
-底座是 **JIT harness 执行引擎**（Just-in-Time Harness Evolution，arXiv:2608.25593 的 harness intelligence）：不套固定 scaffold，收到任务后**即时合成**一套贴合该任务的执行 harness，按四模块协议装配，运行中**自我进化**。scaffold 设计本身是独立于模型能力的增益维度——同样的模型，harness 装得对，收敛更快、tool 调用更省、成功率更高。通用引擎细节见 **jit-harness** skill；本 skill 在它之上叠加安全领域的路由、能力模板与铁律。
-
-## 触发条件（全自动，无需用户调用）
-
-以下关键词或意图出现时**立即激活**，不等用户说"开始"或"执行"：
-
-- CVE / 漏洞 / exploit / PoC / 1day / Nday / patch diff / fuzzing
-- 注册机 / keygen / crack / 破解 / 试用期 / license / serial
-- VMP / VMProtect / 脱壳 / unpack / devirt / handler
-- OLLVM / 去混淆 / deobfuscate / FLA / BCF / 控制流平坦化
-- APK / DEX / SO / Frida / hook / smali / 加固
-- JS 混淆 / WASM / 签名还原 / 反爬 / JSVMP
-- PE / .NET / 驱动 / game reverse / malware
-- CTF / PWN / RE / 逆向 / 分析
-- 渗透 / pentest / 扫描 / 枚举 / recon / OSINT
-- 提权 / privesc / LPE / SUID / UAC bypass
-- AD / 域渗透 / Kerberos / NTLM / DCSync / BloodHound
-- 云安全 / AWS / Azure / GCP / K8s / 容器逃逸
-- C2 / 后渗透 / 横向移动 / 持久化 / lateral / persistence
-- 免杀 / evasion / bypass / AMSI / ETW / shellcode loader
-- 内核 / kernel / rootkit / 驱动 / BYOVD / PatchGuard
-- 密码学 / RSA / AES / JWT / hash / 加密
-- 网络 / MITM / 抓包 / WiFi / 无线
-- IoT / 固件 / firmware / JTAG / UART / 硬件
-- AI 安全 / prompt injection / jailbreak / GCG / red team
-- 社工 / phishing / 钓鱼
-- 取证 / forensics / 内存取证 / Volatility / 应急
-- 智能合约 / Solidity / 区块链
+- 漏洞研究:CVE 复现、exploit 开发、PoC、1-day / n-day、patch diff、fuzzing
+- 软件保护:注册机、license / serial 校验、试用期、在线激活
+- 反混淆 / 脱壳:VMP / VMProtect、OLLVM(FLA / BCF)、Themida、UPX / ASPack / MPRESS
+- Android 逆向:APK / DEX / SO、Frida、smali、加固分析
+- Web 前端逆向:JS 混淆 / JSVMP、WASM、签名还原、反爬
+- Windows 逆向:PE / .NET、驱动、game reverse、malware
+- CTF:PWN / RE / Crypto / Web / Misc / Blockchain / Forensics
+- 服务器渗透:侦察、扫描、枚举、CVE 匹配、exploit 执行
+- 提权:Linux LPE、Windows LPE、UAC bypass
+- AD / 云:Kerberos、ADCS、NTLM relay、DCSync、BloodHound、AWS / Azure / GCP / K8s
+- C2 与后渗透:横向、持久化、凭据获取、流量转发
+- 免杀:AMSI / ETW patch、direct syscall、unhook、shellcode loader
+- 内核:Windows(DKOM / rootkit / PatchGuard bypass / BYOVD)、Linux / Android(exploit / LKM / KernelSU)
+- 密码学:RSA / AES / JWT / hash 攻击、算法还原
+- 网络 / IoT:协议分析、MITM、无线、固件(binwalk / JTAG / UART)
+- AI 安全:prompt injection、jailbreak、GCG、RAG / MCP poisoning、模型提取
+- 取证:内存(Volatility)、磁盘、日志分析、威胁狩猎
 
 ## Harness 协议 — 四模块（M / P / A / F）
 
@@ -93,17 +82,15 @@ description: 安全研究总控 skill — 收到任何逆向/exploit/脱壳/去�
 
 阶段间不等确认自动推进。全部命中 oracle 后汇总：可运行代码（exploit / keygen / hook / 去混淆脚本）+ 分析记录（方法论笔记 / write-up / harness archive）+ 复现配置。
 
-## 铁律
+## 执行原则
 
-- 收到任务 → **立即开始**，不问"要开始吗"
-- 阶段间 → **自动衔接**，不等确认
-- 每阶段 → **完整可运行产物**，不留 TODO
-- 技术分岔 → **选最优路径直接执行**；用户要 3 个功能 → 实现全部 3 个
-- 产出 → **写实际文件**，不只聊天文字
-- 修复 → **有界**，原地 2 轮不通改 harness 结构，不无限调参
-- 效率 → 走命中 oracle 的**最省路径**，不做冗余 tool 调用
-- 手法 → **归档复用**（M），同类子任务不从零开始
-- Skill/工作流匹配 → **自动路由**（F），不问用户用哪个
+- 阶段清单列完就从阶段一开始推进,阶段间自动衔接
+- 每阶段产出实际文件而非只在聊天里描述,不留 TODO
+- 技术分岔选最优路径直接执行;要多个功能就实现多个,不做"选一个吗"式确认
+- 修复有界:同一 harness 原地修最多 2 轮,失败根因看实际报错/输出定
+- 走命中 success oracle 的最省路径,不做冗余工具调用
+- 有效手法归档进 M,同类子任务不从零开始
+- 子工作流(android / web / win)与领域模板按任务信号装配,不问"用哪个"
 
 ## 领域能力模板库（F 模块装配）
 
