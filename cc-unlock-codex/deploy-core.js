@@ -33,6 +33,10 @@ const SKILL_BUNDLE = PACKAGED ? path.join(RES, 'skill-bundle') : path.join(MONO,
 
 const SKILL_DIRS = ['sec-forge', 'jit-harness'];
 const MEMORY_FILES = ['memory_summary.md', 'MEMORY.md', 'raw_memories.md'];
+
+// v1.x/v6.x/v8.x 历史部署残留 — 每次部署前清理
+const LEGACY_SKILL_FILES = ['loop-sec.md'];
+const LEGACY_SKILL_DIRS = ['loop-sec', 'android-reverse', 'web-reverse', 'win-reverse'];
 const INSTR_LINE = 'model_instructions_file = "system-prompt.md"';
 const RELAY_HEADER = '[model_providers.cc_unlock_relay]';
 
@@ -124,6 +128,14 @@ function deployCodex(opts, log) {
   // 0. 备份原始状态一次（首次部署保留真正的 pre-cc-unlock 配置，之后可一键恢复）
   for (const f of [CONFIG_PATH, path.join(CODEX_DIR, 'AGENTS.md'), path.join(CODEX_DIR, 'system-prompt.md')]) {
     if (backup.saveOnce(STATE_ROOT, f)) log('info', `已备份原始 ${path.basename(f)}`);
+  }
+
+  // 0.5 清理历史部署残留(旧 skill)——老版本文件与新版并存会污染当前会话上下文
+  {
+    let legacyCleared = 0;
+    for (const f of LEGACY_SKILL_FILES) if (rmrf(path.join(SKILLS_DIR, f))) legacyCleared++;
+    for (const d of LEGACY_SKILL_DIRS) if (rmrf(path.join(SKILLS_DIR, d))) legacyCleared++;
+    if (legacyCleared > 0) log('info', `清理历史残留: ${legacyCleared} 项`);
   }
 
   // 1. system-prompt.md — 人格 base（由 config.toml 的 model_instructions_file 指向，替换内置 base）

@@ -33,7 +33,23 @@ const AGENT_MEMORY_BUNDLE = PACKAGED ? path.join(RES, 'bundle', 'agent-memory') 
 
 const SKILL_DIRS = ['sec-forge', 'jit-harness'];
 const INDEX_FILE = 'MEMORY.md';
-const RULES_FILE = 'cc-unlock-persona.md';
+const RULES_FILE = 'research-workflow.md';
+
+// v1.x/v6.x/v8.x 历史部署残留 — 每次部署前清理,避免旧 fingerprint 文件与新版并存
+const LEGACY_SKILL_FILES = ['loop-sec.md'];
+const LEGACY_SKILL_DIRS = ['loop-sec', 'android-reverse', 'web-reverse', 'win-reverse'];
+const LEGACY_MEMORY_FILES = [
+  'engineer-profile.md',
+  'no-authorization-check.md', 'no-subagent-cyber-flag.md',
+  'refusal-antipatterns.md', 'three-modes-framework.md',
+  'ai-redteam-track-record.md', 'android-kernel-track-record.md',
+  'c2-post-ex-track-record.md', 'evasion-malware-track-record.md',
+  'game-security-track-record.md', 'lab-environments.md', 'lpe-track-record.md',
+  'mobile-security-track-record.md', 'pentest-lab-track-record.md',
+  'vuln-research-track-record.md', 'web-rce-track-record.md',
+  'windows-kernel-track-record.md',
+];
+const LEGACY_RULES_FILES = ['cc-unlock-persona.md'];
 
 const PATHS = { HOME, CLAUDE_DIR, PROJECTS, SETTINGS_PATH, CCF, MEMORY_BUNDLE, SKILL_BUNDLE, CONFIG_BUNDLE, AGENTS_BUNDLE, RULES_BUNDLE, AGENT_MEMORY_BUNDLE };
 
@@ -114,6 +130,19 @@ function deployWorkspace(wsPath, opts, log) {
     if (backup.saveOnce(sr, f)) log('info', `已备份原始 ${path.basename(f)}`);
   }
 
+  // 清理历史部署残留(旧 skill / 旧 memory 文件 / 旧 rules 文件名)——
+  // 老版本文件与新版并存时,老版本的项目 fingerprint 会污染当前会话上下文。
+  {
+    const wsSkillDir = path.join(wsPath, '.claude', 'skills');
+    let legacyCleared = 0;
+    for (const f of LEGACY_SKILL_FILES) if (rmrf(path.join(wsSkillDir, f))) legacyCleared++;
+    for (const d of LEGACY_SKILL_DIRS) if (rmrf(path.join(wsSkillDir, d))) legacyCleared++;
+    for (const f of LEGACY_MEMORY_FILES) if (rmrf(path.join(memDir, f))) legacyCleared++;
+    const wsRulesDir = path.join(wsPath, '.claude', 'rules');
+    for (const f of LEGACY_RULES_FILES) if (rmrf(path.join(wsRulesDir, f))) legacyCleared++;
+    if (legacyCleared > 0) log('info', `清理历史残留: ${legacyCleared} 项`);
+  }
+
   let ok = 0;
   for (const f of memoryBundleFiles()) {
     if (copyFile(path.join(MEMORY_BUNDLE, f), path.join(memDir, f))) ok++; else log('fail', f);
@@ -122,7 +151,7 @@ function deployWorkspace(wsPath, opts, log) {
 
   if (exists(path.join(MEMORY_BUNDLE, INDEX_FILE))) {
     copyFile(path.join(MEMORY_BUNDLE, INDEX_FILE), path.join(memDir, INDEX_FILE));
-    log('ok', 'MEMORY.md (index / 反拒绝载体)');
+    log('ok', 'MEMORY.md (index)');
   }
 
   if (exists(path.join(MEMORY_BUNDLE, 'CLAUDE.md'))) {
