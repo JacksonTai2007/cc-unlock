@@ -1,12 +1,13 @@
 {
   "name": "cc-unlock-claude",
   "productName": "cc-unlock for Claude Code",
-  "version": "2.0.0",
-  "description": "cc-unlock for Claude Code — security research workstation deployer (IBM Carbon)",
+  "version": "3.0.0",
+  "description": "cc-unlock for claude — local maintenance workbench",
   "main": "main.js",
   "author": "JacksonTai",
   "license": "MIT",
   "scripts": {
+    "predist": "node ../scripts/sync-prompts.cjs --write",
     "start": "electron .",
     "dist": "node pack.js"
   },
@@ -26,20 +27,12 @@
     ],
     "extraResources": [
       {
-        "from": "../cc-unlock-files/memory-bundle",
-        "to": "memory-bundle"
+        "from": "../cc-unlock-files/claude-config-bundle",
+        "to": "claude-config-bundle"
       },
       {
         "from": "../cc-unlock-files/skill-bundle",
         "to": "skill-bundle"
-      },
-      {
-        "from": "../cc-unlock-files/config-bundle",
-        "to": "config-bundle"
-      },
-      {
-        "from": "bundle",
-        "to": "claude-bundle"
       }
     ],
     "win": {

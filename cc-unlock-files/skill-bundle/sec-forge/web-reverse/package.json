@@ -1,7 +1,7 @@
 {
   "name": "web-reverse-skill-framework",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "web-reverse 新方案：以验收优先、交付梯度治理、browser-controlled reuse 与外部搜索纠偏（mcp__web-search__search_bing）为核心的 Web 前端逆向 SKILL 仓库",
   "engines": {
     "node": ">=20"

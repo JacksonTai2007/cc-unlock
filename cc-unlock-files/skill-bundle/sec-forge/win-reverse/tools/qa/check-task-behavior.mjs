@@ -123,6 +123,11 @@ function scenarioTaskLifecycle(tempRoot) {
   const syncResult = runNode(taskSyncScript, ["behavior-start"], workspaceRoot);
   ensureOk(syncResult, "task-sync");
 
+  // Initialization does not invent the user's success oracle: bind it before advancement.
+  const boundTask = readJson(path.join(taskDir, "task.json"));
+  boundTask.completionCriteria = ["task-advance returns a ready-to-continue action for the supplied synthetic sample"];
+  writeJson(path.join(taskDir, "task.json"), boundTask);
+
   const advanceResult = runNode(taskAdvanceScript, ["behavior-start", "--json"], workspaceRoot);
   ensureOk(advanceResult, "task-advance");
   const advancePayload = JSON.parse(advanceResult.stdout);
@@ -436,6 +441,11 @@ function scenarioWebShellTopicAutoAdvance(tempRoot) {
   const ep2 = (routeState.entrypoints || []).find((entrypoint) => entrypoint.id === "EP-002");
   assert(ep2?.status === "SUCCESS", "EP-002 should be marked SUCCESS after meaningful web-shell detection");
 
+  const boundTask = readJson(path.join(taskDir, "task.json"));
+  boundTask.TARGET = path.join(workspaceRoot, "synthetic-electron-sample");
+  boundTask.objective = "Infer the next Electron resource inspection action from the supplied synthetic fingerprint";
+  boundTask.completionCriteria = ["The suggested action names app.asar and the config-recovery route"];
+  writeJson(path.join(taskDir, "task.json"), boundTask);
   const advanceResult = runNode(taskAdvanceScript, ["web-shell-auto", "--json"], workspaceRoot);
   ensureOk(advanceResult, "task-advance(web-shell-triage)");
   const payload = JSON.parse(advanceResult.stdout);

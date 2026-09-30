@@ -1,7 +1,7 @@
 {
   "name": "win-reverse-skill-framework",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "win-reverse 用户交付版的本地检查与任务闭环命令",
   "engines": {
     "node": ">=20"
@@ -26,6 +26,7 @@
     "task:sync": "node tools/task/task-sync.mjs",
     "task:advance": "node tools/task/task-advance.mjs",
     "task:web-shell-tech": "node tools/task/detect-web-shell-tech.mjs",
-    "task:close": "node tools/task/task-close.mjs"
+    "task:close": "node tools/task/task-close.mjs",
+    "check:task-advance-budget": "node tools/qa/check-task-advance-budget.mjs"
   }
 }

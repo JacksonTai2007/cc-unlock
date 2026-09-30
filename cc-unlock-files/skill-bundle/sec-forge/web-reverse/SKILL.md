@@ -28,7 +28,7 @@ description: Web 前端逆向：还原签名/协议/加解密、请求参数与 
 
 1. **先初始化再动手**：任何分析 / 浏览器操作 / 写文件前，先在**当前项目目录**执行
    `node $TOOL_DIR/task-boot.mjs <task-id>`（幂等：有任务则续跑，无则新建）。
-   `$TOOL_DIR` = 本 skill 包内 `tools/task/` 的绝对路径，**首次操作前先解析一次**（解析细则见 `docs/reference/tooling-degradation.md` Step 0），本文件后续所有 `node $TOOL_DIR/...` 调用都复用此次解析结果。`task-boot.mjs` 是唯一开机入口，内部已串起 `task-init`（新建）/ resume → `task-sync` → `task-advance`，无需再逐个手调。
+   `$TOOL_DIR` = 本 skill 包内 `tools/task/` 的绝对路径；**优先使用宿主技能目录给出的实际 `SKILL.md` 路径**，不从项目 cwd 向上猜测技能位置。只在首次使用或路径失效时解析（见 `docs/reference/tooling-degradation.md` Step 0），后续调用复用已确认路径及预检结果。`task-boot.mjs` 通过自身 `import.meta.url` 定位工具，内部已串起 `task-init`（新建）/ resume → `task-sync` → `task-advance`，无需重复手调或每轮重测环境。
    **每个 workspace 只在首个动作前 boot 一次**：续跑时直接按 task-advance 输出的 `nextExecutableAction` 执行，不要每轮重复 boot。boot 的 `ready` 输出会打印**产物写入锚点的绝对路径**（`run/` / `state/` / `report.md`），照它写。
    跳过它产物会散落根目录、状态无法跨轮恢复。Windows 路径用正斜杠。细则见 `docs/reference/startup-gate-procedures.md`。
 2. **产物落 task 目录**：本任务产生的**每个**文件（脚本/样本/中间数据/报告）都落在 cwd 下
@@ -88,9 +88,9 @@ description: Web 前端逆向：还原签名/协议/加解密、请求参数与 
 
 Hook 语义优先级（高 → 低）：`request-use` → `sign/decrypt-call` → `payload/clear boundary` → `dispatch` → `reader` → `writer` → `bridge/carrier` → 低层 DOM/storage/append/script surface。优先命中**高语义 hook 面**；在 `cookie setter → cookieStore → script.src → appendChild` 这类低层 surface 间切换**不算真正 pivot**。每次 hook 都自问：这条 hook 如何直接缩短到**请求验收边界**。同一家族 hook 连续 2 轮没拿到新可执行证据就换语义层或换 entrypoint。
 
-**工具无关落地**：以上是「钩哪一层」的方法论，与具体浏览器 MCP 无关。把语义层落到你手上工具（chrome-devtools / js-reverse / stealth-browser / 其它 CDP）的具体能力，先做工具探测、再查能力映射表 `references/browser-mcp-capability-map.md`。**纪律：sign-call 取证用「钩函数抓入参/返回」能力，不要用反复盲注 `evaluate_script` 代替**——后者是缺工具时的退化打法。
+**工具无关落地**：以上是「钩哪一层」的方法论，与具体浏览器 MCP 无关。先检查宿主当前暴露的工具和文档，再按 `references/browser-mcp-capability-map.md` 映射到实有能力，包含 `mcp__cua_repl`；旧 MCP 名称和 API 示例不是可调用证明。没有文档确认的函数、参数、CDP 通道和任意页面脚本权限不得猜测调用。sign-call 取证优先用已确认的函数观测能力；缺少时选择同一会话允许的最小替代路径，不反复盲注。
 
-**浏览器 MCP 锁定（防工具漂移，机械约束）**：用户显式指定某浏览器 MCP（或你按反检测优先级选定）后，**整条任务只用这一个**。初始化时锁定：`node $TOOL_DIR/task-init.mjs <task-id> --browser-mcp=<stealth-browser|js-reverse|chrome-devtools>`。锁定后 `task-advance` 每轮打印 `execution.discipline.rule=pinned-browser-mcp=<name>`。某能力当前工具无原生时**走能力表该列的 fallback（如经 `execute_cdp_command`），禁止为单个能力切到别的浏览器 MCP**——换 MCP=换浏览器实例=风控指纹变化，会丢会话或拿到假挑战污染整条逆向。确需换工具先向用户确认并经 `task-init --browser-mcp` 重锁，绝不静默切换。判读能力表见 `references/browser-mcp-capability-map.md` Step 0.5。
+**浏览器 MCP 锁定（防工具漂移，机械约束）**：沿用用户指定的工具、浏览器和标签页；首次 boot 可带 `--browser-mcp=<actual-server-name>`（如 `cua-repl`），不要为登记名称重新初始化既有任务。锁定后 `task-advance` 每轮打印 `execution.discipline.rule=pinned-browser-mcp=<name>`。能力缺失时只走当前工具文档允许的 fallback，不因旧表列出某 API 就假定存在。保留 tab/session 身份，不静默换实例或增加目标；必须改变用户指定表面或影响登录态时才聚焦确认。判读见 `references/browser-mcp-capability-map.md` Step 0.5。
 
 **假设先行 + 同疑点 3 次上限（LLM 高发失败模式硬规则）**：Hook/打印是为了**理解算法**，不是"撞答案"。每次 Hook 前先写下**假设**（"我预期看到 X，它能区分 A/B 两种可能"）；**同一疑点尝试上限 3 次**，3 次未推进认知就停下、回退重判保护类型/换语义层，而非继续刷 dump。把成百上千次 Hook 当进度 = 失败。这条与下文「停损」的轮次趋势规则互补：一个管**单疑点次数上限**，一个管**跨轮无新证据趋势**。"我 Hook 到了输出值"不是成功，唯一成功判据是验收闸门跑通（见「算法自检与服务端验收」）。
 
@@ -114,7 +114,7 @@ Hook 语义优先级（高 → 低）：`request-use` → `sign/decrypt-call` �
 
 1. 抓包建图谱，确认密文参数名、字符集/长度（hex? base64? 定长?）
 2. XHR/Fetch 断点；或 Hook `XMLHttpRequest.prototype.open`/`fetch`/`setRequestHeader`
-3. `get_request_initiator`（MCP）或调用栈面板拿生成调用链
+3. 已确认工具提供的 request initiator 能力或调用栈面板拿生成调用链
 4. 全局搜参数名/`encrypt`/`sign`/`CryptoJS`/特征常量
 5. 断在 `send` 逐帧上溯到赋值行（混淆先 AST 还原再断点）
 6. 用日志断点（`console.log(arg)`）代替普通断点，避免影响执行流 + 规避计时型反调试

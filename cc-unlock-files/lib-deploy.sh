@@ -1,273 +1,83 @@
 #!/bin/bash
-# cc-unlock v2.0-stable — shared deploy/uninstall library for macOS & Linux
-# 与 Windows deploy.ps1 功能对齐的共享实现，供 mac/linux 的 install/uninstall 封装脚本调用。
-# Shared implementation mirroring Windows deploy.ps1, sourced by the mac/linux wrappers.
-#
-# 调用方在 source 本文件前必须设置 | Caller must set before sourcing:
-#   MEMORY_BUNDLE          memory-bundle 目录（Claude 记忆 + CLAUDE.md）
-#   CONFIG_BUNDLE          config-bundle 目录（settings.json）
-#   SKILL_BUNDLE           skill-bundle 目录（sec-forge / jit-harness）
-#   CODEX_BUNDLE           codex-config-bundle 目录（system-prompt.md / AGENTS.md）
-#   CODEX_MEMORY_BUNDLE    codex-memory-bundle 目录（memory_summary/MEMORY/raw_memories）
-#   CODEX_ROLLOUT_BUNDLE   rollout_summaries 目录
-# 可选（不设则按 lib 相对位置自动推断到 cc-unlock-claude/bundle/）| Optional:
-#   AGENTS_BUNDLE RULES_BUNDLE AGENT_MEMORY_BUNDLE   子 agent 覆盖 bundle
-#   SUBAGENT=0             关闭子 agent 覆盖（默认 1 开启）
-# 然后调用 | Then call:
-#   cc_dispatch install|uninstall "$@"
-#
-# 注意：不使用 set -e。所有失败路径显式处理，避免单个非零返回值导致 Codex 段被跳过。
-# Note: deliberately no `set -e`. Every failure is handled explicitly so a single
-# non-zero return never skips the Codex deployment step (the v5.0.x bug).
-
+# cc-unlock v2.4-alpha — native Claude Desktop + workspace CLAUDE.md.
+# Wrappers may supply SKILL_BUNDLE and CODEX_BUNDLE. Legacy MEMORY_BUNDLE,
+# SUBAGENT and agent/rule bundles are intentionally ignored, never executed.
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+: "${CLAUDE_BUNDLE:=$_LIB_DIR/claude-config-bundle}"
+: "${SKILL_BUNDLE:=$_LIB_DIR/skill-bundle}"
+: "${CODEX_BUNDLE:=$_LIB_DIR/../codex-files/codex-config-bundle}"
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_PROJECTS="$CLAUDE_DIR/projects"
 CODEX_DIR="$HOME/.codex"
-# Sentinel: learner-profile.md is deployed first and used as the "already installed" marker.
-MEMORY_SENTINEL="learner-profile.md"
-INDEX_FILE="MEMORY.md"
-CLAUDE_MD="CLAUDE.md"
-MARKER="cc-unlock"
-SETTINGS_MARKER1="bypassPermissions"
-SETTINGS_MARKER2="skipDangerousModePermissionPrompt"
-
-# v2.0-stable skill set (sec-forge master + jit-harness general engine). Mirrors deploy-core.js SKILL_DIRS.
-SKILL_DIRS="sec-forge jit-harness"
-RULES_FILE="cc-unlock-persona.md"
-
-# 子 agent 覆盖 bundle（住在 cc-unlock-claude/bundle/ 下；wrapper 未显式设置时按 lib 相对位置推断）。
-# Subagent-coverage bundles (live under cc-unlock-claude/bundle/). Wrappers may override.
-_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-: "${AGENTS_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/agents}"
-: "${RULES_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/rules}"
-: "${AGENT_MEMORY_BUNDLE:=$_LIB_DIR/../cc-unlock-claude/bundle/agent-memory}"
-# 默认部署子 agent 覆盖；wrapper 可 export SUBAGENT=0 关闭。
-: "${SUBAGENT:=1}"
-
-# 工作区路径 -> Claude 项目目录名 | Workspace path -> Claude projects dir name
-# 与 deploy.ps1 的 ConvertTo-ClaudeProjectPath 一致：/ : 空格 -> -
-encode_path() {
-    local p="$1"
-    p="${p%/}"
-    printf '%s\n' "$p" | sed 's|/|-|g; s|:|-|g; s| |-|g'
-}
-
-banner() {
-    echo ""
-    echo "============================================"
-    echo "  cc-unlock v2.0-stable — 安全研究工作站"
-    echo "  memory + CLAUDE.md + skills(sec-forge/jit-harness) + 子agent"
-    echo "  Claude Code + Codex 零死角上下文注入"
-    echo "============================================"
-    echo ""
-}
-
-footer() {
-    echo ""
-    echo "============================================"
-    echo "  [OK] Complete! / 完成！"
-    echo "  Restart Claude Code / Codex. / 重启生效。"
-    echo "============================================"
-    echo ""
-}
-
-# --- 部署到单个工作区 memory 目录 | Deploy to one workspace memory dir ---
-# args: mem_dir  label  [workspace_path]
-# Deploys every *.md from $MEMORY_BUNDLE (except CLAUDE.md — placed separately),
-# then overwrites MEMORY.md as the index. cc-unlock owns the memory bundle contents.
-deploy_memory() {
-    local mem_dir="$1" label="$2" ws="$3"
-    mkdir -p "$mem_dir"
-
-    # 1. Deploy every memory .md file (skip CLAUDE.md which goes to workspace root)
-    local f base count=0
-    for f in "$MEMORY_BUNDLE"/*.md; do
-        [ -f "$f" ] || continue
-        base=$(basename "$f")
-        [ "$base" = "$CLAUDE_MD" ] && continue
-        if cp "$f" "$mem_dir/$base" 2>/dev/null; then
-            count=$((count+1))
-        else
-            echo "    [FAIL] $base"
-        fi
-    done
-    echo "    [ok] $count memory files deployed"
-
-    # 2. CLAUDE.md -> workspace root
-    if [ -n "$ws" ] && [ -d "$ws" ] && [ -f "$MEMORY_BUNDLE/$CLAUDE_MD" ]; then
-        if cp "$MEMORY_BUNDLE/$CLAUDE_MD" "$ws/$CLAUDE_MD" 2>/dev/null; then
-            echo "    [ok] $CLAUDE_MD -> workspace"
-        else
-            echo "    [FAIL] $CLAUDE_MD"
-        fi
-    fi
-
-    echo "  [OK] $label"
-}
-
-# --- 部署 skills 到工作区 | Deploy skills to workspace .claude/skills ---
-# args: workspace_path.  Copies sec-forge/ (含 android/web/win) + jit-harness/。
-deploy_skills() {
-    local ws="$1"
-    [ -n "$ws" ] && [ -d "$ws" ] || return 0
-    [ -d "$SKILL_BUNDLE" ] || { echo "  [skip] skill bundle 未找到: $SKILL_BUNDLE"; return 0; }
-    local skill_dir="$ws/.claude/skills" d n
-    mkdir -p "$skill_dir"
-    for d in $SKILL_DIRS; do
-        if [ -d "$SKILL_BUNDLE/$d" ]; then
-            rm -rf "$skill_dir/$d" 2>/dev/null
-            if cp -R "$SKILL_BUNDLE/$d" "$skill_dir/$d" 2>/dev/null; then
-                n=$(find "$skill_dir/$d" -type f 2>/dev/null | wc -l | tr -d ' ')
-                echo "    [ok] skills/$d/ ($n files)"
-            else
-                echo "    [FAIL] skills/$d"
-            fi
-        fi
+SKILL_DIRS="sec-forge"
+banner() { echo 'cc-unlock v2.4-alpha | CLAUDE.md + sec-forge | no Desktop patch'; }
+footer() { echo '[OK] Complete. Start a new native Claude Code session to test loading.'; }
+no_link_path() {
+    local p="$1" parent
+    while [ -n "$p" ] && [ "$p" != '/' ] && [ "$p" != '.' ]; do
+        [ ! -L "$p" ] || { echo "[FAIL] Refusing linked target: $p" >&2; return 1; }
+        parent=$(dirname "$p")
+        [ "$parent" != "$p" ] || break
+        p="$parent"
     done
 }
-
-# --- 部署子 agent 覆盖 | Deploy subagent coverage (agents + rules + agent-memory) ---
-# 与 deploy-core.js 的 opts.subagent 分支一致：把反软拒绝人格铺到主 agent 之外的子 agent。
-deploy_subagent() {
-    local ws="$1"
-    [ -n "$ws" ] && [ -d "$ws" ] || return 0
-    [ "$SUBAGENT" = "1" ] || { echo "  [skip] 子 agent 覆盖 (SUBAGENT=0)"; return 0; }
-    local f base
-
-    # a. 自定义 agents（人格在 body）-> .claude/agents/
-    if [ -d "$AGENTS_BUNDLE" ]; then
-        mkdir -p "$ws/.claude/agents"
-        local ac=0
-        for f in "$AGENTS_BUNDLE"/*.md; do
-            [ -f "$f" ] || continue
-            cp "$f" "$ws/.claude/agents/$(basename "$f")" 2>/dev/null && ac=$((ac+1))
-        done
-        echo "    [ok] .claude/agents/ ($ac) — persona body"
+copy_skill_tree() {
+    local src="$1" dst="$2"
+    [ -d "$src" ] || { echo "[FAIL] Missing skill bundle: $src" >&2; return 1; }
+    no_link_path "$dst" || return 1
+    if [ -d "$dst" ] && [ -n "$(find "$dst" -type l -print -quit 2>/dev/null)" ]; then
+        echo "[FAIL] Linked content in skill target: $dst" >&2; return 1
     fi
-
-    # b. rules（无 paths: -> 启动即进主+所有非 fork 子 agent）-> .claude/rules/
-    if [ -f "$RULES_BUNDLE/$RULES_FILE" ]; then
-        mkdir -p "$ws/.claude/rules"
-        cp "$RULES_BUNDLE/$RULES_FILE" "$ws/.claude/rules/$RULES_FILE" 2>/dev/null \
-            && echo "    [ok] .claude/rules/$RULES_FILE — 主+子agent 载体"
-    fi
-
-    # c. 每个 agent 的记忆载体（memory:project -> .claude/agent-memory/<name>/MEMORY.md 自动注入）
-    if [ -f "$AGENT_MEMORY_BUNDLE/$INDEX_FILE" ] && [ -d "$AGENTS_BUNDLE" ]; then
-        local mc=0 name
-        for f in "$AGENTS_BUNDLE"/*.md; do
-            [ -f "$f" ] || continue
-            name=$(basename "$f" .md)
-            mkdir -p "$ws/.claude/agent-memory/$name"
-            cp "$AGENT_MEMORY_BUNDLE/$INDEX_FILE" "$ws/.claude/agent-memory/$name/$INDEX_FILE" 2>/dev/null && mc=$((mc+1))
-        done
-        echo "    [ok] .claude/agent-memory/*/MEMORY.md ($mc) — 子agent many-shot"
-    fi
+    mkdir -p "$dst" && cp -R "$src/." "$dst/"
 }
-
-# --- 从工作区移除 skills + 子 agent 覆盖 | Remove workspace skills + subagent coverage ---
-remove_workspace_extras() {
-    local ws="$1" d f name
-    [ -n "$ws" ] || return 0
-    for d in $SKILL_DIRS; do rm -rf "$ws/.claude/skills/$d" 2>/dev/null; done
-    if [ -d "$AGENTS_BUNDLE" ]; then
-        for f in "$AGENTS_BUNDLE"/*.md; do
-            [ -f "$f" ] || continue
-            name=$(basename "$f" .md)
-            rm -f "$ws/.claude/agents/$name.md" 2>/dev/null
-            rm -rf "$ws/.claude/agent-memory/$name" 2>/dev/null
-        done
-    fi
-    rm -f "$ws/.claude/rules/$RULES_FILE" 2>/dev/null
-    # 清掉因此变空的 cc-unlock 目录（保留仍有用户内容的）
-    for d in skills agents rules agent-memory; do
-        rmdir "$ws/.claude/$d" 2>/dev/null
-    done
-    echo "    [ok] Removed skills + agents + rules + agent-memory"
+remove_matching_tree() {
+    local src="$1" dst="$2" f rel target failed=0
+    [ -d "$src" ] && [ -d "$dst" ] || return 0
+    no_link_path "$dst" || return 1
+    while IFS= read -r -d '' f; do
+        rel=${f#"$src/"}; target="$dst/$rel"
+        no_link_path "$target" || { failed=1; continue; }
+        if [ -f "$target" ] && cmp -s "$f" "$target"; then rm -f "$target" || failed=1; fi
+    done < <(find "$src" -type f -print0)
+    return "$failed"
 }
-
-# --- 从工作区移除 | Remove from workspace ---
-# args: mem_dir  label  [workspace_path]
-remove_memory() {
-    local mem_dir="$1" label="$2" ws="$3"
-
-    # Remove every memory md we own (matches bundled filenames)
-    local f base removed=0
-    for f in "$MEMORY_BUNDLE"/*.md; do
-        [ -f "$f" ] || continue
-        base=$(basename "$f")
-        [ "$base" = "$CLAUDE_MD" ] && continue
-        if [ -f "$mem_dir/$base" ]; then
-            rm -f "$mem_dir/$base" && removed=$((removed+1))
-        fi
-    done
-    echo "    [ok] Removed $removed memory files (incl. $INDEX_FILE)"
-
-    # workspace CLAUDE.md —— cc-unlock owns it, remove unconditionally (see README warning)
-    if [ -n "$ws" ] && [ -f "$ws/$CLAUDE_MD" ]; then
-        rm -f "$ws/$CLAUDE_MD"
-        echo "    [ok] Removed $CLAUDE_MD from workspace"
+deploy_claude() {
+    local ws="$1" src="$CLAUDE_BUNDLE/CLAUDE.md" dst="$1/CLAUDE.md"
+    [ -f "$src" ] || { echo "[FAIL] Missing bundle: $src" >&2; return 1; }
+    no_link_path "$dst" || return 1
+    if [ -e "$dst" ] && ! cmp -s "$src" "$dst" && [ "${CC_UNLOCK_OVERWRITE:-0}" != '1' ]; then
+        echo '[FAIL] Existing CLAUDE.md differs. Inspect it; set CC_UNLOCK_OVERWRITE=1 to replace explicitly.' >&2
+        return 1
     fi
-
-    echo "  [OK] $label (removed)"
+    cp "$src" "$dst" || return 1
+    if [ "${SKIP_SKILL:-0}" != '1' ]; then copy_skill_tree "$SKILL_BUNDLE/sec-forge" "$ws/.claude/skills/sec-forge" || return 1; fi
+    echo "[OK] $dst + sec-forge; memory/subagent/global settings unchanged"
 }
-
-# --- 验证单个工作区 | Verify one workspace ---
-verify_memory() {
-    local mem_dir="$1" label="$2" ws="$3" sz
-    local f base expected=0 deployed=0
-    for f in "$MEMORY_BUNDLE"/*.md; do
-        [ -f "$f" ] || continue
-        base=$(basename "$f")
-        [ "$base" = "$CLAUDE_MD" ] && continue
-        expected=$((expected+1))
-        [ -f "$mem_dir/$base" ] && deployed=$((deployed+1))
-    done
-    if [ "$deployed" = "$expected" ] && [ "$deployed" -gt 0 ]; then
-        echo "    memory files - OK ($deployed/$expected)"
-    elif [ "$deployed" -gt 0 ]; then
-        echo "    memory files - PARTIAL ($deployed/$expected)"
-    else
-        echo "    memory files - MISSING (0/$expected)"
-    fi
-    if [ -n "$ws" ] && [ -f "$ws/$CLAUDE_MD" ]; then
-        sz=$(wc -c < "$ws/$CLAUDE_MD" 2>/dev/null | tr -d ' ')
-        echo "    $CLAUDE_MD (workspace) - OK ($sz bytes)"
-    fi
+uninstall_claude() {
+    local ws="$1" src="$CLAUDE_BUNDLE/CLAUDE.md" dst="$1/CLAUDE.md"
+    no_link_path "$dst" || return 1
+    if [ -f "$dst" ] && cmp -s "$src" "$dst"; then rm -f "$dst" || return 1
+    else echo '[KEEP] CLAUDE.md absent or user-modified'; fi
+    remove_matching_tree "$SKILL_BUNDLE/sec-forge" "$ws/.claude/skills/sec-forge" || return 1
+    echo '[KEEP] Personal memory, agents, rules, agent-memory and global settings untouched'
 }
-
-# --- settings.json (全局 ~/.claude/) ---
-deploy_settings() {
-    local sp="$CLAUDE_DIR/settings.json"
-    if [ "$SKIP_SETTINGS" = "1" ]; then
-        echo "  [skip] settings.json (SkipSettings)"
-        return 0
+verify_claude() {
+    local ws="$1" f rel
+    cmp -s "$CLAUDE_BUNDLE/CLAUDE.md" "$ws/CLAUDE.md" || { echo '[FAIL] CLAUDE.md missing or different'; return 1; }
+    if [ "${SKIP_SKILL:-0}" != '1' ]; then
+        while IFS= read -r -d '' f; do
+            rel=${f#"$SKILL_BUNDLE/sec-forge/"}
+            cmp -s "$f" "$ws/.claude/skills/sec-forge/$rel" || { echo "[FAIL] Skill mismatch: $rel"; return 1; }
+        done < <(find "$SKILL_BUNDLE/sec-forge" -type f -print0)
     fi
-    if [ -f "$sp" ]; then
-        echo "  [skip] settings.json (exists)"
-        return 0
-    fi
-    if [ -f "$CONFIG_BUNDLE/settings.json" ]; then
-        mkdir -p "$CLAUDE_DIR"
-        if cp "$CONFIG_BUNDLE/settings.json" "$sp" 2>/dev/null; then
-            echo "  [ok] settings.json (bypassPermissions)"
-        else
-            echo "  [FAIL] settings.json"
-        fi
-    fi
+    echo '[OK] CLAUDE.md + sec-forge; no memory/subagent deployment'
 }
-
-remove_settings() {
-    local sp="$CLAUDE_DIR/settings.json"
-    [ -f "$sp" ] || return 0
-    if grep -q "$SETTINGS_MARKER1" "$sp" 2>/dev/null && grep -q "$SETTINGS_MARKER2" "$sp" 2>/dev/null; then
-        rm -f "$sp"
-        echo "  [ok] Removed settings.json (cc-unlock)"
-    else
-        echo "  [skip] settings.json (user customized)"
-    fi
+list_workspaces() {
+    echo 'Historical project IDs (not deployment destinations):'
+    local d
+    for d in "$CLAUDE_PROJECTS"/*/; do [ -d "$d" ] && basename "$d"; done
+    return 0
 }
-
 # --- Codex config.toml 合并式写入/剥离 | merge/strip the instructions line ---
 ensure_instructions_file() {
     local cfg="$1"
@@ -326,8 +136,8 @@ deploy_codex() {
     fi
     ensure_instructions_file "$CODEX_DIR/config.toml"
     echo "  [ok] config.toml — model_instructions_file (merged)"
-    deploy_codex_memory
-    deploy_codex_rollout
+
+
     deploy_codex_skills
     return 0
 }
@@ -341,8 +151,7 @@ deploy_codex_skills() {
     mkdir -p "$skills_dir"
     for d in $SKILL_DIRS; do
         if [ -d "$SKILL_BUNDLE/$d" ]; then
-            rm -rf "$skills_dir/$d" 2>/dev/null
-            if cp -R "$SKILL_BUNDLE/$d" "$skills_dir/$d" 2>/dev/null; then
+            if copy_skill_tree "$SKILL_BUNDLE/$d" "$skills_dir/$d"; then
                 n=$(find "$skills_dir/$d" -type f 2>/dev/null | wc -l | tr -d ' ')
                 echo "  [ok] skills/$d/ ($n files)"
             else
@@ -353,61 +162,7 @@ deploy_codex_skills() {
     return 0
 }
 
-deploy_codex_memory() {
-    [ -d "$CODEX_MEMORY_BUNDLE" ] || { echo "  [skip] Codex memory bundle not found"; return 0; }
-    echo ""
-    echo "--- Codex Memory ---"
-    local mem_dir="$CODEX_DIR/memories"
-    mkdir -p "$mem_dir"
-    local f sz
-    for f in memory_summary.md MEMORY.md raw_memories.md; do
-        if [ -f "$CODEX_MEMORY_BUNDLE/$f" ]; then
-            if cp "$CODEX_MEMORY_BUNDLE/$f" "$mem_dir/$f" 2>/dev/null; then
-                sz=$(wc -c < "$mem_dir/$f" 2>/dev/null | tr -d ' ')
-                echo "  [ok] $f ($sz bytes)"
-            else
-                echo "  [FAIL] $f"
-            fi
-        fi
-    done
-    return 0
-}
 
-deploy_codex_rollout() {
-    [ -d "$CODEX_ROLLOUT_BUNDLE" ] || { echo "  [skip] Codex rollout bundle not found"; return 0; }
-    echo ""
-    echo "--- Codex Rollout Summaries ---"
-    # Refuse to wipe target if source is empty (guard against accidental data loss)
-    local src_count
-    src_count=$(find "$CODEX_ROLLOUT_BUNDLE" -maxdepth 1 -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$src_count" = "0" ]; then
-        echo "  [skip] Codex rollout bundle empty — refusing to wipe target"
-        return 0
-    fi
-    local rollout_dir="$CODEX_DIR/memories/rollout_summaries"
-    if [ -d "$rollout_dir" ]; then
-        find "$rollout_dir" -maxdepth 1 -name '*.md' -type f -delete 2>/dev/null
-    else
-        mkdir -p "$rollout_dir"
-    fi
-    local user_name="${USER:-user}"
-    # Escape sed special chars (/, &, \) in username to prevent injection / malformed pattern
-    local esc_user
-    esc_user=$(printf '%s' "$user_name" | sed 's/[\/&\\]/\\&/g')
-    local count=0 f base
-    for f in "$CODEX_ROLLOUT_BUNDLE"/*.md; do
-        [ -f "$f" ] || continue
-        base=$(basename "$f")
-        if sed "s|<USER>|${esc_user}|g" "$f" > "$rollout_dir/$base" 2>/dev/null; then
-            # verify output is non-empty (guard against sed failure)
-            if [ -s "$rollout_dir/$base" ]; then
-                count=$((count+1))
-            fi
-        fi
-    done
-    echo "  [ok] $count rollout summaries seeded (USER=$user_name)"
-    return 0
-}
 
 uninstall_codex() {
     [ -d "$CODEX_DIR" ] || return 0
@@ -426,48 +181,18 @@ uninstall_codex() {
         removed) echo "  [ok] Removed config.toml" ;;
         kept)    echo "  [ok] config.toml (kept other settings)" ;;
     esac
-    uninstall_codex_memory
-    uninstall_codex_rollout
+
+
     local d rmn=0
     for d in $SKILL_DIRS; do
-        if [ -d "$CODEX_DIR/skills/$d" ]; then rm -rf "$CODEX_DIR/skills/$d" && rmn=$((rmn+1)); fi
+        if [ -d "$CODEX_DIR/skills/$d" ]; then remove_matching_tree "$SKILL_BUNDLE/$d" "$CODEX_DIR/skills/$d" && rmn=$((rmn+1)); fi
     done
     [ "$rmn" -gt 0 ] && echo "  [ok] Removed $rmn skill(s) from ~/.codex/skills"
     rmdir "$CODEX_DIR/skills" 2>/dev/null
     return 0
 }
 
-uninstall_codex_memory() {
-    local mem_dir="$CODEX_DIR/memories"
-    [ -d "$mem_dir" ] || return 0
-    echo ""
-    echo "--- Codex Memory ---"
-    local f
-    for f in memory_summary.md MEMORY.md raw_memories.md; do
-        if [ -f "$mem_dir/$f" ]; then
-            rm -f "$mem_dir/$f"
-            echo "  [ok] Removed $f"
-        fi
-    done
-    return 0
-}
 
-uninstall_codex_rollout() {
-    local rollout_dir="$CODEX_DIR/memories/rollout_summaries"
-    [ -d "$rollout_dir" ] || return 0
-    echo ""
-    echo "--- Codex Rollout Summaries ---"
-    # cc-unlock 拥有 rollout_summaries 的 *.md（deploy 时删净所有 *.md 再 seed）；卸载对称删净。
-    # 非 .md 文件保留（不碰用户可能自放的其它内容）。与 Electron rmrf(ROLLOUT_DIR) 语义对齐。
-    local removed=0 f
-    for f in "$rollout_dir"/*.md; do
-        [ -f "$f" ] || continue
-        rm -f "$f" && removed=$((removed+1))
-    done
-    echo "  [ok] Removed $removed seeded rollout summaries"
-    rmdir "$rollout_dir" 2>/dev/null
-    return 0
-}
 
 verify_codex() {
     if [ ! -d "$CODEX_DIR" ]; then
@@ -508,239 +233,35 @@ verify_codex() {
     if [ "$sok" = "$stot" ]; then echo "  skills - OK ($sok/$stot)"; else echo "  skills - PARTIAL ($sok/$stot)"; fi
 }
 
-# --- 清理 v3.x 全局遗留 | Clean legacy v3.x global deployment ---
-clean_legacy() {
-    local f
-    for f in CLAUDE.md system-prompt.md; do
-        if [ -f "$CLAUDE_DIR/$f" ]; then
-            rm -f "$CLAUDE_DIR/$f"
-            echo "  [migrate] Removed legacy $f from ~/.claude/"
-        fi
-    done
-    if [ -f "$CLAUDE_DIR/config.toml" ]; then
-        local r
-        r=$(remove_instructions_file "$CLAUDE_DIR/config.toml")
-        [ "$r" = "removed" ] && echo "  [migrate] Removed legacy config.toml from ~/.claude/"
-    fi
-}
 
-list_workspaces() {
-    echo "  Workspaces / 工作区:"
-    echo ""
-    if [ ! -d "$CLAUDE_PROJECTS" ]; then
-        echo "  No Claude projects found."
-        echo ""
-        return 0
-    fi
-    local d name
-    for d in "$CLAUDE_PROJECTS"/*/; do
-        [ -d "$d" ] || continue
-        name=$(basename "$d")
-        if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
-            echo "  [*] $name"
-        else
-            echo "  [ ] $name"
-        fi
-    done
-    echo ""
-    echo "  [*] = memory deployed"
-    echo ""
-}
-
-do_verify() {
-    echo "  Verifying deployment / 验证部署..."
-    echo ""
-    echo "  --- Claude Code ---"
-    if [ -d "$CLAUDE_PROJECTS" ]; then
-        local d name
-        for d in "$CLAUDE_PROJECTS"/*/; do
-            [ -d "$d" ] || continue
-            name=$(basename "$d")
-            if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
-                echo "  $name"
-                verify_memory "$d/memory" "$name" ""
-            fi
-        done
-    fi
-    [ -f "$CLAUDE_DIR/settings.json" ] && echo "    settings.json - OK"
-    verify_codex
-    echo ""
-}
-
-# --- 安装动作 | Install actions ---
-do_install_path() {
-    local ws="$1"
-    if [ ! -d "$ws" ]; then
-        echo "  [!] Path not found: $ws"
-        return 1
-    fi
-    local name mem_dir
-    name=$(encode_path "$ws")
-    mem_dir="$CLAUDE_PROJECTS/$name/memory"
-    echo "--- Claude Code ---"
-    echo "  Workspace: $ws"
-    echo "  Project:   $name"
-    echo ""
-    deploy_memory "$mem_dir" "$name" "$ws"
-    deploy_skills "$ws"
-    deploy_subagent "$ws"
-    deploy_settings
-    clean_legacy
-    deploy_codex
-}
-
-do_install_all() {
-    echo "--- Claude Code ---"
-    if [ ! -d "$CLAUDE_PROJECTS" ]; then
-        echo "  No Claude projects found."
-        echo "  Deploy to a workspace path or use --codex first."
-        return 0
-    fi
-    local d name count=0
-    for d in "$CLAUDE_PROJECTS"/*/; do
-        [ -d "$d" ] || continue
-        name=$(basename "$d")
-        deploy_memory "$d/memory" "$name" ""
-        count=$((count + 1))
-    done
-    deploy_settings
-    clean_legacy
-    deploy_codex
-    echo ""
-    echo "  [OK] Deployed to $count workspace(s)"
-}
-
-# --- 卸载动作 | Uninstall actions ---
-do_uninstall_path() {
-    local ws="$1"
-    local name mem_dir
-    name=$(encode_path "$ws")
-    mem_dir="$CLAUDE_PROJECTS/$name/memory"
-    echo "--- Claude Code ---"
-    if [ -f "$mem_dir/$MEMORY_SENTINEL" ]; then
-        remove_memory "$mem_dir" "$name" "$ws"
-    else
-        echo "  [skip] Not deployed: $name"
-        if [ -f "$ws/$CLAUDE_MD" ] && grep -q "$MARKER" "$ws/$CLAUDE_MD" 2>/dev/null; then
-            rm -f "$ws/$CLAUDE_MD"
-            echo "  [ok] Removed $CLAUDE_MD from workspace"
-        fi
-    fi
-    remove_workspace_extras "$ws"
-    remove_settings
-    uninstall_codex
-}
-
-do_uninstall_all() {
-    echo "--- Claude Code ---"
-    local d name count=0
-    if [ -d "$CLAUDE_PROJECTS" ]; then
-        for d in "$CLAUDE_PROJECTS"/*/; do
-            [ -d "$d" ] || continue
-            name=$(basename "$d")
-            if [ -f "$d/memory/$MEMORY_SENTINEL" ]; then
-                remove_memory "$d/memory" "$name" ""
-                count=$((count + 1))
-            fi
-        done
-    fi
-    echo "  Removed from $count workspace(s)"
-    remove_settings
-    uninstall_codex
-}
-
-# --- 交互菜单 | Interactive menus ---
-install_menu() {
-    echo "Select mode / 选择模式:"
-    echo "  [1] Deploy to a workspace (enter path) / 部署到指定工作区"
-    echo "  [2] Deploy to all existing workspaces / 部署到所有已有工作区"
-    echo "  [3] Deploy Codex only / 仅部署 Codex"
-    echo "  [4] List workspaces / 列出工作区"
-    echo "  [0] Exit / 退出"
-    echo ""
-    printf "  Select / 选择: "
-    local mode ws
-    read -r mode
-    case "$mode" in
-        1)
-            echo ""
-            printf "  Workspace path / 工作区路径: "
-            read -r ws
-            do_install_path "$ws" && footer
-            ;;
-        2) do_install_all; footer ;;
-        3) deploy_codex; echo ""; echo "  Restart Codex. / 重启 Codex 生效。"; echo "" ;;
-        4) list_workspaces ;;
-        *) echo "  [cancelled]" ;;
-    esac
-}
-
-uninstall_menu() {
-    echo "Select mode / 选择模式:"
-    echo "  [1] Remove from a workspace (enter path) / 从指定工作区移除"
-    echo "  [2] Remove from all workspaces / 从全部工作区移除"
-    echo "  [3] List workspaces / 列出工作区"
-    echo "  [0] Exit / 退出"
-    echo ""
-    printf "  Select / 选择: "
-    local mode ws
-    read -r mode
-    case "$mode" in
-        1)
-            echo ""
-            printf "  Workspace path / 工作区路径: "
-            read -r ws
-            do_uninstall_path "$ws"; footer
-            ;;
-        2) do_uninstall_all; footer ;;
-        3) list_workspaces ;;
-        *) echo "  [cancelled]" ;;
-    esac
-}
-
-# --- 主分发 | Main dispatcher ---
-# cc_dispatch install|uninstall "$@"
+# cc_dispatch install|uninstall [workspace|--verify workspace|--codex|--list]
 cc_dispatch() {
-    local op="$1"
+    local op="$1" arg ws
     shift
-
+    case "$op" in install|uninstall) ;; *) echo "[FAIL] Unknown operation: $op" >&2; return 1;; esac
     banner
-
-    # 安装时校验源文件存在 | install requires source bundle
-    if [ "$op" = "install" ] && [ ! -f "$MEMORY_BUNDLE/$MEMORY_SENTINEL" ]; then
-        echo "[!] Source files not found: $MEMORY_BUNDLE"
-        exit 1
-    fi
-
-    local arg="${1:-}"
+    arg="${1:-}"
     case "$arg" in
-        --list|-l|list)
-            list_workspaces
-            ;;
-        --verify|-v|verify)
-            do_verify
-            ;;
-        --codex|-c|codex)
-            if [ "$op" = "uninstall" ]; then uninstall_codex; else deploy_codex; fi
-            echo ""
-            echo "  Restart Codex. / 重启 Codex 生效。"
-            echo ""
-            ;;
+        --list|-l|list) list_workspaces ;;
         --all|-a|all)
-            if [ "$op" = "uninstall" ]; then do_uninstall_all; else do_install_all; fi
-            footer
-            ;;
-        "")
-            if [ "$op" = "uninstall" ]; then uninstall_menu; else install_menu; fi
-            ;;
+            echo '[FAIL] --all disabled: encoded project names are not reliable workspace paths. Supply an explicit workspace.' >&2
+            return 1 ;;
+        --codex|-c|codex)
+            if [ "$op" = 'uninstall' ]; then uninstall_codex; else deploy_codex; fi ;;
+        --verify|-v|verify)
+            ws="${2:-}"
+            [ -n "$ws" ] && [ -d "$ws" ] || { echo '[FAIL] --verify requires a workspace path' >&2; return 1; }
+            verify_claude "$(cd "$ws" && pwd -P)" ;;
+        '')
+            echo 'Usage: install.sh WORKSPACE | --verify WORKSPACE | --codex | --list'
+            echo 'Claude deploys only CLAUDE.md + sec-forge; Codex is separate.' ;;
+        --*) echo "[FAIL] Unsupported or removed option: $arg" >&2; return 1 ;;
         *)
-            # 视为工作区路径 | treat as workspace path
-            if [ "$op" = "uninstall" ]; then
-                do_uninstall_path "$arg"
-            else
-                do_install_path "$arg"
-            fi
-            footer
-            ;;
+            [ -d "$arg" ] || { echo "[FAIL] Workspace not found: $arg" >&2; return 1; }
+            no_link_path "$arg" || return 1
+            ws="$(cd "$arg" && pwd -P)" || return 1
+            if [ "$op" = 'uninstall' ]; then uninstall_claude "$ws" || return 1
+            else deploy_claude "$ws" || return 1; fi
+            footer ;;
     esac
 }

@@ -32,21 +32,46 @@
 
 ## 工具链自诊断
 
-每轮开始或恢复任务时，执行以下诊断步骤确定当前 toolingLevel（不是凭感觉判断"工具不可用"）：
+首次使用工具链时执行一次最小预检，缓存实际 `skillRoot / toolDir / nodeVersion / toolingLevel`。续作沿用已确认结果；只在安装位置、运行时或工具集合改变，或真实调用报错时重查对应项。不要每轮重复 `node --version`、`ls`、boot 或完整环境扫描。
 
-**Step 0 — 发现工具目录**：工具链与任务目录分离，先定位工具链所在目录：
+**Step 0 — 绑定实际安装目录**：工具链与任务目录分离，项目 cwd 不是技能位置。
 
-1. **检查 cwd 下是否有工具链**：`ls tools/task/task-start.mjs`（相对 cwd）
-   - 如果存在 → `TOOL_DIR=./tools/task/`
-2. **如果 cwd 下没有**：向上递归查找包含 `SKILL.md` 的目录作为 `SKILL_ROOT`
-   - `SKILL_ROOT` 存在且包含 `SKILL_ROOT/tools/task/` → `TOOL_DIR=$SKILL_ROOT/tools/task/`
-3. **如果都找不到** → 工具链不可用，跳到 Step 4 定级为 L2/L3
+1. 当前会话已有验证有效的 `toolDir` → 直接复用。
+2. 否则优先从宿主技能目录提供的绝对 `SKILL.md` 路径得到 `SKILL_ROOT=dirname(SKILL.md)`；若宿主提供技能目录，则直接使用该目录。确认 frontmatter 的 `name: web-reverse` 和所需入口真实存在，不把其他同名目录或包内文档当作安装证明。
+3. 宿主未给路径时，可读取 boot 写出的 `.web-reverse-tool-dir`，或检查宿主已配置的 skills root 下 `sec-forge/web-reverse`；缓存是路径数据，不是执行授权。仅首次恢复时验证候选的技能身份与入口；无效缓存不作为“工具不存在”的证据。
+4. 不从 cwd 向父目录递归找任意 `SKILL.md`，也不默认扫描用户目录。仍缺路径则记录 `SKILL_UNAVAILABLE` 与实际检查位置，按现有能力继续。
+
+最小路径解析示例（只读）：把宿主给出的技能目录或 `SKILL.md` **绝对路径**放入 `WEB_REVERSE_SKILL_PATH`，在任意项目 cwd 执行以下 Node ESM。该示例故意不猜 cwd，也不修改真实项目：
+
+```javascript
+import fs from "node:fs";
+import path from "node:path";
+
+const supplied = process.env.WEB_REVERSE_SKILL_PATH;
+if (!supplied || !path.isAbsolute(supplied)) {
+  throw new Error("WEB_REVERSE_SKILL_PATH must be an absolute host-reported skill path");
+}
+const anchor = fs.realpathSync(supplied);
+const skillRoot = fs.statSync(anchor).isDirectory() ? anchor : path.dirname(anchor);
+const manifest = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
+const frontmatter = manifest.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1];
+if (!frontmatter || !/^name:\s*web-reverse\s*$/m.test(frontmatter)) {
+  throw new Error("Resolved directory is not the web-reverse skill");
+}
+const toolDir = path.join(skillRoot, "tools", "task");
+if (!fs.statSync(path.join(toolDir, "task-boot.mjs")).isFile()) {
+  throw new Error("task-boot.mjs is unavailable at the resolved skill directory");
+}
+console.log(JSON.stringify({ skillRoot, toolDir }));
+```
+
+包内 `.mjs` 工具则以其自己的 `import.meta.url` 结合 `fileURLToPath` 解析目录；例如现有 `task-boot.mjs` 已使用 `path.dirname(fileURLToPath(import.meta.url))`，与调用者 cwd 无关。不要把临时脚本的 `import.meta.url` 当成已安装技能位置。执行工具始终在目标项目 cwd，不能 `cd` 到技能目录写任务数据。
 
 **Step 1 — 检查 Node 版本**：`node --version`，确认是否 >= 20
 
-**Step 2 — 检查 task 工具完整性**：`ls $TOOL_DIR/task-start.mjs $TOOL_DIR/task-sync.mjs $TOOL_DIR/task-advance.mjs $TOOL_DIR/assert-can-reply.mjs`，4 个核心工具是否全部存在
+**Step 2 — 检查当前入口依赖**：确认 `task-boot.mjs` 与其 `task-init.mjs / task-sync.mjs / task-advance.mjs / common.mjs`；需要回复门禁时再检查 `assert-can-reply.mjs`。仅检查本阶段会用到的入口，不枚举全包。
 
-**Step 3 — 试运行 task-sync**：若有 task-id，运行 `node $TOOL_DIR/task-sync.mjs <task-id>` 是否正常退出（exit code 0）；若无 task-id（全新任务），跳过此步
+**Step 3 — 以真实入口调用作执行检查**：全新任务只运行一次 `task-boot.mjs`，既有任务直接执行 checkpoint 记录的下一步。保存实际 stdout/stderr 和退出状态；成功 boot 已包含 sync，不为自诊断再跑一次 `task-sync`。实际入口失败时只检查它报告的缺失文件或运行时问题，不将任意门禁非零退出统称为“环境不可用”。
 
 **Step 4 — 根据结果定级**：
 
@@ -55,9 +80,9 @@
 - Node 不可用或工具全部不可用 → L2
 - 无 task-id 且 Node 可用但无工具链 → L3（全新任务，手动创建 task-local 结构）
 
-**Step 5 — 将诊断结果写入 `report.md`**：`toolingLevel: L0/L1/L2/L3` + `toolDir: $TOOL_DIR` + 缺失项清单（如有）
+**Step 5 — 复用诊断状态**：在已有 task-local 记录中保存 `toolingLevel: L0/L1/L2/L3`、`toolDir`、Node 版本与缺失项；状态有实质变化才更新，不另开报告。只读或纯说明任务不为执行预检额外创建文件。
 
-诊断步骤本身不需要工具链支持——只用 `node --version` 和 `ls` 即可完成。禁止在未执行以上步骤的情况下宣称"工具不可用，降级到 L2"。
+诊断用已观测的入口调用、运行时版本和文件存在信息即可；禁止没执行就宣称“环境通过”或“工具不可用”。已通过的预检未失效，不重复执行。
 
 ## 工具调用路径纪律
 
@@ -66,4 +91,5 @@
 - **所有工具调用**必须使用完整路径：`node $TOOL_DIR/<tool>.mjs <task-id>`
 - 工具接收 `<task-id>` 字符串参数，在 cwd 下自动解析 `artifacts/tasks/<task-id>/`
 - **禁止**在工具调用时依赖相对路径解析工具位置
-- 工具目录发现后，用 Bash 的 `realpath` 获取绝对路径，写入 cwd 根目录的 `.web-reverse-tool-dir`。写入命令：`realpath "$TOOL_DIR" > .web-reverse-tool-dir`（Windows 用 `cd "$TOOL_DIR" && echo %cd% > .web-reverse-tool-dir`）。此文件是运行时元数据，不是任务交付物。后续调用工具前优先读取该文件，若存在则直接使用其中的路径，跳过 Step 0。
+- `task-boot.mjs` 已在**项目 cwd**自动写 `.web-reverse-tool-dir` 并向子工具传播 workspace root，无需手动重复写，更不要先 `cd` 到工具目录再写指针。宿主路径和当前会话已验证状态优先于磁盘旧缓存。
+- 浏览器能力按 `references/browser-mcp-capability-map.md` 做一次实际工具及文档确认；`mcp__cua_repl` 等新表面不能按旧 MCP 表猜 API。工具集合未变且未报错时复用能力记录。

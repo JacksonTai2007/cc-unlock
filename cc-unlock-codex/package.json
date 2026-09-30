@@ -1,12 +1,13 @@
 {
   "name": "cc-unlock-codex",
   "productName": "cc-unlock for Codex",
-  "version": "2.0.0",
-  "description": "cc-unlock for Codex — security research workstation deployer (IBM Carbon)",
+  "version": "3.0.0",
+  "description": "cc-unlock for codex — local maintenance workbench",
   "main": "main.js",
   "author": "JacksonTai",
   "license": "MIT",
   "scripts": {
+    "predist": "node ../scripts/sync-prompts.cjs --write",
     "start": "electron .",
     "dist": "node pack.js"
   },
@@ -23,16 +24,23 @@
       "preload.js",
       "deploy-core.js",
       "renderer/**/*",
-      "bundle/**/*"
+      "backup-core.js",
+      "chat-editor-host.js",
+      "context-host.js",
+      "context-worker.js"
     ],
     "extraResources": [
       {
-        "from": "../codex-files",
-        "to": "codex-files"
+        "from": "../codex-files/codex-config-bundle",
+        "to": "codex-files/codex-config-bundle"
       },
       {
         "from": "../cc-unlock-files/skill-bundle",
         "to": "skill-bundle"
+      },
+      {
+        "from": "chat-editor",
+        "to": "chat-editor"
       }
     ],
     "win": {

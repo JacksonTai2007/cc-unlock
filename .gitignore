@@ -1,27 +1,44 @@
-# Dependencies
-node_modules/
+# Dependency and generated release trees.
+**/node_modules/
+**/dist/
+**/release/
+**/.build-tools/
+/.b/
+/.build-stage*/
+**/.work/
+**/PORTABLE_MANIFEST_v*.json
 
-# Build output
-dist/
-.build-tools/
-
-# Release artifacts (installers, zips) — distributed via GitHub Releases
-release/
-
-# Logs
+# Disposable runtime profiles, caches and local state; never publish conversations.
+**/.runtime/
+**/.runtime-profile*/
+**/.electron-profile*/
+**/.profile*/
+**/user-data/
+/runtime-profiles/
+/profiles/
+/sessions/
+/archived_sessions/
+**/__pycache__/
+*.py[cod]
+/temp/
+/tmp/
+*.tmp
+*.temp
 *.log
-npm-debug.log*
-
-# OS
+.env
+.env.*
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Editor
-.vscode/
-.idea/
-*.swp
+# Public examples and fixture logs are source inputs, not local credentials/runtime logs.
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+!**/.env.*.example
+!**/.env.*.template
+!**/fixtures/**/*.log
 
-# Local env
-.env
-.env.local
+# Installer sources are public inputs, not generated output.
+!/scripts/
+!/scripts/installer/
+!/scripts/installer/*.nsi

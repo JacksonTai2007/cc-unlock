@@ -21,6 +21,11 @@ contextBridge.exposeInMainWorld('ccAPI', {
   deploy: (opts, onLog) => streamAction('deploy', { opts }, onLog),
   uninstall: (onLog) => streamAction('uninstall', {}, onLog),
   verify: (onLog) => streamAction('verify', {}, onLog),
+  contextScan: (onLog) => streamAction('context-scan', {}, onLog),
+  contextClean: (onLog) => streamAction('context-clean', {}, onLog),
   restore: (onLog) => streamAction('restore', {}, onLog),
   openExternal: (url) => ipcRenderer.invoke('openExternal', url),
+  chatEditorOpen: (bounds) => ipcRenderer.invoke('chat-editor-open', bounds),
+  chatEditorHide: () => ipcRenderer.invoke('chat-editor-hide'),
+  chatEditorResize: (bounds) => ipcRenderer.invoke('chat-editor-resize', bounds),
 });

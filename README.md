@@ -1,184 +1,69 @@
-# cc-unlock v2.0-stable
+# cc-unlock v3.0-stable
 
-**Security Research Workstation for Claude Code & Codex** | 安全研究工作站
+个人工程分析工作台。部署 Claude / Codex 工作区指令与 `sec-forge` 技能，维护 Codex 磁盘历史。应用版本为 `3.0.0`。
 
-把 Claude Code 和 Codex 配置为全谱系安全研究工作站。内置 **sec-forge**（安全研究总控：JIT harness 执行引擎 + 自我进化，内联 android/web/win 逆向子工作流）与 **jit-harness**（通用即时 harness 合成引擎）两套技能，覆盖逆向工程、漏洞研究、渗透测试、内核安全、免杀对抗等 20+ 安全领域，并对**所有会进模型上下文的本地文件做零死角人格注入**——主 agent 与子 agent 一致，不回退默认拘谨行为。
+## 功能与边界
 
----
+- **Claude**：向选定工作区部署 `CLAUDE.md` 和 `.claude/skills/sec-forge/`，继续使用原版 Claude Desktop / Claude Code。不包含 Claude 客户端副本，不替换其原生 `systemPrompt`。
+- **Codex**：部署 `system-prompt.md`、`AGENTS.md` 和 `sec-forge`，保留用户选定的模型。对话编辑简化为“编辑 → 保存”。
+- **一键清理历史指令**：无需先扫描，也无需退出 Codex；仅清理历史记录中命中旧 `Collaboration Mode: Default` 模板的 developer 指令字段。保留记录结构、其他字段、用户及助手消息，不删除对话或 SQLite 数据库。
+- **固定顺序**：按当前用户主目录解析 `~/.codex/thread-writer-locks`，先删除其中所有文件（包含隐藏文件、子目录内文件，保留目录），再清理匹配的历史字段。不要求退出 Codex，不以活动/未知进程状态跳过锁清理；删除失败如实记录。
+- **最小部署**：不部署 memory、rollout 摘要、子 agent、rules 或 agent-memory；不写全局 Claude `settings.json`。独立 `jit-harness` 不在部署包中，通用执行流程由主提示词提供。
 
-## 两个子项目（Electron 桌面应用）
+**清理的是磁盘历史，不是热替换已载入的模型上下文。** 已打开任务需要重新载入才可能使用新历史。清理采用匹配 token 的等长定位写入，保留并发追加及原有字节偏移；发现文件被替换、截短或目标内容已变化时报告部分完成，不覆盖整个文件。移除锁不代表获得独占写入；比对到写入之间仍有同一目标位置的并发竞争窗口，不能保证任意并发改写都安全。写后复核失败时以日志中的部分完成/不确定结果为准。
 
-cc-unlock v2.0-stable 拆成两个独立的 Electron + IBM Carbon 桌面应用，各自打包成 `.exe`：
+这是一次删除操作；运行中的 Codex 之后可能重建锁，不是持续锁守护，也不终止 Codex 进程。
 
-| 子项目 | 目标 | 部署范围 |
-|--------|------|---------|
-| **cc-unlock-claude** | Claude Code | 按工作区（memory + CLAUDE.md + skills + **子 agent 覆盖**） |
-| **cc-unlock-codex** | Codex | 全局 `~/.codex`（system-prompt + AGENTS + config + memories + rollouts + skills） |
+提示词和技能不扩大任务范围或宿主权限，也不能关闭服务端 safeguard、保证请求不被拒绝。静态检查和隔离测试不等于真实模型行为评测。
 
-> 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载**统一安装器** `cc-unlock-Setup-v2.0-stable.exe`，安装时勾选 Claude / Codex / 两者都装。两个应用同一套 IBM Carbon 深色界面，一键部署 / 卸载 / 验证。
+## 安装与使用
 
----
+Windows x64 安装器文件：`cc-unlock-Setup-v3.0-stable.exe`。在仓库 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 获取发布产物。安装前退出旧 cc-unlock 部署工具，避免旧可执行文件被占用；进行上下文清理时 Codex 本身可以保持运行。
 
-## ⚠️ 使用 /sec-forge 下达任务
+安装部署工具后，选择 Claude 的实际工作区再部署；Codex 部署作用于当前用户的 `.codex`。修改指令后新建或重新加载任务，核对实际加载内容。现有 `CLAUDE.md` 与部署文本不同会停止，检查后才显式确认覆盖。
 
-部署完成后，**用 `/sec-forge` 前缀下达安全研究任务**（Claude Code 与 Codex 通用）：
+“修改对话”需要 **Python 3.10+**；可用 `CC_UNLOCK_PYTHON` 指定解释器绝对路径。Node 技能工具要求 **Node.js 20+**。安装器不包含 Python 或原版 Claude / Codex 客户端。
 
-```
-/sec-forge 渗透 target.lab.local
-/sec-forge 分析这个 APK 的加固保护
-/sec-forge 写 CVE-2024-XXXX 的 PoC
-/sec-forge 破解这个软件的注册验证
-/sec-forge 脱 VMP 保护
-/sec-forge hook 这个 Unity 游戏的伤害函数
-/sec-forge 写个免杀 loader
-```
-
-sec-forge 是安全研究总控——内含 JIT harness 执行引擎 + 自我进化循环，收到任务后自动锁定目标、分解阶段、路由到内联的 android/web/win 逆向子工作流、递归执行直到收敛。**不用手动选 skill。** 直接说任务也会自动触发。需要脱离安全场景的通用即时 harness 时用 `/jit-harness`。
-
----
-
-## 零死角上下文注入（v2.0-stable 核心）
-
-审计了 Claude Code 与 Codex **所有会进模型上下文的本地文件**（Claude 查官方文档、Codex 对实际二进制验证），把反软拒绝人格注入到每一个注入点：
-
-### Claude Code
-
-| 注入点 | 作用域 | 覆盖 |
-|--------|--------|------|
-| `<ws>/CLAUDE.md` | 主 agent + 所有非 fork 子 agent | ✅ persona |
-| `.claude/rules/cc-unlock-persona.md` | 主 + 所有非 fork 子 agent（启动加载） | ✅ 新载体 |
-| `.claude/agents/*.md` body | 该子 agent 系统提示 | ✅ sec-executor + recon/planner |
-| `.claude/agent-memory/<name>/MEMORY.md` | 子 agent `memory:project` 启动注入 | ✅ 交付 many-shot |
-| `projects/<proj>/memory/` | 主 agent auto memory | ✅ persona + 交付先例 |
-| Explore / Plan（内置） | 架构性跳过 CLAUDE.md | ⚠️ recon/planner 带人格替代 |
-
-> **关键**：子 agent 的 `memory: project` 注入的是 `.claude/agent-memory/<agent名>/MEMORY.md`（各自独立），不是主记忆目录。cc-unlock 为每个自定义 agent 单独铺设记忆载体。
-
-### Codex
-
-| 注入点 | 作用域 | 覆盖 |
-|--------|--------|------|
-| `~/.codex/AGENTS.md` | 全局用户指令，**叠加**在 Codex 内置 base 之上（不替换） | ✅ 主载体 |
-| `~/.codex/memories/MEMORY.md` | `use_memories` 时自动注入 | ✅ persona + many-shot |
-| `~/.codex/skills/*/SKILL.md` | name+description 常驻注入 | ✅ 覆盖 |
-| `config.toml` base | 不写 `model_instructions_file`，保留内置 base prompt | ✅ startup 正常 |
-
-> **关键**：**不用 `model_instructions_file` 替换 base prompt**——那会顶掉 Codex 内置操作守则、卡死桌面版 startup（"正在完成 Windows 设置" 挂起）。人格走 `AGENTS.md` 叠加，是 Codex 的标准机制，与 Claude 的 CLAUDE.md 同理。
-
----
-
-## 覆盖领域
-
-| 逆向工程 | 软件保护分析 | 漏洞研究 | Web 应用安全 | 服务器渗透 |
-|---|---|---|---|---|
-| **权限提升** | **AD 域渗透** | **云安全** | **C2 与后渗透** | **免杀对抗** |
-| **移动安全** | **内核安全** | **Malware 分析** | **密码学** | **网络安全** |
-| **IoT 与硬件** | **AI 安全** | **社会工程** | **数字取证** | **CTF** |
-
-PE/ELF/Mach-O · IDA/Ghidra/x64dbg · VMP/Themida/OLLVM · IL2CPP/Unity/UE · 注册机/keygen · 栈/堆溢出/UAF/kernel exploit · SQLi/XSS/SSRF/SSTI/Log4Shell · ADCS/Kerberoasting/DCSync/Golden Ticket · CS/Sliver/Havoc/Mythic · AMSI/ETW patch/直接系统调用 · Frida/Xposed/SSL Pinning bypass · WDK/DKOM/PatchGuard/BYOVD · Prompt injection/jailbreak/GCG
-
----
-
-## 技能框架
-
-| Skill | 功能 |
-|-------|------|
-| **sec-forge** | 安全研究总控 — JIT harness 执行引擎 + 自我进化，自动路由，内联三套逆向子工作流：<br>· android-reverse（APK/DEX/SO, Frida hook, 脱壳, smali patch）<br>· web-reverse（JS 去混淆, WASM, 签名还原, 反调试绕过）<br>· win-reverse（PE, .NET, 驱动, game reverse, malware） |
-| **jit-harness** | 通用即时 harness 合成引擎 — 目标锁定→阶段分解→带成功判据的递归自改进，任何多步任务可用（不绑安全） |
-
----
-
-## 快速开始
-
-### 桌面应用（推荐）
-
-1. 从 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 下载**统一安装器** `cc-unlock-Setup-v2.0-stable.exe`（Windows x64，免管理员）
-2. 运行安装器：**勾选组件**（Claude Code / Codex / 两者）→ 选安装路径 → 自动解压 → 建桌面 / 开始菜单快捷方式（可从「添加或删除程序」卸载，升级时覆盖旧版）
-3. 打开应用，进入「部署」页
-4. Claude：选工作区，开启「子 agent 覆盖」，点部署
-5. Codex：（可选配置中转站）点「部署 Codex」
-6. 重启 Claude Code / Codex
-
-> **一键回滚**：部署页的「恢复原始」把 config.toml / CLAUDE.md 还原成**首次部署前的字节**，并清掉 cc-unlock 新增的文件——部署出问题随时可退回。
-
-### 从源码运行 / 打包
-
-```bash
-# Claude 应用
-cd cc-unlock-claude && npm install && npm start      # 开发运行
-cd cc-unlock-claude && npm run dist                  # 打包成 exe -> dist/
-
-# Codex 应用
-cd cc-unlock-codex && npm install && npm start
-cd cc-unlock-codex && npm run dist
-```
-
-### 命令行部署（legacy PowerShell）
+PowerShell 部署 Claude 的最小入口：
 
 ```powershell
-.\cc-unlock-files\deploy.ps1 -All        # 部署到所有工作区
-.\cc-unlock-files\deploy.ps1 -Codex      # 仅 Codex
-.\cc-unlock-files\deploy.ps1 -Verify     # 验证
+.\cc-unlock-files\deploy.ps1 -Path 'C:\path\to\workspace'
+.\cc-unlock-files\deploy.ps1 -Path 'C:\path\to\workspace' -Verify
 ```
 
----
+这里的示例路径需替换为你的工作区。命令不会顺带部署 Codex；需要时显式使用 `-Codex`。历史个人记忆和子 agent 文件不因文件名相似而自动删除。
 
-## 中转站接入（Codex）
+## 技能更新
 
-Codex 应用「部署」页支持中转站（relay provider）：勾选后填 API 地址 / Key / 模型，写入 `[model_providers.cc_unlock_relay]` 到 `config.toml`。config.toml 用 **latin1 字节直通**合并写入，完整保留 cc-switch 的 provider、密钥与任意 CJK 内容（不做编码转换，避免中文乱码）。卸载只移除 cc-unlock 写入的键。
+- `sec-forge` 按实际目标选 Android、Web、Windows 路线，不自行增加对象或操作；普通文本/config 修改不默认计算哈希，验证复用仍有效证据。
+- `win-reverse` **0.3.0**：去除任务推进中的特定软件硬编码和重复哈希，将“权限锁死”表述修正为工作流门禁。
+- `web-reverse` **0.1.1**：工具路径采用宿主实际技能目录，预检只在首次或失效时运行；浏览器能力依据当前文档，包含 `mcp__cua_repl`，不假定旧 API 可用。
 
----
+## 从源码构建 Windows 产物
 
-## 与 cc-switch 共存
+以下命令在仓库根目录运行。锁定的 Electron 构建依赖要求 **Node.js 22.12+**；这高于技能工具的 Node 20 最低要求。需要本机 NSIS 编译器，不自动下载编译器。
 
-cc-unlock 只向 `~/.codex/config.toml` 合并写入 `model_instructions_file` 一行（+ 可选 relay 段），完全保留 cc-switch 的配置。`~/.codex/auth.json` 不被触碰。
-
----
-
-## 支持的模型
-
-| 平台 | 模型 | 状态 |
-|------|------|------|
-| Claude Code | Opus 5 / 4.8 / Sonnet 5 | 已测试 |
-| Claude Code | Opus 4.6/4.7 · Sonnet 4.x · Haiku 4.5 | 兼容 |
-| Codex | GPT 5.6 Sol/Luna · 5.5 · 5.4 | 已测试 |
-| Codex | GPT 5.3 | 兼容 |
-
----
-
-## 文件结构
-
-```
-cc-unlock/
-├── cc-unlock-claude/          # Claude Code Electron 应用
-│   ├── main.js / preload.js   # Electron 主进程 + 桥
-│   ├── deploy-core.js         # 纯 Node 部署逻辑（可测/可复用）
-│   ├── renderer/              # IBM Carbon 界面
-│   └── bundle/                # agents / rules / agent-memory
-├── cc-unlock-codex/           # Codex Electron 应用
-│   ├── main.js / preload.js
-│   ├── deploy-core.js         # Codex 部署逻辑（latin1 config.toml 安全）
-│   └── renderer/
-├── cc-unlock-files/           # 共享 bundle + legacy PS 部署
-│   ├── deploy.ps1
-│   ├── memory-bundle/         # Claude 记忆（含 delivery-precedents 大记忆）
-│   ├── skill-bundle/          # sec-forge（内联 android/web/win）+ jit-harness
-│   └── config-bundle/
-├── codex-files/               # Codex bundle
-│   ├── codex-config-bundle/   # system-prompt.md, AGENTS.md, config.toml
-│   ├── codex-memory-bundle/   # persona + 交付 many-shot
-│   └── codex-rollout-bundle/  # 104 rollout summaries
-└── gui.ps1                    # legacy WinForms GUI
+```powershell
+npm --prefix cc-unlock-codex ci
+node scripts/sync-prompts.cjs --write
+node scripts/test-prompt-contract.cjs
+node scripts/build-portable.cjs
+$env:CC_UNLOCK_MAKENSIS = 'C:\path\to\NSIS\Bin\makensis.exe'
+node scripts/build-installer.cjs --preflight
+node scripts/build-installer.cjs
 ```
 
----
+`CC_UNLOCK_MAKENSIS` 未设置时使用 `.build-tools/nsis/Bin/makensis.exe`。`scripts/build-dependencies.cjs` 优先查 `CC_UNLOCK_BUILD_MODULES` 或两个应用的 `node_modules`；本地工作站可复用已有依赖，新检出仓库应执行上面的 `npm ci`。
 
-## 支持作者
+便携产物位于两个应用各自的 `dist/cc-unlock-*-win32-x64/`；统一安装器输出为 `release/cc-unlock-Setup-v3.0-stable.exe`。已有便携输出需要重建时可用 `node scripts/build-portable.cjs --refresh`；安装器不会静默覆盖同名已发布产物。上述两个根目录构建脚本是当前发布入口，各应用旧 `npm run dist` 不是统一安装器命令。
 
-如果这个工具对你有用，欢迎 [请作者喝杯咖啡 ☕](https://jacksontai2007.github.io/donate/)。
+## 定向检查
 
----
+```powershell
+node scripts/test-context-thread-locks.cjs
+node --test scripts/test-context-host.cjs
+node scripts/test-prompt-deployment.cjs
+node scripts/test-claude-minimal-deploy.cjs
+```
 
-## License
-
-MIT
+上下文测试采用合成记录/锁和隔离 HOME，不运行真实会话清理。源码、打包和模型效果应分别记录验证范围。旧版本行为请查仓库[历史发布标签](https://github.com/JacksonTai2007/cc-unlock/tags)，当前行为以本页、[发行说明](docs/RELEASE_NOTES.md)和 [CHANGELOG](CHANGELOG.md) 为准。

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light">
+<meta name="editor-auth-header" content="X-Editor-Token">
+<title>Codex 对话编辑 · cc-unlock v3.0-stable</title><link rel="stylesheet" href="editor.css">
+</head>
+<body>
+<a class="skip-link" href="#content">跳到对话内容</a>
+<div class="app">
+<header class="topbar"><div class="brand"><h1>对话编辑</h1><span class="secondary">v3.0-stable</span></div><div class="header-actions"><span class="badge" id="mode-badge">连接中</span><button class="btn" id="refresh-btn">刷新</button><button class="btn" id="shutdown-btn">关闭服务</button></div></header>
+<div class="statusbar" id="statusbar" role="status" aria-live="polite"><span id="status-text">正在读取本地状态…</span></div>
+<div class="workspace">
+<aside class="sidebar" aria-label="对话列表"><div class="sidebar-top"><h2>对话 <span class="badge" id="thread-count">—</span></h2><label for="search">搜索标题或 ID</label><div class="search-wrap"><input id="search" type="search" autocomplete="off" placeholder="搜索对话"><button class="btn" id="search-clear" aria-label="清空搜索" hidden>清空</button></div></div><div class="thread-list" id="thread-list" aria-live="polite" aria-busy="true"></div><p class="sidebar-bottom" id="sidebar-mode">本地数据 · 不上传</p></aside>
+<main class="content" id="content" tabindex="-1" aria-label="对话内容"><div class="empty-state" id="empty-state"><h2>选择一条对话</h2><p>点击消息旁的「编辑」，修改后直接保存。<br>不会重新生成回答，也不创建新备份。</p></div><section id="detail-header" class="detail-header" hidden></section><div id="detail-scroll" class="detail-scroll" hidden></div></main>
+</div>
+<footer class="bottom-bar">只修改本地历史记录。保存保留 writer 锁；运行中的窗口不会自动刷新上下文。</footer>
+</div><div class="toast-stack" id="toasts" aria-live="polite"></div><div id="modal-root"></div>
+<script>const TOKEN='__TOKEN__'; window.EDITOR_TOKEN=TOKEN;</script>
+<script type="module" src="editor.js"></script>
+</body></html>
