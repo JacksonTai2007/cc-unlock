@@ -1,7 +1,7 @@
 {
   "name": "cc-unlock-claude",
   "productName": "cc-unlock for Claude Code",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "cc-unlock for claude — local maintenance workbench",
   "main": "main.js",
   "author": "JacksonTai",

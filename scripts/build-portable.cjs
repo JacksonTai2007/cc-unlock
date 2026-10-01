@@ -7,7 +7,7 @@ const dependencies=require('./build-dependencies.cjs').resolveBuildDependencies(
 const {modules,runtime}=dependencies;
 const asar=require(path.join(modules,'@electron','asar'));
 const sha=f=>crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
-const version='3.0.0';
+const version='3.0.1';
 const editor=['app.py','launch.py','editor_core.py','message_edit.py','force_edit.py','writer_lock_cleanup.py','index.html','fixtures.py','editor.css','editor-api.js','editor-view.js','editor-dialog.js','editor-actions.js','editor.js'];
 function inside(p){const q=path.resolve(p);if(!q.startsWith(root+path.sep))throw Error('Output escaped release: '+q);return q;}
 function clean(p){inside(p);if(fs.existsSync(p)){if(fs.lstatSync(p).isSymbolicLink())throw Error('Refusing link: '+p);fs.rmSync(p,{recursive:true,force:false});}}
@@ -25,7 +25,7 @@ function clean(p){inside(p);if(fs.existsSync(p)){if(fs.lstatSync(p).isSymbolicLi
   // Never inherit old deployment resources: runtime and payload have separate allowlists.
   for(const entry of fs.readdirSync(old)){if(entry!=='resources' && entry!=='electron.exe')fs.cpSync(path.join(old,entry),path.join(output,entry),{recursive:true,errorOnExist:true,force:false});}
   const files=['main.js','preload.js','deploy-core.js','backup-core.js','package.json','renderer/index.html','renderer/app.js','renderer/app.css'];
-  if(kind==='codex')files.push('chat-editor-host.js','context-host.js','context-worker.js');
+  if(kind==='codex')files.push('chat-editor-host.js','context-host.js','context-worker.js','lock-delete-state.js','maintenance-log.js');
   for(const file of files){const dest=path.join(stage,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(source,file),dest);}
   // Include renderer modules rather than silently shipping only the entry file.
   for(const name of fs.readdirSync(path.join(source,'renderer'))){
@@ -44,7 +44,7 @@ function clean(p){inside(p);if(fs.existsSync(p)){if(fs.lstatSync(p).isSymbolicLi
   if(JSON.stringify(fs.readdirSync(path.join(resources,'skill-bundle')))!==JSON.stringify(['sec-forge']))throw Error('Unexpected skills');
   const integrity={algorithm:'SHA256',hash:crypto.createHash('sha256').update(asar.getRawHeader(archive).headerString).digest('hex')};
   const exe=path.join(output,name+'.exe');fs.copyFileSync(path.join(modules,'electron','dist','electron.exe'),exe);
-  await resedit(exe,{productVersion:version,fileVersion:'3.0.0.0',productName:`cc-unlock for ${kind==='claude'?'Claude Code':'Codex'}`,iconPath:path.join(root,'assets','cc-unlock.ico'),win32Metadata:{FileDescription:`cc-unlock for ${kind==='claude'?'Claude Code':'Codex'}`,OriginalFilename:name+'.exe'},asarIntegrity:{'resources\\app.asar':integrity}});
+  await resedit(exe,{productVersion:version,fileVersion:'3.0.1.0',productName:`cc-unlock for ${kind==='claude'?'Claude Code':'Codex'}`,iconPath:path.join(root,'assets','cc-unlock.ico'),win32Metadata:{FileDescription:`cc-unlock for ${kind==='claude'?'Claude Code':'Codex'}`,OriginalFilename:name+'.exe'},asarIntegrity:{'resources\\app.asar':integrity}});
   const pkg=JSON.parse(asar.extractFile(archive,'package.json').toString());if(pkg.version!==version)throw Error('Wrong app version');
   for(const f of files)if(!asar.extractFile(archive,f).equals(fs.readFileSync(path.join(source,f))))throw Error('ASAR mismatch '+f);
   const manifest={version,kind,exe,exeSha256:sha(exe),asarSha256:sha(archive),asarHeaderIntegrity:integrity,resources:allowed,editorIncluded:kind==='codex',noMemoryOrSubagentPayload:true};

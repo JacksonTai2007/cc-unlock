@@ -1,6 +1,6 @@
-# cc-unlock v3.0-stable
+# cc-unlock v3.0.1-stable
 
-个人工程分析工作台。部署 Claude / Codex 工作区指令与 `sec-forge` 技能，维护 Codex 磁盘历史。应用版本为 `3.0.0`。
+个人工程分析工作台。部署 Claude / Codex 工作区指令与 `sec-forge` 技能，维护 Codex 磁盘历史。应用版本为 `3.0.1`。
 
 ## 功能与边界
 
@@ -16,9 +16,13 @@
 
 提示词和技能不扩大任务范围或宿主权限，也不能关闭服务端 safeguard、保证请求不被拒绝。静态检查和隔离测试不等于真实模型行为评测。
 
+## Windows 锁状态与日志
+
+锁已被系统标记删除但句柄仍被持有时显示“等待释放”，不误报权限失败，也不计作文件已消失。只有原生状态确认才这样分类；真实权限/共享失败仍报告。界面显示已读取/已枚举的历史文件数，删锁结果与历史字段处理结果独立。每次操作覆盖当前用户应用数据目录中的 `logs/context-clean-latest.jsonl`，窗口显示实际日志路径；不保存对话正文。
+
 ## 安装与使用
 
-Windows x64 安装器文件：`cc-unlock-Setup-v3.0-stable.exe`。在仓库 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 获取发布产物。安装前退出旧 cc-unlock 部署工具，避免旧可执行文件被占用；进行上下文清理时 Codex 本身可以保持运行。
+Windows x64 安装器文件：`cc-unlock-Setup-v3.0.1-stable.exe`。在仓库 [Releases](https://github.com/JacksonTai2007/cc-unlock/releases) 获取发布产物。安装前退出旧 cc-unlock 部署工具，避免旧可执行文件被占用；进行上下文清理时 Codex 本身可以保持运行。
 
 安装部署工具后，选择 Claude 的实际工作区再部署；Codex 部署作用于当前用户的 `.codex`。修改指令后新建或重新加载任务，核对实际加载内容。现有 `CLAUDE.md` 与部署文本不同会停止，检查后才显式确认覆盖。
 
@@ -55,7 +59,7 @@ node scripts/build-installer.cjs
 
 `CC_UNLOCK_MAKENSIS` 未设置时使用 `.build-tools/nsis/Bin/makensis.exe`。`scripts/build-dependencies.cjs` 优先查 `CC_UNLOCK_BUILD_MODULES` 或两个应用的 `node_modules`；本地工作站可复用已有依赖，新检出仓库应执行上面的 `npm ci`。
 
-便携产物位于两个应用各自的 `dist/cc-unlock-*-win32-x64/`；统一安装器输出为 `release/cc-unlock-Setup-v3.0-stable.exe`。已有便携输出需要重建时可用 `node scripts/build-portable.cjs --refresh`；安装器不会静默覆盖同名已发布产物。上述两个根目录构建脚本是当前发布入口，各应用旧 `npm run dist` 不是统一安装器命令。
+便携产物位于两个应用各自的 `dist/cc-unlock-*-win32-x64/`；统一安装器输出为 `release/cc-unlock-Setup-v3.0.1-stable.exe`。已有便携输出需要重建时可用 `node scripts/build-portable.cjs --refresh`；安装器不会静默覆盖同名已发布产物。上述两个根目录构建脚本是当前发布入口，各应用旧 `npm run dist` 不是统一安装器命令。
 
 ## 定向检查
 

@@ -9,9 +9,9 @@ const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 
 const ROOT = fs.realpathSync(path.resolve(__dirname, '..'));
-const VERSION = '3.0.0';
-const LABEL = 'v3.0-stable';
-const PE_VERSION = '3.0.0.0';
+const VERSION = '3.0.1';
+const LABEL = 'v3.0.1-stable';
+const PE_VERSION = '3.0.1.0';
 // Keep NSIS payload paths below Win32 MAX_PATH; the sec-forge bundle has deep task trees.
 const BUILD_ROOT = path.join(ROOT, '.b');
 const RELEASE = path.join(ROOT, 'release', `cc-unlock-Setup-${LABEL}.exe`);
@@ -165,7 +165,7 @@ async function buildApp(app, runDir, dependencies) {
   copyTree(original, packaged, runDir);
   const archive = path.join(packaged, 'resources', 'app.asar');
   if (app === 'codex') {
-    for (const name of ['context-host.js','context-worker.js','renderer/chat-host.js','renderer/context-panel.js','renderer/shell-common.js']) {
+    for (const name of ['context-host.js','context-worker.js','lock-delete-state.js','maintenance-log.js','renderer/chat-host.js','renderer/context-panel.js','renderer/shell-common.js']) {
       assert(dependencies.asar.extractFile(archive, name).length > 0, `Missing app module: ${name}`);
     }
     for (const name of ['editor.css','editor-api.js','editor-view.js','editor-dialog.js','editor-actions.js','editor.js']) {

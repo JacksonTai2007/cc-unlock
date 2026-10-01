@@ -4,14 +4,14 @@ $$('.nav__item').forEach(button=>button.addEventListener('click',()=>{page(butto
 const output=$('#console'),logLine=(kind,text)=>log(output,kind,text);
 async function overview(){
  const env=await api.detect();
- if(!real){['#tCodex','#tSp','#tConfig','#tRelay','#tCfgBundle','#tSkills'].forEach(id=>tile(id,'预览'));$('#hdrMeta').textContent='v3.0-stable · 界面预览（不执行操作）';return;}
+ if(!real){['#tCodex','#tSp','#tConfig','#tRelay','#tCfgBundle','#tSkills'].forEach(id=>tile(id,'预览'));$('#hdrMeta').textContent='v3.0.1-stable · 界面预览（不执行操作）';return;}
  tile('#tCodex',env.codexInstalled?(env.codexVersion&&env.codexVersion!=='?'?env.codexVersion:'已检测'):'未检测',env.codexInstalled?'ok':'warn');
  tile('#tSp',env.liveSp?'存在':'未部署',env.liveSp?'ok':'warn','资源文件；是否引用见配置');
  tile('#tConfig',env.cfgInstr?'引用 system prompt':env.configPresent?'保留当前配置':'尚无配置',env.cfgInstr?'ok':'','配置检测，不推断加载结果');
  tile('#tRelay',env.relayConfigured?'自定义 provider':'当前默认接入');
  tile('#tCfgBundle',env.spBundle&&env.agentsBundle?'就绪':'缺失',env.spBundle&&env.agentsBundle?'ok':'warn');
  tile('#tSkills',String(env.skillDirs||0),'','sec-forge；JIT 已写入主提示词');
- $('#hdrMeta').textContent='v3.0-stable'+(env.codexVersion&&env.codexVersion!=='?'?' · Codex '+env.codexVersion:'');
+ $('#hdrMeta').textContent='v3.0.1-stable'+(env.codexVersion&&env.codexVersion!=='?'?' · Codex '+env.codexVersion:'');
 }
 async function paths(){const value=await api.paths();$('#pCodex').value=value.codexDir||'';$('#pBundle').value=value.bundle||'';$('#pSkills').value=value.skills||'';}
 function relay(){const on=$('#tglRelay').checked;['#relayUrl','#relayKey','#relayModel'].forEach(id=>$(id).disabled=!on);}

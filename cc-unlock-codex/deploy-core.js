@@ -727,42 +727,77 @@ function clearThreadWriterLocks(log) {
     const relative = path.relative(base, file);
     return !path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`);
   };
+  const fail = (file, stage, err) => {
+    // A vanished entry was not deleted by this call and must not inflate the count.
+    if (err.code !== 'ENOENT') result.failures.push({ file, stage,
+      code: err.code || null, error: String(err && err.message || err) });
+  };
+  let stage = 'validate-root';
   try {
-    const stat = assertRegularSessionPath(root, 'directory');
-    if (stat.isSymbolicLink() || !stat.isDirectory()) throw new Error('writer 锁路径不是普通目录');
+    assertRegularSessionPath(root, 'directory');
     const realRoot = fs.realpathSync(root);
     if (path.relative(path.join(fs.realpathSync(CODEX_DIR), 'thread-writer-locks'), realRoot)) {
       throw new Error('writer 锁目录解析到预期路径之外');
     }
-    function walk(dir) {
-      if (fs.lstatSync(dir).isSymbolicLink() || !inside(realRoot, fs.realpathSync(dir))) {
+    const validateDirectory = dir => {
+      assertRegularSessionPath(dir, 'directory');
+      if (!inside(root, dir) || !inside(realRoot, fs.realpathSync(dir))) {
         throw new Error('拒绝遍历 writer 锁目录外部路径');
       }
-      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    };
+    function walk(dir) {
+      let entries, walkStage = 'validate-directory';
+      try {
+        validateDirectory(dir);
+        walkStage = 'enumerate-directory';
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch (err) { fail(dir, walkStage, err); return; }
+      for (const entry of entries) {
         const file = path.resolve(dir, entry.name);
+        let entryStage = 'validate-entry';
         try {
-          if (file === root || !inside(root, file) || !inside(realRoot, fs.realpathSync(path.dirname(file)))) {
+          if (file === root || path.dirname(file) !== dir || !inside(root, file)) {
             throw new Error('拒绝删除 writer 锁目录外部文件');
           }
-          const info = fs.lstatSync(file);
-          if (info.isDirectory() && !info.isSymbolicLink()) { walk(file); continue; }
-          if (info.isSymbolicLink()) fs.unlinkSync(file);
-          else if (info.isDirectory()) { walk(file); continue; }
-          else if (info.isFile()) fs.rmSync(file, { force: true });
-          else throw new Error('writer 锁目录存在不支持的文件类型');
+          // Revalidate every parent before acting; a stale directory entry must
+          // never authorize traversing an ancestor replaced by a junction.
+          entryStage = 'validate-parent';
+          validateDirectory(dir);
+          if (entry.isDirectory() && !entry.isSymbolicLink()) { walk(file); continue; }
+          if (!entry.isFile() && !entry.isSymbolicLink()) {
+            entryStage = 'validate-entry';
+            throw new Error('writer 锁目录存在不支持的文件类型');
+          }
+          // Dirent already supplies the kind; basename deletion needs no
+          // separate per-file stat. Native pending status is classified below.
+          // unlink never follows a link, never recurses, and cannot remove a
+          // regular directory if the entry changes after enumeration.
+          entryStage = 'unlink';
+          fs.unlinkSync(file);
           result.removed.push(file);
-        } catch (err) {
-          if (err.code !== 'ENOENT') result.failures.push({ file, error: String(err && err.message || err) });
-        }
+        } catch (err) { fail(file, entryStage, err); }
       }
     }
+    stage = 'walk';
     walk(root);
-  } catch (err) {
-    if (err.code !== 'ENOENT') result.failures.push({ file: root, error: String(err && err.message || err) });
+  } catch (err) { fail(root, stage, err); }
+  result.pendingDeletion = [];
+  const possiblePending = result.failures.filter(failure => failure.stage === 'unlink' && ['EPERM', 'EACCES', 'EBUSY'].includes(failure.code));
+  if (possiblePending.length) {
+    try {
+      const probe = require('./lock-delete-state').probeLockDeleteState(possiblePending.map(failure => failure.file));
+      const verified = new Map((probe.results || []).filter(item => item.status === 'delete-pending').map(item => [item.file, item]));
+      // EPERM alone never proves deletion. Only an observed native DELETE_PENDING
+      // status can move an entry out of the genuine-failure list.
+      result.pendingDeletion = possiblePending.filter(item => verified.has(item.file)).map(item => ({ ...item, ntstatus: verified.get(item.file).ntstatus }));
+      result.failures = result.failures.filter(item => !verified.has(item.file));
+      if (probe.failures?.length) result.stateProbeFailures = probe.failures;
+    } catch (err) { result.stateProbeFailures = [{ error: String(err && err.message || err) }]; }
   }
   if (log) {
-    log(result.failures.length ? 'warn' : 'ok', `已删除 ${result.removed.length} 个 writer 锁目录内文件（目录保留）`);
-    for (const failure of result.failures) log('fail', `${failure.file}: ${failure.error}`);
+    log(result.failures.length || result.pendingDeletion.length ? 'warn' : 'ok', `已删除 ${result.removed.length} 个 writer 锁目录内文件，${result.pendingDeletion.length} 个已标记删除、等待句柄释放（目录保留）`);
+    for (const pending of result.pendingDeletion) log('warn', `${pending.file}: [${pending.ntstatus}] 已标记删除，等待现有句柄释放；不计为删除成功或失败`);
+    for (const failure of result.failures) log('fail', `${failure.file}: [${failure.stage}/${failure.code || 'ERROR'}] ${failure.error}`);
   }
   return result;
 }
@@ -770,13 +805,13 @@ function clearThreadWriterLocks(log) {
 function cleanInjectedContext(opts, log) {
   opts = opts || {};
   const summary = {
-    ok: false, status: 'partial', filesScanned: 0, filesChanged: 0, recordsNeutralized: 0, fieldsNeutralized: 0,
+    ok: false, status: 'partial', filesScanned: 0, filesEnumerated: 0, scanStarted: false, scanCompleted: false, contextStatus: 'not-started', contextFailures: [], filesChanged: 0, recordsNeutralized: 0, fieldsNeutralized: 0,
     invalidJsonLines: 0, skippedChangedDuringScan: [], failures: [], files: [],
     filesPossiblyChanged: 0, uncertainWriteCount: 0, uncertainWrites: [], recordsPartiallyNeutralized: 0,
     transientWritesOccurred: false, rollbacks: { verified: 0, unverified: 0, refused: 0, events: [] },
     lineageRepair: { enabled: false, fixed: 0, failures: [], skipped: opts.repairLineage ? 'disabled-during-context-cleanup' : 'not-requested' },
     projectionReset: { removed: [], failures: [], skipped: 'automatic-reset-disabled' },
-    threadWriterLocks: { removed: [], failures: [], skipped: opts.roots ? 'custom-roots' : 'not-requested' },
+    threadWriterLocks: { removed: [], failures: [], pendingDeletion: [], skipped: opts.roots ? 'custom-roots' : 'not-requested' },
     requiresReload: false, diskOnly: true, currentContextUpdated: false,
     liveContextWarning: '只修改磁盘中的匹配历史字段；不会清除当前任务已载入的内存上下文。',
   };
@@ -789,16 +824,24 @@ function cleanInjectedContext(opts, log) {
     summary.failures.push(...summary.threadWriterLocks.failures);
     if (summary.threadWriterLocks.failures.length && log) log('warn', 'writer 锁目录清理不完整；继续清理可修改的历史字段。');
   }
+  const lockFailureCount = summary.failures.length;
+  summary.scanStarted = true;
   const files = enumerateSessionFiles(opts, summary.failures);
+  summary.filesEnumerated = files.length;
+  if (log) log('info', `默认遍历 sessions 和 archived_sessions：枚举 ${files.length} 个历史文件`);
   for (const item of files) {
     patchSessionContext(item, summary, log);
     if (log && summary.filesScanned && summary.filesScanned % 50 === 0) log('info', `已处理 ${summary.filesScanned} / ${files.length} 个历史文件`);
   }
+  summary.scanCompleted = true;
+  summary.contextFailures = summary.failures.slice(lockFailureCount);
+  const contextIncomplete = summary.contextFailures.length || summary.skippedChangedDuringScan.length || summary.uncertainWriteCount;
+  summary.contextStatus = contextIncomplete ? 'partial' : (summary.fieldsNeutralized ? 'cleaned' : 'no-match');
   summary.requiresReload = !!(summary.filesChanged || summary.filesPossiblyChanged || summary.transientWritesOccurred);
   summary.ok = !summary.failures.length && !summary.skippedChangedDuringScan.length && !summary.uncertainWriteCount;
   summary.status = summary.ok ? (summary.requiresReload ? 'cleaned' : 'no-match') : 'partial';
   if (log) {
-    log(summary.ok ? 'done' : 'warn', `${summary.ok ? '完成' : '未完整完成'}: 删除 writer 锁目录文件 ${summary.threadWriterLocks.removed.length} 个，清理历史片段 ${summary.recordsNeutralized} 条 / ${summary.fieldsNeutralized} 个字段，确认修改文件 ${summary.filesChanged} 个，结果未确认 ${summary.uncertainWriteCount} 次 / ${summary.filesPossiblyChanged} 个文件。`);
+    log(summary.ok ? 'done' : 'warn', `${summary.ok ? '完成' : '未完整完成'}: 历史遍历 ${summary.filesScanned}/${summary.filesEnumerated} 个文件；删除 writer 锁目录文件 ${summary.threadWriterLocks.removed.length} 个，等待删除 ${summary.threadWriterLocks.pendingDeletion?.length || 0} 个；清理历史片段 ${summary.recordsNeutralized} 条 / ${summary.fieldsNeutralized} 个字段，确认修改文件 ${summary.filesChanged} 个，结果未确认 ${summary.uncertainWriteCount} 次 / ${summary.filesPossiblyChanged} 个文件。`);
     if (summary.requiresReload) log('info', `${summary.liveContextWarning} 已打开的任务需重新载入才可能使用新历史。`);
   }
   return summary;

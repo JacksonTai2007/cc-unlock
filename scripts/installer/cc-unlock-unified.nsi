@@ -2,13 +2,13 @@ Unicode true
 !include "MUI2.nsh"
 
 Name "cc-unlock"
-OutFile "cc-unlock-Setup-v3.0-stable.exe"
+OutFile "cc-unlock-Setup-v3.0.1-stable.exe"
 InstallDir "$LOCALAPPDATA\Programs\cc-unlock"
 InstallDirRegKey HKCU "Software\cc-unlock" "InstallDir"
 RequestExecutionLevel user
 ShowInstDetails show
 ShowUninstDetails show
-BrandingText "cc-unlock v3.0-stable"
+BrandingText "cc-unlock v3.0.1-stable"
 
 Icon "..\..\assets\cc-unlock.ico"
 UninstallIcon "..\..\assets\cc-unlock.ico"
@@ -80,7 +80,7 @@ Section "-post"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "DisplayName" "cc-unlock"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "UninstallString" "$INSTDIR\Uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "DisplayIcon" "$INSTDIR\cc-unlock.ico"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "DisplayVersion" "3.0.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "DisplayVersion" "3.0.1"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "Publisher" "JacksonTai"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "URLInfoAbout" "https://github.com/JacksonTai2007/cc-unlock"
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\cc-unlock" "NoModify" 1

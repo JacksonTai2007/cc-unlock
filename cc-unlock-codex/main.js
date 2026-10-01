@@ -7,12 +7,56 @@ const path = require('path');
 const core = require('./deploy-core');
 const { ChatEditorHost, createServer } = require('./chat-editor-host');
 const { ContextHost } = require('./context-host');
+const { createMaintenanceJournal } = require('./maintenance-log');
 
 const APP = __dirname;
 let mainWindow = null;
 let chatEditor = null;
 let editorServer = null;
 const contextHost = new ContextHost(script => utilityProcess.fork(script, [], { serviceName: 'cc-unlock-maintenance' }));
+let maintenanceBusy = false;
+
+async function runMaintenance(action, ev) {
+  if (!mainWindow || ev.sender !== mainWindow.webContents) return { ok: false, error: '不允许的维护请求。' };
+  // A second request must not truncate the running action's latest journal.
+  if (maintenanceBusy || contextHost.current) return { ok: false, busy: true, error: '另一项维护正在执行，请等待完成。' };
+  maintenanceBusy = true;
+  let journal;
+  let warned = false;
+  const sendLog = (kind, text) => {
+    try { if (!ev.sender.isDestroyed()) ev.sender.send(`${action}-log`, { kind, text }); }
+    catch { /* Closing the renderer must not interrupt the disk operation. */ }
+  };
+  const warnLoggingFailure = (metadata) => {
+    if (metadata.logFailure && !warned) {
+      warned = true;
+      sendLog('warn', `操作日志未完整保存 [${metadata.logFailure.stage}/${metadata.logFailure.code}]: ${metadata.logFailure.error}；维护继续，真实错误仍显示在本窗口。`);
+    }
+  };
+  try {
+    try { journal = createMaintenanceJournal({ userDataPath: app.getPath('userData'), action }); }
+    catch (error) {
+      const metadata = { logFailure: { stage: 'begin', code: String(error.code || 'ERROR'), error: String(error.message || error) } };
+      journal = { metadata: () => metadata, progress: () => metadata, finish: () => metadata };
+    }
+    warnLoggingFailure(journal.metadata());
+    const log = (kind, text) => {
+      sendLog(kind, text);
+      warnLoggingFailure(journal.progress(kind, text));
+    };
+    let result;
+    try { result = await contextHost.run(action, log); }
+    catch (error) { result = { ok: false, error: String(error.message || error) }; }
+    const metadata = journal.finish(result);
+    warnLoggingFailure(metadata);
+    if (metadata.logFile) sendLog('info', `本次操作日志: ${metadata.logFile}`);
+    return { ...result, ...metadata };
+  } catch (error) {
+    // Journal/setup failures cannot turn an actual maintenance failure into success.
+    const result = { ok: false, error: String(error.message || error) };
+    return { ...result, ...(journal ? journal.finish(result) : {}) };
+  } finally { maintenanceBusy = false; }
+}
 
 function wireIpc() {
   ipcMain.handle('detect', () => core.detect());
@@ -39,17 +83,7 @@ function wireIpc() {
     return { ok: true };
   });
 
-  ipcMain.handle('context-scan', (ev) => {
-    const log = (kind, text) => { if (!ev.sender.isDestroyed()) ev.sender.send('context-scan-log', { kind, text }); };
-    if (!mainWindow || ev.sender !== mainWindow.webContents) return { ok: false, error: '不允许的维护请求。' };
-    return contextHost.run('context-scan', log);
-  });
-
-  ipcMain.handle('context-clean', (ev) => {
-    const log = (kind, text) => { if (!ev.sender.isDestroyed()) ev.sender.send('context-clean-log', { kind, text }); };
-    if (!mainWindow || ev.sender !== mainWindow.webContents) return { ok: false, error: '不允许的维护请求。' };
-    return contextHost.run('context-clean', log);
-  });
+  for (const action of ['context-scan', 'context-clean']) ipcMain.handle(action, ev => runMaintenance(action, ev));
 
   ipcMain.handle('restore', (ev) => {
     const log = (kind, text) => ev.sender.send('restore-log', { kind, text });

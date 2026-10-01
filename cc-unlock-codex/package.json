@@ -1,7 +1,7 @@
 {
   "name": "cc-unlock-codex",
   "productName": "cc-unlock for Codex",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "cc-unlock for codex — local maintenance workbench",
   "main": "main.js",
   "author": "JacksonTai",
@@ -27,7 +27,9 @@
       "backup-core.js",
       "chat-editor-host.js",
       "context-host.js",
-      "context-worker.js"
+      "context-worker.js",
+      "lock-delete-state.js",
+      "maintenance-log.js"
     ],
     "extraResources": [
       {

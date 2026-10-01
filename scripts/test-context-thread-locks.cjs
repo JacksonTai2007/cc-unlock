@@ -33,7 +33,9 @@ function fixture(name,faults={}){
       events.push({method:prop,file,destination:pairs.includes(prop)?String(args[1]):null,
         position:prop==='readSync'||prop==='writeSync'?args[4]:null,length:prop==='readSync'||prop==='writeSync'?args[3]:null});
       if(faults.failReadLocks&&prop==='readdirSync'&&path.resolve(file)===locks)throw Object.assign(Error('simulated lock read denial'),{code:'EACCES'});
-      if(faults.failRemove&&['rmSync','unlinkSync'].includes(prop)&&path.basename(file)==='blocked.lock')throw Object.assign(Error('simulated lock sharing violation'),{code:'EBUSY'});
+      if(faults.failRemove&&['rmSync','unlinkSync'].includes(prop)&&path.basename(file)==='blocked.lock')throw Object.assign(Error('simulated lock sharing violation'),{code:faults.failRemoveCode||'EBUSY'});
+      if(faults.failLockFileStat&&prop==='lstatSync'&&inside(locks,file)&&fs.lstatSync(file).isFile())throw Object.assign(Error('simulated legacy Windows live lock lstat denial'),{code:'EPERM'});
+      if(faults.vanishBeforeUnlink&&prop==='unlinkSync'&&!faults.vanished){faults.vanished=true;target.unlinkSync(file);throw Object.assign(Error('simulated entry removed concurrently'),{code:'ENOENT'});}
       if(faults.failDirectory&&prop==='readdirSync'&&path.basename(file)==='blocked-dir')throw Object.assign(Error('simulated directory denial'),{code:'EACCES'});
       const affected=!faults.failPathName||path.basename(file)===faults.failPathName;
       if(affected&&faults.failOpenSession&&prop==='openSync'&&path.extname(file)==='.jsonl')throw Object.assign(Error('simulated session open denial'),{code:'EACCES'});
@@ -64,6 +66,8 @@ function fixture(name,faults={}){
         return result;
       }
       const result=target[prop](...args);
+      if(faults.replaceLockDirectory&&prop==='readdirSync'&&path.resolve(file)===locks&&!faults.directoryReplaced){faults.directoryReplaced=true;const nested=path.join(locks,'nested');fs.renameSync(nested,path.join(root,'original-nested'));fs.symlinkSync(path.join(root,'outside'),nested,process.platform==='win32'?'junction':'dir');}
+      if(faults.replaceLockFileWithDirectory&&prop==='readdirSync'&&path.resolve(file)===locks&&!faults.fileReplaced){faults.fileReplaced=true;const changed=path.join(locks,'changed.lock');fs.unlinkSync(changed);fs.mkdirSync(changed);put(path.join(changed,'keep.txt'));}
       if(prop==='openSync'){descriptors.set(result,file);readCalls.set(result,0);statCalls.set(result,0);nativeWrites.set(result,0);writeAttempts.set(result,0);}
       if(prop==='closeSync')descriptors.delete(args[0]);
       return result;
@@ -73,6 +77,10 @@ function fixture(name,faults={}){
   vm.runInNewContext(source,{module:moduleVM,exports:moduleVM.exports,__dirname:path.dirname(corePath),Buffer,process:{pid:process.pid,platform:'win32',env:{SystemRoot:'C:\\Windows'}},
     require:id=>{
       if(id==='fs')return guarded;if(id==='path')return path;if(id==='os')return {homedir:()=>home};if(id==='./backup-core')return {};
+      if(id==='./lock-delete-state')return {probeLockDeleteState:files=>{
+        if(faults.pendingProbeThrows)throw Error('simulated native status probe unavailable');
+        return {supported:true,results:files.map(file=>({file,status:faults.pendingDeleteName===path.basename(file)?'delete-pending':'access-denied',ntstatus:faults.pendingDeleteName===path.basename(file)?'0xc0000056':'0xc0000022'})),failures:[]};
+      }};
       if(id==='child_process')return {execFile(){throw Error('Unexpected process launch');},execFileSync(_exe,args){
         assert.deepEqual([...args],['/FO','CSV','/NH']);probes++;
         if(faults.processFailure)throw Object.assign(Error('simulated process probe denied'),{code:'EACCES'});
@@ -171,6 +179,38 @@ test('lock deletion failures are reported but do not stop context edits',()=>{
   const f=fixture('lock-remove-failure',{failRemove:true}),s=seed(f);put(path.join(f.locks,'blocked.lock'));
   const r=f.core.cleanInjectedContext({clearStaleLocks:true},f.log);assert(!r.ok);assert.equal(r.status,'partial');assert.equal(r.filesChanged,1);assert.equal(r.failures.length,1);
   assert(fs.existsSync(path.join(f.locks,'blocked.lock')));assertNeutralized(s);assert(!f.logs.some(e=>e.kind==='done'));
+});
+test('legacy Windows lstat denial on ordinary live lock files does not prevent direct unlink',()=>{
+  const f=fixture('legacy-lock-lstat',{active:true,failLockFileStat:true}),s=seed(f);
+  const locks=[s.lock,put(path.join(f.locks,'nested','live.lock')),put(path.join(f.locks,'other.dat'))];
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true},f.log);
+  assert(r.ok);assert.equal(r.threadWriterLocks.removed.length,3);assert.equal(r.threadWriterLocks.failures.length,0);assertNeutralized(s);
+  for(const lock of locks){assert(!fs.existsSync(lock));assert(!f.events.some(event=>event.method==='lstatSync'&&event.file===lock));}
+  const writes=f.events.findIndex(event=>event.method==='writeSync');const unlinks=f.events.map((event,index)=>({event,index})).filter(item=>item.event.method==='unlinkSync');
+  assert.equal(unlinks.length,3);assert(unlinks.every(item=>item.index<writes));assert(!f.events.some(event=>event.method==='rmSync'));
+});
+test('genuine unlink EPERM is reported with stage and code while independent context edits continue',()=>{
+  const f=fixture('unlink-permission',{active:true,failRemove:true,failRemoveCode:'EPERM'}),s=seed(f),blocked=put(path.join(f.locks,'blocked.lock'));
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true},f.log);assert.equal(r.status,'partial');assert.equal(r.threadWriterLocks.removed.length,1);
+  const failure=r.threadWriterLocks.failures[0];assert.equal(failure.file,blocked);assert.equal(failure.stage,'unlink');assert.equal(failure.code,'EPERM');assert(fs.existsSync(blocked));assertNeutralized(s);
+  assert(f.logs.some(entry=>entry.kind==='fail'&&entry.text.includes('[unlink/EPERM]')));assert(!f.events.some(event=>event.method==='rmSync'));
+});
+test('directory entry replaced by junction after enumeration never traverses external target',()=>{
+  const f=fixture('lock-directory-race',{replaceLockDirectory:true}),s=seed(f),outside=put(path.join(f.root,'outside','keep.txt'));
+  put(path.join(f.locks,'nested','nested.lock'));const r=f.core.cleanInjectedContext({clearStaleLocks:true});
+  assert.equal(r.status,'partial');assert.equal(r.threadWriterLocks.failures.length,1);assert.equal(r.threadWriterLocks.failures[0].stage,'validate-directory');
+  assert.equal(fs.readFileSync(outside,'utf8'),'fixture');assert(fs.existsSync(path.join(f.root,'original-nested','nested.lock')));assertNeutralized(s);
+  assert(!f.events.some(event=>event.method==='readdirSync'&&event.file===path.join(f.locks,'nested')));
+});
+test('ordinary file entry replaced by directory cannot trigger recursive removal',()=>{
+  const f=fixture('lock-file-directory-race',{replaceLockFileWithDirectory:true}),s=seed(f);put(path.join(f.locks,'changed.lock'));
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true});assert.equal(r.status,'partial');assert.equal(r.threadWriterLocks.failures.length,1);assert.equal(r.threadWriterLocks.failures[0].stage,'unlink');
+  assert(fs.existsSync(path.join(f.locks,'changed.lock','keep.txt')));assert(fs.statSync(path.join(f.locks,'changed.lock')).isDirectory());assertNeutralized(s);
+  assert(!f.events.some(event=>event.method==='readdirSync'&&event.file===path.join(f.locks,'changed.lock')));assert(!f.events.some(event=>event.method==='rmSync'));
+});
+test('concurrently vanished entry is not falsely counted as deleted by this action',()=>{
+  const f=fixture('vanished-lock',{vanishBeforeUnlink:true}),s=seed(f),r=f.core.cleanInjectedContext({clearStaleLocks:true});
+  assert(r.ok);assert.equal(r.threadWriterLocks.removed.length,0);assert.equal(r.threadWriterLocks.failures.length,0);assert(!fs.existsSync(s.lock));assertNeutralized(s);
 });
 test('context one-click invokes no process scanner before requested file deletion',()=>{
   const f=fixture('writer-started',{processReplies:[idleList,activeList]}),s=seed(f),r=f.core.cleanInjectedContext({clearStaleLocks:true});
@@ -299,6 +339,30 @@ test('multiple hardlinks are rejected instead of changing an unrelated alias',()
 });
 test('legacy repairLineage request never repairs lineage or touches SQLite',()=>{
   const f=fixture('lineage-disabled'),s=seed(f),r=f.core.cleanInjectedContext({repairLineage:true});assert(r.ok);assert.equal(r.lineageRepair.enabled,false);assert.equal(r.lineageRepair.fixed,0);assert.equal(r.lineageRepair.skipped,'disabled-during-context-cleanup');unchangedProjection(s);
+});
+test('native-confirmed delete pending is separate from removed and true failure',()=>{
+  const f=fixture('native-delete-pending',{failRemove:true,pendingDeleteName:'blocked.lock'}),s=seed(f);put(path.join(f.locks,'blocked.lock'));
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true});
+  assert(r.ok);assert.equal(r.threadWriterLocks.removed.length,1);assert.equal(r.threadWriterLocks.pendingDeletion.length,1);
+  assert.equal(r.threadWriterLocks.failures.length,0);assert(fs.existsSync(path.join(f.locks,'blocked.lock')));
+  assert.equal(r.filesEnumerated,1);assert.equal(r.filesScanned,1);assert.equal(r.scanStarted,true);assert.equal(r.scanCompleted,true);
+  assert.equal(r.contextStatus,'cleaned');assert.equal(r.contextFailures.length,0);assertNeutralized(s);
+});
+test('genuine native access denial does not become pending or context failure',()=>{
+  const f=fixture('native-access-denied',{failRemove:true}),s=seed(f);put(path.join(f.locks,'blocked.lock'));
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true});assert.equal(r.status,'partial');assert.equal(r.threadWriterLocks.pendingDeletion.length,0);
+  assert.equal(r.threadWriterLocks.failures.length,1);assert.equal(r.contextStatus,'cleaned');assert.equal(r.contextFailures.length,0);assertNeutralized(s);
+});
+test('native classification unavailable never hides the deletion error',()=>{
+  const f=fixture('native-probe-unavailable',{failRemove:true,pendingProbeThrows:true}),s=seed(f);put(path.join(f.locks,'blocked.lock'));
+  const r=f.core.cleanInjectedContext({clearStaleLocks:true});assert.equal(r.status,'partial');assert.equal(r.threadWriterLocks.failures.length,1);
+  assert.equal(r.threadWriterLocks.pendingDeletion.length,0);assert.equal(r.threadWriterLocks.stateProbeFailures.length,1);assertNeutralized(s);
+});
+test('default roots include both sessions and archived history in visible counts',()=>{
+  const f=fixture('enumerated-counts'),s=seed(f,false);put(path.join(f.codex,'archived_sessions','nested','rollout-archived.jsonl'),s.record);
+  put(path.join(f.codex,'sessions','not-a-rollout.txt'),'ordinary input');
+  const r=f.core.cleanInjectedContext({});assert.equal(r.filesEnumerated,2);assert.equal(r.filesScanned,2);assert.equal(r.contextStatus,'no-match');
+  assert.equal(r.scanCompleted,true);assert.equal(r.contextFailures.length,0);assert.equal(r.threadWriterLocks.removed.length,0);
 });
 test('scan remains read-only even while Codex active',()=>{
   const f=fixture('scan',{active:true}),s=seed(f),r=f.core.scanInjectedContext({},f.log);assert(r.ok);assert.equal(r.recordsMatched,1);assert(fs.existsSync(s.lock));assert.equal(fs.readFileSync(s.rollout,'utf8'),s.record);unchangedProjection(s);

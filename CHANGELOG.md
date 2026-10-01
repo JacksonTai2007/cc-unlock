@@ -1,6 +1,9 @@
 # Changelog
 
-## v3.0-stable / 3.0.0 — 2026-10-01
+## v3.0.1-stable
+
+- 修复 Windows 待删除锁误报失败：只按原生 STATUS_DELETE_PENDING 区分等待释放，真正删除失败保留。
+- 显示全量历史扫描计数，删锁与上下文处理结果独立；操作日志写到当前用户应用数据目录。 / 3.0.0 — 2026-10-01
 
 ### 历史上下文维护
 
@@ -19,7 +22,7 @@
 
 ### 构建与发布
 
-- 统一版本 `3.0.0` / `v3.0-stable`，Windows 便携与安装器入口为 `scripts/build-portable.cjs`、`scripts/build-installer.cjs`。
+- 统一版本 `3.0.1` / `v3.0.1-stable`，Windows 便携与安装器入口为 `scripts/build-portable.cjs`、`scripts/build-installer.cjs`。
 - 构建依赖由 `scripts/build-dependencies.cjs` 解析，NSIS 使用显式 `CC_UNLOCK_MAKENSIS` 或本地 `.build-tools` 编译器。
 - 源码与运行目录、会话、构建中间件及发行包分离，发布文档不声称绕过 provider safeguard 或改善未经评测的模型拒绝率。
 

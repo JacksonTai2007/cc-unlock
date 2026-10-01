@@ -4,11 +4,11 @@ $$('.nav__item').forEach(button=>button.addEventListener('click',()=>page(button
 const output=$('#console'),logLine=(kind,text)=>log(output,kind,text);
 async function overview(){
  const env=await api.detect();
- if(!real){['#tCcVer','#tDeployed','#tSkills','#tClaude'].forEach(id=>tile(id,'预览'));$('#hdrMeta').textContent='v3.0-stable · 界面预览（不执行操作）';return;}
+ if(!real){['#tCcVer','#tDeployed','#tSkills','#tClaude'].forEach(id=>tile(id,'预览'));$('#hdrMeta').textContent='v3.0.1-stable · 界面预览（不执行操作）';return;}
  tile('#tCcVer',env.ccInstalled?(env.ccVersion&&env.ccVersion!=='?'?env.ccVersion:'已检测'):'未检测',env.ccInstalled?'ok':'warn');
  tile('#tDeployed',String(env.deployedCount||0));tile('#tSkills',String(env.skillDirs||0),'','sec-forge');
  tile('#tClaude',env.claudeMd?'就绪':'缺失',env.claudeMd?'ok':'warn');
- $('#hdrMeta').textContent='v3.0-stable'+(env.ccVersion&&env.ccVersion!=='?'?' · Claude Code '+env.ccVersion:'');
+ $('#hdrMeta').textContent='v3.0.1-stable'+(env.ccVersion&&env.ccVersion!=='?'?' · Claude Code '+env.ccVersion:'');
 }
 async function paths(){const value=await api.paths();$('#pBundle').value=value.bundle||'';$('#pClaude').value=value.claudeDir||'';$('#pProjects').value=value.projects||'';}
 function render(){

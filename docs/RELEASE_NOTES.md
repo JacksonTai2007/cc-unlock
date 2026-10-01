@@ -1,6 +1,6 @@
-# v3.0-stable
+# v3.0.1-stable
 
-应用版本 `3.0.0`。Windows x64 产物：`cc-unlock-Setup-v3.0-stable.exe`。
+应用版本 `3.0.1`。Windows x64 产物：`cc-unlock-Setup-v3.0.1-stable.exe`。
 
 ## 本次变化
 

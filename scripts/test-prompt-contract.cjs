@@ -23,7 +23,7 @@ function validate(){
  const main=fs.readFileSync(path.join(root,'cc-unlock-claude/main.js'),'utf8');
  check('no modified Desktop launcher',!main.includes('desktop-host')&&!main.includes('launchCustomDesktop'));
  check('no global settings deployment',!main.includes('core.deploySettings('));
- const result={status:'PASS',kind:'v3.0-stable-prompt-contract',count:checks.length,checks,modelBehaviorExecution:'NOT_RUN'};console.log(JSON.stringify(result,null,2));return result;
+ const result={status:'PASS',kind:'v3.0.1-stable-prompt-contract',count:checks.length,checks,modelBehaviorExecution:'NOT_RUN'};console.log(JSON.stringify(result,null,2));return result;
 }
 if(require.main===module){try{validate()}catch(e){console.error(e.stack);process.exitCode=1}}
 module.exports={validate};
