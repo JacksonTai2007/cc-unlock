@@ -9,9 +9,9 @@ const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 
 const ROOT = fs.realpathSync(path.resolve(__dirname, '..'));
-const VERSION = '3.0.1';
-const LABEL = 'v3.0.1-stable';
-const PE_VERSION = '3.0.1.0';
+const VERSION = '3.0.2';
+const LABEL = 'v3.0.2-stable';
+const PE_VERSION = '3.0.2.0';
 // Keep NSIS payload paths below Win32 MAX_PATH; the sec-forge bundle has deep task trees.
 const BUILD_ROOT = path.join(ROOT, '.b');
 const RELEASE = path.join(ROOT, 'release', `cc-unlock-Setup-${LABEL}.exe`);

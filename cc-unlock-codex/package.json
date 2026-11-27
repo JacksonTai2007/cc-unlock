@@ -1,7 +1,7 @@
 {
   "name": "cc-unlock-codex",
   "productName": "cc-unlock for Codex",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "cc-unlock for codex — local maintenance workbench",
   "main": "main.js",
   "author": "JacksonTai",
